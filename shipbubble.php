@@ -32,7 +32,12 @@
 		require_once plugin_dir_path( __FILE__ ) . 'admin/wordpress/settings-page.php';
 		require_once plugin_dir_path( __FILE__ ) . 'admin/wordpress/settings-register.php';
 		require_once plugin_dir_path( __FILE__ ) . 'admin/wordpress/settings-callback.php';
+		require_once plugin_dir_path( __FILE__ ) . 'admin/wordpress/async-validate-auth.php';
 	}
+
+	require_once plugin_dir_path( __FILE__ ) . 'includes/constants.php';
+	require_once plugin_dir_path( __FILE__ ) . 'includes/shipbubble-endpoints.php';
+	require_once plugin_dir_path( __FILE__ ) . 'includes/core-methods.php';
 
 
 	// action on activation
