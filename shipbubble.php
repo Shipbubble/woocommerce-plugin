@@ -92,22 +92,364 @@
 			'shipping_price' => 'default',
 		);
 	}
-
 	
     /**
-	 * Initialize Courier List Container
-     *
-	 * @return void
+     * Check if WooCommerce is active
      */
-	add_action( 'woocommerce_after_checkout_billing_form', 'shipbubble_add_courier_methods' );
-
-    function shipbubble_add_courier_methods()
+    if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ) ) ) 
     {
-        
-        $container = '<div id="courier-section">';
-        $container .= '<div id="courier-list"></div>';
-        $container .= '</div>';
 
-        echo $container;
+        function shipbubble_shipping_service_init() 
+        {
+            if ( ! class_exists( 'WC_SHIPBUBBLE_SHIPPING_METHOD' ) )  {
+                class WC_SHIPBUBBLE_SHIPPING_METHOD extends WC_Shipping_Method 
+                {
+                    /**
+                     * Constructor for your shipping class
+                     *
+                     * @access public
+                     * @return void
+                     */
+                    public function __construct() 
+                    {
+                        $this->id                 = SHIPBUBBLE_ID; // Id for your shipping method. Should be uunique.
+                        $this->method_title       = __( 'Shipbubble' );  // Title shown in admin
+                        $this->method_description = __( 'Ship without limits ! We make e-commerce shipping quicker, easier, and more affordable.' ); // Description shown in admin
+
+                        // Define user set variables
+                        $this->enabled            = "yes"; // This can be added as an setting but for this example its forced enabled
+                        $this->title              = "Shipbubble"; // This can be added as an setting but for this example its forced.
+
+                        $this->init();
+                    }
+
+                    /**
+                     * Init your settings
+                     *
+                     * @access public
+                     * @return void
+                     */
+                    public function init() 
+                    {
+                        // Load the settings API
+                        $this->init_form_fields(); // This is part of the settings API. Override the method to add your own settings
+                        $this->init_settings(); // This is part of the settings API. Loads settings you previously init.
+
+                        // Save settings in admin if you have any defined
+                        add_action( 'woocommerce_update_options_shipping_' . $this->id, array( $this, 'process_admin_options' ) );
+                    }
+
+                    public function init_form_fields()
+                    {
+                        $countryObject = WC()->countries;
+                        $country_state = explode(':', get_option( 'woocommerce_default_country' ));
+                        $streetAddress = trim(get_option( 'woocommerce_store_address' ));
+                        
+                        if ($streetAddress != $this->get_option('pickup_address')) 
+                        {
+                            $address = $streetAddress . ' ' . get_option('woocommerce_store_city') . ' ' . $countryObject->states[ $country_state[0] ][ $country_state[1] ] . ' ' . $countryObject->countries[$country_state[0]];
+
+                            $name = $this->get_option( 'store_name' );
+                            $phone = $this->get_option( 'store_phone' );
+                            $email = get_option('admin_email');
+                            
+                            $response = shipbubble_validate_address($name, $email, $phone, $address);
+                            
+                            if ($response->status == 'success') 
+                            {
+                                $this->update_option('pickup_address', $streetAddress);
+                                $this->update_option('address_code', $response->data->address_code);
+                            } else {
+                                $output = '<div id="message" class="updated woocommerce-message">
+                                    <a class="woocommerce-message-close notice-dismiss" href="/flagcommerce/wp-admin/admin.php?page=wc-settings&amp;tab=shipping&amp;section=shipbubble_shipping_services&amp;wc-hide-notice=no_secure_connection&amp;_wc_notice_nonce=0fda8979b4">Dismiss</a>
+                                
+                                    <p>' . $response->message . 'to generate address code. <br>
+                                    </p>
+                                </div>';
+                                echo $output;
+                            }
+                        }
+                        
+                        $courier_options = shipbubble_courier_options();
+                        $this->form_fields = array(
+                            'store_name' => array(
+                                'title'         => __( 'Store Sender Name', 'woocommerce' ),
+                                'type'             => 'text',
+                                'description'     => __( 'This is the first and last name of the store sender.', 'woocommerce' ),
+                                'placeholder'        => __( 'Store Sender Name', 'woocommerce' ),
+                            ),
+                            'store_phone' => array(
+                                'title'         => __( 'Store Phone', 'woocommerce' ),
+                                'type'             => 'text',
+                                'description'     => __( 'This is the phone number of the store.', 'woocommerce' ),
+                            ),
+                            'pickup_address' => array(
+                                'title'         => __( 'Pickup Address', 'woocommerce' ),
+                                'type'             => 'text',
+                                'description'     => __( 'This is the address setup for pickup.', 'woocommerce' ),
+                                'default'        => __( '', 'woocommerce' ),
+                                'custom_attributes' => array('readonly' => 'readonly')
+                            ),
+                            'address_code' => array(
+                                'title'         => __( 'Address Code', 'woocommerce' ),
+                                'type'             => 'text',
+                                'description'     => __( 'This is the address code setup for pickup (66502255).', 'woocommerce' ),
+                                'default'        => __( '0', 'woocommerce' ),
+                                'custom_attributes' => array('readonly' => 'readonly')
+                            ),
+                            'extra_charges' => array(
+                                'title'         => __( 'Custom Shipping Extra Charges', 'woocommerce' ),
+                                'type'             => 'number',
+                                'description'     => __( 'This controls adds a fee to any logistics selected.', 'woocommerce' ),
+                                'default'        => __( '0', 'woocommerce' ),
+                                'custom_attributes' => array('step' => '0.01', 'min' => '0')
+                            ),
+                            'shipping_price' => array(
+                                'title'         => __( 'Shipping Price', 'woocommerce' ),
+                                'type'             => 'select',
+                                'description'     => __( 'Shipbubble Courier Price Types.', 'woocommerce' ),
+                                'options' => array('default' => 'Default', 'fastest' => 'Fastest', 'cheapest' => 'Cheapest'),
+                                'default'        => __( 'default', 'woocommerce' ),
+                            ),
+                            'courier_list' => array(
+                                'title'         => __( 'Courier List', 'woocommerce' ),
+                                'type'             => 'multiselect',
+                                'description'     => __( 'Onboarded Courier List.', 'woocommerce' ),
+                                'options' => $courier_options,
+                                'default'        => __( 'all', 'woocommerce' ),
+                            ),
+                        );
+                        
+                    }
+
+                    /**
+                     * calculate_shipping function.
+                     *
+                     * @access public
+                     * @param array $package optional – multi-dimensional array of cart items to calc shipping for.
+                     * @return void
+                     */
+                    public function calculate_shipping( $package = array() ) 
+                    {
+                        // This is where you'll add your rates
+                        $rate = array(
+                            'id'     => $this->id,
+                            'label' => $this->title,
+                            'cost' => '5000',
+                            // 'calc_tax' => 'per_item'
+                        );
+                        // This will add custom cost to shipping method 
+
+                        // Register the rate
+                        $this->add_rate( $rate );
+                    }
+                }
+            }
+        }
+
+        add_action( 'woocommerce_shipping_init', 'shipbubble_shipping_service_init' );
+
+        function shipbubble_couriers_methods( $methods ) 
+        {
+            $methods['shipbubble_shipping_services'] = 'WC_SHIPBUBBLE_SHIPPING_METHOD';
+            return $methods;
+        }
+
+        add_filter( 'woocommerce_shipping_methods', 'shipbubble_couriers_methods' );
     }
 
+	add_action( 'woocommerce_before_checkout_billing_form', 'shipbubble_echo_notice_shipping' );
+	function shipbubble_echo_notice_shipping() 
+	{
+		echo '<div class="shipping-notice woocommerce-error" style="display:none">
+			Ensure that you have filled your First & Last Name, Address, City, State and Country.
+		</div>';
+	}
+
+
+	add_action( 'woocommerce_after_checkout_billing_form', 'shipbubble_courier_list_container' );
+	function shipbubble_courier_list_container()
+	{
+		
+		$container = '<div id="courier-section">';
+		$container .= '<div id="courier-list"></div>';
+		$container .= '</div>';
+
+		echo $container;
+	}
+
+	add_action( 'wp_footer', 'shipbubble_courier_setup_on_change' );
+	function shipbubble_courier_setup_on_change() 
+	{
+		if ( is_checkout() ) {
+			?>
+
+			<script type="text/javascript">
+				jQuery( document ).ready(
+					function($) {
+
+						$('#courier-section').click(function() {
+
+							const courier_radio_btn = $('input[name="delivery_option"]');
+							courier_radio_btn.change(function() {
+								if (courier_radio_btn.is(':checked')) {
+									const checked_courier = $('input[name="delivery_option"]:checked');
+									const courier_name = checked_courier.attr('data-courier_name');
+									const total = checked_courier.attr('data-cost');
+									const courier_id = checked_courier.attr('data-courier_id');
+									const service_code = checked_courier.attr('data-service_code');
+		
+									$('#shipbubble_selected_courier').val( courier_name );
+									$('#shipbubble_cost').val( total );
+									$('#shipbubble_service_code').val( service_code );
+									$('#shipbubble_courier_id').val( courier_id );
+		
+									jQuery('body').trigger('update_checkout');
+		
+								}
+							});
+						});
+
+					}
+				);
+			</script>
+
+			<?php
+		}
+	}
+
+	add_filter( 'woocommerce_package_rates', 'shipbubble_change_rates', 100, 2 );
+	function shipbubble_change_rates( $rates, $packages ) 
+	{
+		if ( ! $_POST || ( is_admin() && ! is_ajax() ) ) {
+			return;
+		}
+
+		if ( isset( $_POST['post_data'] ) ) {
+			parse_str( $_POST['post_data'], $post_data );
+		} else {
+			$post_data = $_POST;
+		}
+
+		// $customer = WC()->customer;
+		
+		// error_log(print_r($packages, true));
+
+		// if (empty($packages['destination']['address']) ) {
+			foreach( $rates as $rate_key => $rate ) {
+				if ( SHIPBUBBLE_ID != $rate->method_id ) {
+					unset( $rates[$rate_key] );
+				}
+			}
+		// }
+
+		if ( isset( $post_data['delivery_option'] ) ) {
+			foreach( $rates as $rate_key => $rate ) {
+				if ( SHIPBUBBLE_ID === $rate->method_id ) {
+					// set rate cost
+					if (!empty($post_data['shipbubble_selected_courier']) && strlen($post_data['shipbubble_selected_courier'])) {
+						$rates[$rate_key]->label = $post_data['shipbubble_selected_courier'];
+					}
+					$rates[$rate_key]->cost = $post_data['shipbubble_cost'];
+				}
+			}
+		} else {
+			foreach( $rates as $rate_key => $rate ){
+				unset($rates[$rate_key]); // Remove
+			}
+		}
+		return $rates;
+	}
+
+	function lab_pacakge_cost() 
+	{
+		
+		global $woocommerce;
+		
+		// $flat_fee    = get_option( 'techiepress_vat_pricing_flat_fee' );
+		// $dynamic_fee = get_option( 'techiepress_vat_pricing_dynamic_fee' );
+		
+		if ( ! $_POST || ( is_admin() && ! is_ajax() ) ) {
+			return;
+		}
+		
+		if ( isset( $_POST['post_data'] ) ) {
+			parse_str( $_POST['post_data'], $post_data );
+		} else {
+			$post_data = $_POST;
+		}
+		
+		if ( isset( $post_data['techiepress_vat_cancel'] ) ) {
+
+			// WC()->cart->calculate_shipping();
+			$taxable = 250 + ( $woocommerce->cart->cart_contents_total * 1 );
+			
+			$woocommerce->cart->add_fee( __( 'VAT', 'om-service-widget' ), $taxable );
+		}
+		
+		return;
+		
+	}
+	add_action( 'woocommerce_cart_calculate_fees', 'lab_pacakge_cost');
+
+
+	add_action( 'woocommerce_checkout_update_order_review', 'shipbubble_checkout_update_order_review');
+	function shipbubble_checkout_update_order_review($posted_data)
+	{
+		global $woocommerce;
+
+		$packages = $woocommerce->cart->get_shipping_packages();
+		foreach ($packages as $package_key => $package) {
+			$session_key = 'shipping_for_package_' . $package_key;
+
+			// Clears the session
+			// Woocommerce would recalculate and recall your calculate_shipping() function
+			$stored_rates = WC()->session->__unset($session_key);
+		}
+		
+	}
+	
+
+	// Disable Shipping methods if not in checkout page
+	add_filter( 'woocommerce_package_rates', 'keep_shipping_methods_on_checkout', 100, 2 );
+	function keep_shipping_methods_on_checkout( $rates, $package ) {
+		if ( ! is_checkout() ) {
+			// Loop through shipping methods rates
+			foreach( $rates as $rate_key => $rate ){
+				unset($rates[$rate_key]); // Remove
+			}
+		}
+		return $rates;
+	}
+
+	// Shipping packages
+	add_filter( 'woocommerce_shipping_packages', 'keep_shipping_packages_on_checkout', 20, 1 );
+	add_filter( 'woocommerce_cart_shipping_packages', 'keep_shipping_packages_on_checkout', 20, 1 );
+	function keep_shipping_packages_on_checkout( $packages ) {
+		if ( ! is_checkout() ) {
+			foreach( $packages as $key => $package ) {
+				WC()->session->__unset('shipping_for_package_'. $key); // Remove
+				unset($packages[$key]); // Remove
+			}
+		}
+		return $packages;
+	}
+
+	// prevent proceed to order if shipping method has not been selected
+	add_filter('woocommerce_order_button_html', 'disable_place_order_button_html' );
+	function disable_place_order_button_html( $button ) {
+		// HERE define your targeted shipping method id
+		$targeted_shipping_method = "flat_rate:14";
+
+		// Get the chosen shipping method (if it exist)
+		$chosen_shipping_methods = WC()->session->get('chosen_shipping_methods');
+		
+		// If the targeted shipping method is selected, we disable the button
+		if( in_array( $targeted_shipping_method, $chosen_shipping_methods ) ) {
+			$style  = 'style="background:Silver !important; color:white !important; cursor: not-allowed !important; text-align:center;"';
+			$text   = apply_filters( 'woocommerce_order_button_text', __( 'Place order', 'woocommerce' ) );
+			$button = '<a class="button" '.$style.'>' . $text . '</a>';
+		}
+		return $button;
+	}
+		

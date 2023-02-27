@@ -52,6 +52,8 @@
                 $data['address']
             );
 
+            WC()->session->__unset( 'chosen_shipping_methods' );
+
             // successful
             if (strtolower($addressResponse->status) === 'success') {
                 $products = shipbubble_get_checkout_orders();
