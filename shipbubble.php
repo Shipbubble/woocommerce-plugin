@@ -34,6 +34,36 @@
 		require_once plugin_dir_path( __FILE__ ) . 'admin/wordpress/settings-callback.php';
 	}
 
+
+	// action on activation
+	function shipbubble_on_activation() 
+	{
+		if ( ! current_user_can( 'activate_plugins' ) ) return;
+
+		if (get_option('shipbubble_init')) {
+			$data = array('initialized' => true, 'account_status' => false);
+			update_option( 'shipbubble_init', $data );
+		} else {
+			$data = array('initialized' => true, 'account_status' => false);
+			add_option( 'shipbubble_init', $data );
+		}
+
+	}
+
+	register_activation_hook( __FILE__, 'shipbubble_on_activation' );
+
+
+	// action on deactivation
+	function shipbubble_on_deactivation() 
+	{
+		if ( ! current_user_can( 'activate_plugins' ) ) return;
+		
+		$data = array('initialized' => false, 'account_status' => false);
+		update_option( 'shipbubble_init', $data );
+	}
+
+	register_deactivation_hook( __FILE__, 'shipbubble_on_deactivation' );
+
 	// default plugin options
 	function shipbubble_options_default() 
 	{
