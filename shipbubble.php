@@ -38,9 +38,13 @@
 		require_once plugin_dir_path( __FILE__ ) . 'admin/woocommerce/shipping-settings.php';
 	}
 
+	// includes
 	require_once plugin_dir_path( __FILE__ ) . 'includes/constants.php';
 	require_once plugin_dir_path( __FILE__ ) . 'includes/endpoints.php';
 	require_once plugin_dir_path( __FILE__ ) . 'includes/core-methods.php';
+
+	// public
+	require_once plugin_dir_path( __FILE__ ) . 'public/async-checkout-couriers.php';
 
 
 	// action on activation
@@ -73,10 +77,37 @@
 	register_deactivation_hook( __FILE__, 'shipbubble_on_deactivation' );
 
 	// default plugin options
-	function shipbubble_options_default() 
+	function shipbubble_options_default(): array 
 	{
 		return array(
 			'shipbubble_api_key'     	=> '',
 		);
 	}
+
+	function shipbubble_wc_options_default(): array 
+	{
+		return array(
+			'extra_charges' => '0',
+			'courier_list' =>  array('all'),
+			'shipping_price' => 'default',
+		);
+	}
+
+	
+    /**
+	 * Initialize Courier List Container
+     *
+	 * @return void
+     */
+	add_action( 'woocommerce_after_checkout_billing_form', 'shipbubble_add_courier_methods' );
+
+    function shipbubble_add_courier_methods()
+    {
+        
+        $container = '<div id="courier-section">';
+        $container .= '<div id="courier-list"></div>';
+        $container .= '</div>';
+
+        echo $container;
+    }
 
