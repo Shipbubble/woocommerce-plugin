@@ -18,3 +18,20 @@
             )
         );
     }
+
+    function shipbubble_courier_options() 
+    {
+        $body = array(
+            'all' => 'All'
+        );
+        
+        $response = shipbubble_get_couriers();
+        if ($response->status == 'success') 
+        {
+            foreach ($response->data as $courier) {
+                $body[$courier->service_code] = $courier->name;
+            }
+        }
+        return $body;
+        
+    }

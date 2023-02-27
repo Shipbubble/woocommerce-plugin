@@ -33,10 +33,13 @@
 		require_once plugin_dir_path( __FILE__ ) . 'admin/wordpress/settings-register.php';
 		require_once plugin_dir_path( __FILE__ ) . 'admin/wordpress/settings-callback.php';
 		require_once plugin_dir_path( __FILE__ ) . 'admin/wordpress/async-validate-auth.php';
+		
+		// Woocommerce
+		require_once plugin_dir_path( __FILE__ ) . 'admin/woocommerce/shipping-settings.php';
 	}
 
 	require_once plugin_dir_path( __FILE__ ) . 'includes/constants.php';
-	require_once plugin_dir_path( __FILE__ ) . 'includes/shipbubble-endpoints.php';
+	require_once plugin_dir_path( __FILE__ ) . 'includes/endpoints.php';
 	require_once plugin_dir_path( __FILE__ ) . 'includes/core-methods.php';
 
 
