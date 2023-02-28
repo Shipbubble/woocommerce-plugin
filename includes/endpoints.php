@@ -144,17 +144,17 @@
 
         $url = SHIPBUBBLE_BASE_URL . '/fetch_rates';
 
-        // if (!array_search('all', $courier_list)) {
-        //     $service_codes = implode(',', $courier_list);
-        //     $url = SHIPBUBBLE_BASE_URL . '/fetch_rates/' . $service_codes;
-        // }
+        if (!array_search('all', $courier_list)) {
+            $service_codes = implode(',', $courier_list);
+            $url = SHIPBUBBLE_BASE_URL . '/fetch_rates/' . $service_codes;
+        }
 
         $url = esc_url_raw( $url );
 
         // get API key from options
         $token = shipbubble_get_token();
 
-        // $body = shipbubble_base_response(); // default response
+        $body = shipbubble_base_response(); // default response
 
         $args = array( 
             'headers' => array(
@@ -192,6 +192,49 @@
             ],
             'service_type' => 'pickup',
             'delivery_instructions' => 'n/a'
+        ];
+
+        // return json_decode(json_encode($payload));
+
+        // pass payload
+        $args['body'] = $payload;
+
+        // call endpoint
+        $response = wp_safe_remote_post( $url, $args );
+
+        // response data
+        $data = wp_remote_retrieve_body( $response );
+
+        if (isset($data)) {
+            $body = $data;
+        }
+
+        // output data
+        return json_decode($body);
+    }
+
+    function shipbubble_create_shipment($shipmentPayload)
+    {
+        $url = SHIPBUBBLE_BASE_URL . '/labels';
+
+        $url = esc_url_raw( $url );
+
+        // get API key from options
+        $token = shipbubble_get_token();
+
+        $body = shipbubble_base_response(); // default response
+
+        $args = array( 
+            'headers' => array(
+                'Authorization' => 'Bearer ' . $token,
+            ),
+        );
+
+        $payload = [
+            'request_token' => '511c4ed7da7e5c6f8094fef0f6c93099a5ce6d02b4b5ca99f1345d39534c382d',
+            // 'request_token' => $shipmentPayload['request_token'],
+            'service_code' => $shipmentPayload['service_code'],
+            'courier_id' => $shipmentPayload['courier_id'],
         ];
 
         // return json_decode(json_encode($payload));

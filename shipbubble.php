@@ -35,7 +35,8 @@
 		require_once plugin_dir_path( __FILE__ ) . 'admin/wordpress/async-validate-auth.php';
 		
 		// Woocommerce
-		require_once plugin_dir_path( __FILE__ ) . 'admin/woocommerce/shipping-settings.php';
+		// require_once plugin_dir_path( __FILE__ ) . 'admin/woocommerce/shipping-settings.php';
+		require_once plugin_dir_path( __FILE__ ) . 'admin/woocommerce/async-create-shipment.php';
 	}
 
 	// includes
@@ -258,22 +259,17 @@
         add_filter( 'woocommerce_shipping_methods', 'shipbubble_couriers_methods' );
     }
 
-	add_action( 'woocommerce_before_checkout_billing_form', 'shipbubble_echo_notice_shipping' );
-	function shipbubble_echo_notice_shipping() 
-	{
-		echo '<div class="shipping-notice woocommerce-error" style="display:none">
-			Ensure that you have filled your First & Last Name, Address, City, State and Country.
-		</div>';
-	}
-
-
 	add_action( 'woocommerce_after_checkout_billing_form', 'shipbubble_courier_list_container' );
 	function shipbubble_courier_list_container()
 	{
-		
-		$container = '<div id="courier-section">';
-		$container .= '<div id="courier-list"></div>';
-		$container .= '</div>';
+		$container = '
+			<div id="courier-section">
+				<div id="courier-list"></div>
+				<input type="hidden" id="shipbubble_shipment_details" name="shipbubble_shipment_details" value="">
+				<input type="hidden" id="shipbubble_selected_courier" name="shipbubble_selected_courier" value="">
+				<input type="hidden" id="shipbubble_cost" name="shipbubble_cost" value="">
+			</div>
+		';
 
 		echo $container;
 	}
@@ -293,16 +289,27 @@
 							const courier_radio_btn = $('input[name="delivery_option"]');
 							courier_radio_btn.change(function() {
 								if (courier_radio_btn.is(':checked')) {
-									const checked_courier = $('input[name="delivery_option"]:checked');
+									const checked_courier = $('input[type="radio"][name="delivery_option"]:checked');
 									const courier_name = checked_courier.attr('data-courier_name');
 									const total = checked_courier.attr('data-cost');
 									const courier_id = checked_courier.attr('data-courier_id');
 									const service_code = checked_courier.attr('data-service_code');
+
+									console.log('value is s ', checked_courier.attr('data-request_token'));
+
+									const shipment = {
+										request_token: checked_courier.attr('data-request_token'),
+										shipment_cost: total,
+										courier_id,
+										courier_name,
+										service_code,
+									};
 		
+									$('#shipbubble_shipment_details').val( JSON.stringify(shipment) );
 									$('#shipbubble_selected_courier').val( courier_name );
 									$('#shipbubble_cost').val( total );
-									$('#shipbubble_service_code').val( service_code );
-									$('#shipbubble_courier_id').val( courier_id );
+									// $('#shipbubble_service_code').val( service_code );
+									// $('#shipbubble_courier_id').val( courier_id );
 		
 									jQuery('body').trigger('update_checkout');
 		
@@ -321,10 +328,6 @@
 	add_filter( 'woocommerce_package_rates', 'shipbubble_change_rates', 100, 2 );
 	function shipbubble_change_rates( $rates, $packages ) 
 	{
-		if ( ! $_POST || ( is_admin() && ! is_ajax() ) ) {
-			return;
-		}
-
 		if ( isset( $_POST['post_data'] ) ) {
 			parse_str( $_POST['post_data'], $post_data );
 		} else {
@@ -336,16 +339,16 @@
 		// error_log(print_r($packages, true));
 
 		// if (empty($packages['destination']['address']) ) {
-			foreach( $rates as $rate_key => $rate ) {
-				if ( SHIPBUBBLE_ID != $rate->method_id ) {
-					unset( $rates[$rate_key] );
-				}
-			}
+		// 	foreach( $rates as $rate_key => $rate ) {
+		// 		if ( 'shipbubble_shipping_services' === $rate->method_id ) {
+		// 			unset( $rates[$rate_key] );
+		// 		}
+		// 	}
 		// }
 
 		if ( isset( $post_data['delivery_option'] ) ) {
 			foreach( $rates as $rate_key => $rate ) {
-				if ( SHIPBUBBLE_ID === $rate->method_id ) {
+				if ( 'shipbubble_shipping_services' === $rate->method_id ) {
 					// set rate cost
 					if (!empty($post_data['shipbubble_selected_courier']) && strlen($post_data['shipbubble_selected_courier'])) {
 						$rates[$rate_key]->label = $post_data['shipbubble_selected_courier'];
@@ -393,6 +396,7 @@
 	add_action( 'woocommerce_cart_calculate_fees', 'lab_pacakge_cost');
 
 
+	// new 
 	add_action( 'woocommerce_checkout_update_order_review', 'shipbubble_checkout_update_order_review');
 	function shipbubble_checkout_update_order_review($posted_data)
 	{
@@ -401,14 +405,23 @@
 		$packages = $woocommerce->cart->get_shipping_packages();
 		foreach ($packages as $package_key => $package) {
 			$session_key = 'shipping_for_package_' . $package_key;
-
+			
 			// Clears the session
 			// Woocommerce would recalculate and recall your calculate_shipping() function
 			$stored_rates = WC()->session->__unset($session_key);
 		}
 		
 	}
+
+
+	/**
+	 * Trial & Error
+	 */
+	add_action( 'woocommerce_before_checkout_billing_form', 'shipbubble_echo_notice_shipping' );
 	
+	function shipbubble_echo_notice_shipping() {
+	echo '<div class="shipping-notice woocommerce-error" style="display:none">Ensure that you have filled your First & Last Name, Address, City, State and Country.</div>';
+	}
 
 	// Disable Shipping methods if not in checkout page
 	add_filter( 'woocommerce_package_rates', 'keep_shipping_methods_on_checkout', 100, 2 );
@@ -452,4 +465,72 @@
 		}
 		return $button;
 	}
+
+	/**
+	 * for orders
+	 */
 		
+	 add_action('woocommerce_admin_order_data_after_order_details', 'my_custom_order_manipulation_function');
+	 
+	 function my_custom_order_manipulation_function( $orderID ) {
+
+		// var_dump($orderID);
+		// die;
+		
+		echo '<p>bacon</p>';
+		//dynamic functionalities / static html to display
+	}
+	
+	add_action( 'woocommerce_before_save_order_items', 'so42270384_woocommerce_before_save_order_items', 10, 2 );
+	function so42270384_woocommerce_before_save_order_items( $order_id, $items ) {
+		echo $order_id;
+		var_dump( $items );
+	}
+
+	// add_action( 'woocommerce_after_order_itemmeta', 'so_32457241_before_order_itemmeta', 10, 3 );
+	// function so_32457241_before_order_itemmeta( $item_id, $item, $_product ){
+		// var_dump($item);
+		// var_dump($_product);
+	// 	echo '<p>lambast</p>';
+	// }
+
+	add_action( 'woocommerce_checkout_update_order_meta', 'shipbubble_checkout_update_order_meta', 10, 1 );
+	function shipbubble_checkout_update_order_meta( $order_id ) 
+	{
+
+		if( isset( $_POST['shipbubble_shipment_details'] ) || ! empty( $_POST['shipbubble_shipment_details'] ) ) {
+		   update_post_meta( $order_id, 'shipbubble_shipment_details', $_POST['shipbubble_shipment_details'] );
+
+		   update_post_meta( $order_id, 'shipbubble_order_id', '' );
+		}
+
+	}
+
+	add_action( 'woocommerce_admin_order_data_after_billing_address', 'shibubble_order_data_after_billing_address', 10, 1 );
+	function shibubble_order_data_after_billing_address( $order ) 
+	{
+		// date_created
+		$shipbubbleOrderId = get_post_meta( $order->get_id(), 'shipbubble_order_id', true );
+		$shipment = get_post_meta( $order->get_id(), 'shipbubble_shipment_details' )[0];
+		
+		$today = new DateTime('now');
+		$orderDate = new DateTime( $order->date_created );
+		$interval = $orderDate->diff($today);
+
+		// update_post_meta( $order->get_id(), 'shipbubble_order_id', 'helloworld' );
+		
+		// echo $interval->h;
+		// die;
+		// echo '<p><strong>' . __( 'Shipment JSON:', SHIPBUBBLE_ID ) . '</strong><br>' . get_post_meta( $order->get_id(), 'shipbubble_shipment_details', true ) . '</p>';
+		?>
+			<?php if( strlen($shipbubbleOrderId) > 0 && $interval->h <= 48): ?>
+			<?php endif; ?>
+				
+				<input type="hidden" id="wc_order_id" name="wc_order_id" value='<?= $order->get_id(); ?>' />
+				<input type="hidden" id="shipment_details" name="shipment_details" value='<?= $shipment; ?>' />
+			<button id="create-shipment" style="background-color: #FF5170; color: #FFF; padding: 4px 16px; border: 1px solid #FF5170; border-radius: 3px; cursor: pointer;">
+				Create Shipment
+			</button>
+
+		<?php
+	}

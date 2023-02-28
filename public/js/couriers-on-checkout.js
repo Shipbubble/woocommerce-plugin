@@ -26,7 +26,7 @@
                 phone,
                 address: streetAddress + ', ' + city + ', ' + selectedState + ', ' + selectedCountry,
             }
-            validate_shipbubble_receiver_address(addressPayload);
+            fetch_shipping_rates(addressPayload);
         } else {
             $('.shipping-notice').show();
         }
@@ -95,7 +95,7 @@
                     if (response['status'] == 'success') {
                         let output = response['data'];
                         // display data
-                        console.log(output);
+                        console.log('token ==> ', output.request_token);
                         // var section = $("#courier-section");
 
                         
@@ -106,14 +106,14 @@
                             
                             let total = parseFloat(value.total) + parseFloat(output.extra_charges);
 
-                            list.append(`<p><input type="radio" name="delivery_option" data-courier_name="${value.courier_name}" data-cost="${total}" data-service_code="${value.service_code}" data-courier_id="${value.courier_id}" value="${value.request_token}" required /> ${value.currency}${total} ${value.courier_name} </p>`);
+                            list.append(`<p><input type="radio" name="delivery_option" data-request_token="${output.request_token}" data-courier_name="${value.courier_name}" data-cost="${total}" data-service_code="${value.service_code}" data-courier_id="${value.courier_id}" required /> ${value.currency}${total} ${value.courier_name} </p>`);
                         });
 
                         // dynamically add hidden form fields
-                        section.append(`<input type="hidden" id="shipbubble_selected_courier" name="shipbubble_selected_courier" value="">`);
-                        section.append(`<input type="hidden" id="shipbubble_cost" name="shipbubble_cost" value="">`);
-                        section.append(`<input type="hidden" id="shipbubble_service_code" name="shipbubble_service_code" value="">`);
-                        section.append(`<input type="hidden" id="shipbubble_courier_id" name="shipbubble_courier_id" value="">`);
+                        // section.append(`<input type="hidden" id="shipbubble_selected_courier" name="shipbubble_selected_courier" value="">`);
+                        // section.append(`<input type="hidden" id="shipbubble_cost" name="shipbubble_cost" value="">`);
+                        // section.append(`<input type="hidden" id="shipbubble_service_code" name="shipbubble_service_code" value="">`);
+                        // section.append(`<input type="hidden" id="shipbubble_courier_id" name="shipbubble_courier_id" value="">`);
                     } else {
                         console.log(response['data']);
 
