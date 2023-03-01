@@ -136,17 +136,22 @@
     }
 
     
-    function shipbubble_get_shipping_rates(string $addressCode, array $products)
+    function shipbubble_get_shipping_rates(string $addressCode, array $products, $serviceCodes = array())
     {
         $options = get_option( WC_SHIPBUBBLE_ID, shipbubble_wc_options_default() );
 
         $courier_list = isset( $options['courier_list'] ) ? $options['courier_list'] : array('all');
 
-        $url = SHIPBUBBLE_BASE_URL . '/fetch_rates';
+        $serviceCodesFormat = '';
 
-        if (!array_search('all', $courier_list)) {
-            $service_codes = implode(',', $courier_list);
-            $url = SHIPBUBBLE_BASE_URL . '/fetch_rates/' . $service_codes;
+        $url = SHIPBUBBLE_BASE_URL . '/fetch_rates';
+        
+        if (count($serviceCodes)) {
+            $serviceCodesFormat = implode(',', $serviceCodes);
+            $url = SHIPBUBBLE_BASE_URL . '/fetch_rates/' . $serviceCodesFormat;
+        } elseif (!array_search('all', $courier_list)) {
+            $serviceCodesFormat = implode(',', $courier_list);
+            $url = SHIPBUBBLE_BASE_URL . '/fetch_rates/' . $serviceCodesFormat;
         }
 
         $url = esc_url_raw( $url );
@@ -230,12 +235,11 @@
             ),
         );
 
-        $payload = [
-            'request_token' => '511c4ed7da7e5c6f8094fef0f6c93099a5ce6d02b4b5ca99f1345d39534c382d',
-            // 'request_token' => $shipmentPayload['request_token'],
+        $payload = array(
+            'request_token' => $shipmentPayload['request_token'],
             'service_code' => $shipmentPayload['service_code'],
             'courier_id' => $shipmentPayload['courier_id'],
-        ];
+        );
 
         // return json_decode(json_encode($payload));
 

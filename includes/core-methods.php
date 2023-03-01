@@ -117,7 +117,7 @@
         );
     }
 
-    function shipbubble_process_shipping_rates($addressCode, $products)
+    function shipbubble_process_shipping_rates($addressCode, $products, $serviceCodes = array())
     {
         $options = get_option( WC_SHIPBUBBLE_ID, shipbubble_wc_options_default() );
 
@@ -127,7 +127,10 @@
 
         $rates = array();
 
-        $response = shipbubble_get_shipping_rates($addressCode, $products);
+        $response = shipbubble_get_shipping_rates($addressCode, $products, $serviceCodes);
+
+        // echo '<pre>' . var_export($response, true) . '</pre>';
+        // die;
 
         // return $response;
 
@@ -161,5 +164,78 @@
             }
         }
 
+        return $rates;
+    }
+
+    function shipbubble_regenerate_rate_token($order, $serviceCodes)
+    {
+        $countryObject = WC()->countries;
+
+		$name = $order->data['shipping']['first_name'] . ' ' . $order->data['shipping']['last_name'];
+		$address = $order->data['shipping']['address_1'] . ' ' . $order->data['shipping']['city'] . ' ' . $countryObject->states[ $order->data['shipping']['country'] ][ $order->data['shipping']['state'] ] . ' ' . $countryObject->countries[ $order->data['shipping']['country'] ];
+
+        // Initialize Shipping Address Array
+		$shipping = array(
+			'name' => $name,
+			'address' => $address,
+			'phone' => $order->data['billing']['phone'],
+			'email' => $order->data['billing']['email'],
+        );
+        
+        // Generate Address Code
+        $addressResponse = shipbubble_validate_address(
+            $shipping['name'], 
+			$shipping['email'], 
+			$shipping['phone'], 
+			$shipping['address']
+		);
+        
+        $rates = array();
+
+        // if successful
+		if (strtolower($addressResponse->status) === 'success') {
+			// $products = shipbubble_get_checkout_orders();
+			$addressCode = $addressResponse->data->address_code;
+
+            $items = array();
+            $items['total'] = 0;
+            $i = 0;
+
+            // Set up Orders
+            foreach ($order->get_items() as $key => $value) {
+                $product = wc_get_product( $value['product_id'] );
+
+                $items['total'] += $product->get_price();
+
+                $weight = empty($product->get_weight()) ? 0 : $product->get_weight();
+
+                $items['data'][$i]['quantity'] = $value['quantity'];
+                $items['data'][$i]['price'] = $product->get_price();
+                $items['data'][$i]['type'] = $product->get_type();
+                $items['data'][$i]['name'] = $product->get_name();
+                $items['data'][$i]['weight'] = $weight;
+                $items['data'][$i]['length'] = $product->get_length();
+                $items['data'][$i]['width'] = $product->get_width();
+                $items['data'][$i]['height'] = $product->get_height();
+                $items['data'][$i]['description'] = empty($product->get_short_description()) ? 'n/a' : $product->get_short_description();
+
+                $i++;
+            }
+			
+            // Fetch Shipping rate for service code
+			$response = shipbubble_process_shipping_rates($addressCode, $items, $serviceCodes);
+            
+			if (count($response) > 0) {
+                $rates['request_token'] = $response['request_token'];
+                $rates['service_code'] = $response['couriers'][0]->service_code;
+                $rates['courier_id'] = $response['couriers'][0]->courier_id;
+                $rates['courier_name'] = $response['couriers'][0]->courier_name;
+                $rates['shipment_cost'] = $response['couriers'][0]->total;
+			}
+		}
+        
+        // echo '<pre>' . var_export($rates, true) . '</pre>';
+        // die;
+        
         return $rates;
     }

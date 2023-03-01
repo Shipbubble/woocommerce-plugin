@@ -470,22 +470,22 @@
 	 * for orders
 	 */
 		
-	 add_action('woocommerce_admin_order_data_after_order_details', 'my_custom_order_manipulation_function');
+	//  add_action('woocommerce_admin_order_data_after_order_details', 'my_custom_order_manipulation_function');
 	 
-	 function my_custom_order_manipulation_function( $orderID ) {
+	//  function my_custom_order_manipulation_function( $orderID ) {
 
 		// var_dump($orderID);
 		// die;
 		
-		echo '<p>bacon</p>';
-		//dynamic functionalities / static html to display
-	}
+	// 	echo '<p>bacon</p>';
+	// }
 	
-	add_action( 'woocommerce_before_save_order_items', 'so42270384_woocommerce_before_save_order_items', 10, 2 );
-	function so42270384_woocommerce_before_save_order_items( $order_id, $items ) {
-		echo $order_id;
-		var_dump( $items );
-	}
+	// add_action( 'woocommerce_before_save_order_items', 'so42270384_woocommerce_before_save_order_items', 10, 2 );
+	// function so42270384_woocommerce_before_save_order_items( $order_id, $items ) {
+	// 	echo $order_id;
+	// 	var_dump( $items );
+		// die;
+	// }
 
 	// add_action( 'woocommerce_after_order_itemmeta', 'so_32457241_before_order_itemmeta', 10, 3 );
 	// function so_32457241_before_order_itemmeta( $item_id, $item, $_product ){
@@ -509,28 +509,44 @@
 	add_action( 'woocommerce_admin_order_data_after_billing_address', 'shibubble_order_data_after_billing_address', 10, 1 );
 	function shibubble_order_data_after_billing_address( $order ) 
 	{
-		// date_created
+		// echo '<pre> ' . var_export($order->data['shipping'], true) . '</pre>';
+		// die;
+		// echo '<pre>' . var_export(wc_get_product( $order->get_items()[9]['product_id'] ), true) . '</pre>';
+		// echo '<pre> ' . var_export(json_decode($shipment)->service_code, true) . '</pre>';
+		// die;
+
 		$shipbubbleOrderId = get_post_meta( $order->get_id(), 'shipbubble_order_id', true );
 		$shipment = get_post_meta( $order->get_id(), 'shipbubble_shipment_details' )[0];
+
+		// $serviceCode = array( 'speedaf-express' ); // test
+		$serviceCode = array( json_decode($shipment)->service_code ); // prod
 		
+		// Check date meets 48hr mark
 		$today = new DateTime('now');
 		$orderDate = new DateTime( $order->date_created );
 		$interval = $orderDate->diff($today);
 
+		if( strlen($shipbubbleOrderId) < 1 && $interval->h > SHIPBUBBLE_REQUEST_TOKEN_EXPIRY) {
+			$rates = shipbubble_regenerate_rate_token($order, $serviceCode);
+			if (count($rates)) {
+				$shipment = json_encode($rates);
+				update_post_meta( $order->get_id(), 'shipbubble_shipment_details', $shipment );
+			}
+		}
+
 		// update_post_meta( $order->get_id(), 'shipbubble_order_id', 'helloworld' );
-		
-		// echo $interval->h;
 		// die;
 		// echo '<p><strong>' . __( 'Shipment JSON:', SHIPBUBBLE_ID ) . '</strong><br>' . get_post_meta( $order->get_id(), 'shipbubble_shipment_details', true ) . '</p>';
 		?>
-			<?php if( strlen($shipbubbleOrderId) > 0 && $interval->h <= 48): ?>
-			<?php endif; ?>
-				
+			<?php if (strlen($shipbubbleOrderId) < 1): ?>
 				<input type="hidden" id="wc_order_id" name="wc_order_id" value='<?= $order->get_id(); ?>' />
+	
 				<input type="hidden" id="shipment_details" name="shipment_details" value='<?= $shipment; ?>' />
-			<button id="create-shipment" style="background-color: #FF5170; color: #FFF; padding: 4px 16px; border: 1px solid #FF5170; border-radius: 3px; cursor: pointer;">
-				Create Shipment
-			</button>
+	
+				<button id="create-shipment" style="background-color: #FF5170; color: #FFF; padding: 4px 16px; border: 1px solid #FF5170; border-radius: 3px; cursor: pointer;">
+					Create Shipment
+				</button>
+			<?php endif; ?>
 
 		<?php
 	}

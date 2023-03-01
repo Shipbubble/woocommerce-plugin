@@ -6,13 +6,12 @@
 
         var btn = $('#create-shipment');
 		var details = $('input#shipment_details');
-		var wc_order_id = $('input#wc_order_id');
-
-        // console.log(details.val());       
+		var wc_order_id = $('input#wc_order_id');    
         
 		// when user submits the form
 		btn.on( 'click', function(event) {
-            
+            btn.attr('disabled', 'true').html('loading...');
+
             // prevent form submission
 			event.preventDefault();
             
@@ -23,11 +22,9 @@
                 const payload = JSON.parse(details.val());
                 payload['order_id'] = wc_order_id.val();
                 
+                // initiate shipment
                 initiate_shipment(payload);
             }
-
-
-            // initiate shipment
 			
 		});
 		
@@ -53,6 +50,8 @@
                                 <span class="screen-reader-text">Dismiss this notice.</span>
                             </button>
                         </div>`).insertAfter($('.wp-header-end'));
+
+                        btn.html('Completed!!!');
 
                         // reload page after 5 secs
                         setTimeout(() => location.reload(), 5000);
