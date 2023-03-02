@@ -591,3 +591,22 @@
 				break;
 		}
 	}
+
+
+	add_filter('is_protected_meta', 'hide_meta_shipbubble_tracking_status', 10, 2);
+	function hide_meta_shipbubble_tracking_status($protected, $meta_key)
+	{
+		return $meta_key == 'shipbubble_tracking_status' ? true : $protected;
+	}
+
+	add_filter('is_protected_meta', 'hide_meta_shipbubble_shipment_details', 10, 2);
+	function hide_meta_shipbubble_shipment_details($protected, $meta_key)
+	{
+		return $meta_key == 'shipbubble_shipment_details' ? true : $protected;
+	}
+
+	add_filter('is_protected_meta', 'hide_meta_shipbubble_order_id', 10, 2);
+	function hide_meta_shipbubble_order_id($protected, $meta_key)
+	{
+		return $meta_key == 'shipbubble_order_id' ? true : $protected;
+	}
