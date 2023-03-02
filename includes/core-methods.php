@@ -239,3 +239,49 @@
         
         return $rates;
     }
+
+
+    function shipbubble_shipment_status_label( $status )
+    {
+        $label = '';
+
+        switch ($status) {
+            case 'confirmed':
+                $label .= '<mark class="order-status status-on-hold">
+                    <span>Confirmed</span>
+                </mark>';
+                break;
+
+            case 'picked_up':
+                $label .= '<mark class="order-status status-on-hold">
+                    <span>Picked up</span>
+                </mark>';
+                break;
+
+            case 'in_transit':
+                $label .= '<mark class="order-status status-trash">
+                    <span>In Transit</span>
+                </mark>';
+                break;
+
+            case 'completed':
+                $label .= '<mark class="order-status status-completed">
+                    <span>Completed</span>
+                </mark>';
+                break;
+
+            case 'cancelled':
+                $label .= '<mark class="order-status status-failed">
+                    <span>Cancelled</span>
+                </mark>';
+                break;
+                
+            default:
+                $label .= '<mark class="order-status status-processing">
+                    <span>Pending</span>
+                </mark>';
+                break;
+        }
+
+        return $label;
+    }

@@ -149,41 +149,50 @@
         if (count($serviceCodes)) {
             $serviceCodesFormat = implode(',', $serviceCodes);
             $url = SHIPBUBBLE_BASE_URL . '/fetch_rates/' . $serviceCodesFormat;
-        } elseif (!array_search('all', $courier_list)) {
-            $serviceCodesFormat = implode(',', $courier_list);
-            $url = SHIPBUBBLE_BASE_URL . '/fetch_rates/' . $serviceCodesFormat;
+        } else {
+            if ($key = array_search('all', $courier_list) && count($courier_list) > 1 ) {
+                unset($courier_list[$key]);
+            }
+
+            if (count($courier_list) && !in_array('all', $courier_list)) {
+                $serviceCodesFormat = implode(',', $courier_list);
+                $url = SHIPBUBBLE_BASE_URL . '/fetch_rates/' . $serviceCodesFormat;
+            }
         }
 
         $url = esc_url_raw( $url );
 
+        // echo '<pre>' . var_export($url, true) . '</pre>';
+        // die;
+        
         // get API key from options
         $token = shipbubble_get_token();
-
+        
         $body = shipbubble_base_response(); // default response
-
+        
         $args = array( 
             'headers' => array(
                 'Authorization' => 'Bearer ' . $token,
             ),
         );
-
+        
         $packages = array();
         $netWeight = 0;
         foreach ($products['data'] as $item) {
             $packages[] = array(
                 'name' => $item['name'],
-                'description' => $item['description'],
+                'description' => strip_tags($item['description']),
                 'unit_weight' => $item['weight'],
                 'unit_amount' => $item['price'],
                 'quantity' => (string) $item['quantity'],
             );
             $netWeight += ($item['weight'] * $item['quantity']);
         }
-
+        
         $setDimensions = shipbubble_set_package_dimensions($netWeight);
-
+        
         $senderAddressCode = get_option(WC_SHIPBUBBLE_ID)['address_code'];
-
+        
         $payload = [
             'sender_address_code' => $senderAddressCode,
             'reciever_address_code' => $addressCode,
@@ -198,17 +207,18 @@
             'service_type' => 'pickup',
             'delivery_instructions' => 'n/a'
         ];
-
+        
         // return json_decode(json_encode($payload));
-
+        
         // pass payload
         $args['body'] = $payload;
-
+        
         // call endpoint
         $response = wp_safe_remote_post( $url, $args );
-
+        
         // response data
         $data = wp_remote_retrieve_body( $response );
+        
 
         if (isset($data)) {
             $body = $data;
@@ -248,6 +258,38 @@
 
         // call endpoint
         $response = wp_safe_remote_post( $url, $args );
+
+        // response data
+        $data = wp_remote_retrieve_body( $response );
+
+        if (isset($data)) {
+            $body = $data;
+        }
+
+        // output data
+        return json_decode($body);
+    }
+
+
+    function shipbubble_track_shipment( string $shipbubbleOrderId ): object
+    {
+
+        $url = SHIPBUBBLE_BASE_URL . '/labels/list/' . $shipbubbleOrderId;
+
+        $url = esc_url_raw( $url );
+
+        $body = shipbubble_base_response(); // default response
+
+        // get API key from options
+        $token = shipbubble_get_token();
+
+        $args = array( 
+            'headers' => array(
+                'Authorization' => 'Bearer ' . $token,
+            ),
+        );
+
+        $response = wp_safe_remote_get( $url, $args );
 
         // response data
         $data = wp_remote_retrieve_body( $response );

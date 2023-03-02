@@ -259,6 +259,7 @@
         add_filter( 'woocommerce_shipping_methods', 'shipbubble_couriers_methods' );
     }
 
+
 	add_action( 'woocommerce_after_checkout_billing_form', 'shipbubble_courier_list_container' );
 	function shipbubble_courier_list_container()
 	{
@@ -348,17 +349,20 @@
 
 		if ( isset( $post_data['delivery_option'] ) ) {
 			foreach( $rates as $rate_key => $rate ) {
-				if ( 'shipbubble_shipping_services' === $rate->method_id ) {
+				if ( SHIPBUBBLE_ID === $rate->method_id ) {
 					// set rate cost
 					if (!empty($post_data['shipbubble_selected_courier']) && strlen($post_data['shipbubble_selected_courier'])) {
 						$rates[$rate_key]->label = $post_data['shipbubble_selected_courier'];
 					}
 					$rates[$rate_key]->cost = $post_data['shipbubble_cost'];
-				}
+				} 
+				// else {
+				// 	unset($rates[$rate_key]); // Remove
+				// }
 			}
 		} else {
-			foreach( $rates as $rate_key => $rate ){
-				unset($rates[$rate_key]); // Remove
+			foreach( $rates as $rate_key => $rate ) {
+				unset($rates[$rate_key]);
 			}
 		}
 		return $rates;
@@ -549,4 +553,41 @@
 			<?php endif; ?>
 
 		<?php
+	}
+
+
+	add_filter('manage_edit-shop_order_columns', 'shipbubble_custom_order_column', 20);
+	function shipbubble_custom_order_column($columns)
+	{
+		$reorderedColumns = array();
+
+		foreach ($columns as $key => $col) {
+			$reorderedColumns[$key] = $col;
+			if ($key == 'order_status') {
+				// Inserting after STATUS Column
+				$reorderedColumns['shipping_status'] = __( 'Shipping Status', 'theme_domain');
+			}
+		}
+
+		return $reorderedColumns;
+	}
+
+	// Adding custom fields meta data for each new Column
+	add_action('manage_shop_order_posts_custom_column', 'custom_orders_list_column_content', 20, 2);
+	function custom_orders_list_column_content( $column, $post_id)
+	{
+		switch ($column) {
+			case 'shipping_status':
+
+				$status = get_post_meta( $post_id, 'shipbubble_tracking_status', true );
+				if (!empty($status)) {
+					echo shipbubble_shipment_status_label($status);
+				} else {
+					echo '<mark class="order-status status-on-hold">
+						<span>No Shipment Yet</span>
+					</mark>';
+				}
+
+				break;
+		}
 	}

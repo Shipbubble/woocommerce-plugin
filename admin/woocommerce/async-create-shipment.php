@@ -46,7 +46,11 @@
         $response = shipbubble_create_shipment($shipmentPayload); 
         
         if (strtolower($response->status) == 'success') {
+            // set shipbubble order id
             update_post_meta( $orderId, 'shipbubble_order_id', $response->data->order_id );
+
+            // set shipping status
+            update_post_meta( $orderId, 'shipbubble_tracking_status', 'pending' );
         }
 
         echo json_encode($response); 

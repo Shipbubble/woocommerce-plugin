@@ -56,15 +56,14 @@
             if (strtolower($addressResponse->status) === 'success') {
                 $products = shipbubble_get_checkout_orders();
                 $addressCode = $addressResponse->data->address_code;
-                
+                $output = array();
+
                 $response = shipbubble_process_shipping_rates($addressCode, $products);
 
                 // echo json_encode($response);
                 // wp_die();
 
-                $output = array();
-
-                if (isset($response['request_token'])) {
+                if (count($response)) {
                     $output = array('status' => 'success', 'data' => $response);
                 } else {
                     $output = array('status' => 'failed', 'message' => 'Unable to fetch rates, try again later');
