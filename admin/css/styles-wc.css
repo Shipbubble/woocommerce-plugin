@@ -1,0 +1,11 @@
+.sb-flex-container {
+    display: flex; 
+    justify-content: space-between;
+}
+
+.sb-status-indicator {
+    border-left: 2px dashed #353935; 
+    height: 20px; 
+    position:absolute; 
+    left: 16px;
+}

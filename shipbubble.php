@@ -37,6 +37,7 @@
 		// Woocommerce
 		// require_once plugin_dir_path( __FILE__ ) . 'admin/woocommerce/shipping-settings.php';
 		require_once plugin_dir_path( __FILE__ ) . 'admin/woocommerce/async-create-shipment.php';
+		require_once plugin_dir_path( __FILE__ ) . 'admin/woocommerce/enqueue-styles.php';
 	}
 
 	// includes
@@ -593,6 +594,9 @@
 	}
 
 
+	/**
+	 * Hide Custom Order Fields
+	 */
 	add_filter('is_protected_meta', 'hide_meta_shipbubble_tracking_status', 10, 2);
 	function hide_meta_shipbubble_tracking_status($protected, $meta_key)
 	{
@@ -609,4 +613,52 @@
 	function hide_meta_shipbubble_order_id($protected, $meta_key)
 	{
 		return $meta_key == 'shipbubble_order_id' ? true : $protected;
+	}
+
+	// end
+
+
+	// Adding Meta container admin shop_order pages
+	add_action( 'add_meta_boxes', 'mv_add_meta_boxes' );
+	if ( ! function_exists( 'mv_add_meta_boxes' ) )
+	{
+		function mv_add_meta_boxes()
+		{
+			add_meta_box( 'sb_track_shipment', __('Track Shipment','woocommerce'), 'shipbubble_track_order_shipment', 'shop_order', 'side', 'core' );
+		}
+	}
+
+	// Adding Meta field in the meta container admin shop_order pages
+	if ( ! function_exists( 'shipbubble_track_order_shipment' ) )
+	{
+		function shipbubble_track_order_shipment()
+		{
+			global $post;
+
+			$shipbubbleOrderId = get_post_meta( $post->ID, 'shipbubble_order_id', true ) ?? '';
+
+			$response = shipbubble_track_shipment($shipbubbleOrderId);
+			?>
+
+				<?php if (isset($response->status) && strtolower($response->status) == 'success'): ?>
+					<?php foreach($response->data[0]->package_status as $key => $data): ?>
+
+						<?php if ($key > 0): ?>
+							<div class="sb-status-indicator"></div>
+						<?php endif; ?>
+
+						<div class="sb-flex-container">
+							<span>
+								<?= date('F j, Y', strtotime($data->datetime)); ?>
+								<br>
+								<?= date('H:i A', strtotime($data->datetime)); ?>
+							</span>
+							<span><?= $data->status; ?></span>
+						</div>
+						
+					<?php endforeach; ?>
+				<?php endif; ?>
+
+			<?php
+		}
 	}
