@@ -1,13 +1,4 @@
 <?php
-/*
-Plugin Name: Enqueue in Admin Area
-Description: Examples showing how to enqueue JavaScript and CSS in the Admin Area.
-Plugin URI:  https://plugin-planet.com/
-Author:      Jeff Starr
-Version:     1.0
-*/
-
-
 
 // enqueue admin style
 function shipbubble_enqueue_style_admin() {

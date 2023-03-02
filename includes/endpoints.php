@@ -192,12 +192,13 @@
         $setDimensions = shipbubble_set_package_dimensions($netWeight);
         
         $senderAddressCode = get_option(WC_SHIPBUBBLE_ID)['address_code'];
+        $categoryCode = get_option(WC_SHIPBUBBLE_ID)['store_category'];
         
         $payload = [
             'sender_address_code' => $senderAddressCode,
             'reciever_address_code' => $addressCode,
             'pickup_date' => date('Y-m-d'),
-            'category_id' => '58823517',
+            'category_id' => $categoryCode ?? '',
             'package_items' => $packages,
             'package_dimension' => [
                 'length' => $setDimensions['length'],
@@ -275,6 +276,37 @@
     {
 
         $url = SHIPBUBBLE_BASE_URL . '/labels/list/' . $shipbubbleOrderId;
+
+        $url = esc_url_raw( $url );
+
+        $body = shipbubble_base_response(); // default response
+
+        // get API key from options
+        $token = shipbubble_get_token();
+
+        $args = array( 
+            'headers' => array(
+                'Authorization' => 'Bearer ' . $token,
+            ),
+        );
+
+        $response = wp_safe_remote_get( $url, $args );
+
+        // response data
+        $data = wp_remote_retrieve_body( $response );
+
+        if (isset($data)) {
+            $body = $data;
+        }
+
+        // output data
+        return json_decode($body);
+    }
+
+    function shipbubble_order_categories( ): object
+    {
+
+        $url = SHIPBUBBLE_BASE_URL . '/labels/categories';
 
         $url = esc_url_raw( $url );
 

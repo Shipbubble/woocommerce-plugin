@@ -92,6 +92,7 @@
 			'extra_charges' => '0',
 			'courier_list' =>  array('all'),
 			'shipping_price' => 'default',
+			'shipping_category' => '',
 		);
 	}
 	
@@ -173,6 +174,7 @@
                         }
                         
                         $courier_options = shipbubble_courier_options();
+                        $categories_options = shipbubble_get_order_categories();
                         $this->form_fields = array(
                             'store_name' => array(
                                 'title'         => __( 'Store Sender Name', 'woocommerce' ),
@@ -212,6 +214,13 @@
                                 'description'     => __( 'Shipbubble Courier Price Types.', 'woocommerce' ),
                                 'options' => array('default' => 'Default', 'fastest' => 'Fastest', 'cheapest' => 'Cheapest'),
                                 'default'        => __( 'default', 'woocommerce' ),
+                            ),
+                            'store_category' => array(
+                                'title'         => __( 'Store Categories', 'woocommerce' ),
+                                'type'             => 'select',
+                                'description'     => __( 'Store Categories.', 'woocommerce' ),
+                                'options' => $categories_options,
+                                // 'default'        => __( '', 'woocommerce' ),
                             ),
                             'courier_list' => array(
                                 'title'         => __( 'Courier List', 'woocommerce' ),

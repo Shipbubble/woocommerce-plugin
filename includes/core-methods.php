@@ -36,6 +36,20 @@
         
     }
 
+    function shipbubble_get_order_categories() 
+    {
+        $body = array();
+
+        $response = shipbubble_order_categories();
+        if ($response->status == 'success') 
+        {
+            foreach ($response->data as $data) {
+                $body[$data->category_id] = $data->category;
+            }
+        }
+        return $body;
+    }
+
     
     function shipbubble_get_checkout_orders(): array
     {
