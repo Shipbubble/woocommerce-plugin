@@ -1,5 +1,4 @@
 // JavaScript for Public Checkout Area
-
 (function($) {
 	
 	$(document).ready(function() {
@@ -7,7 +6,9 @@
         var requestRatesBtn = $('#request_courier_rates');
         
         requestRatesBtn.click(function (e) { 
+            
             e.preventDefault();
+            $('#shipping-notice').remove();
             
             // initialize variables
             let firstName = $('input#billing_first_name').val();
@@ -22,7 +23,7 @@
             // check requirements are met
             if(firstName != '' && lastName != '' && email != '' && phone != '' && streetAddress != '' && city != '' && selectedState != '' && selectedCountry != '') {
                 // hide notice
-                $('.shipping-notice').hide();
+                $('#shipping-notice').remove();
 
                 // Assemble payload
                 let addressPayload = {
@@ -33,13 +34,38 @@
                 }
 
                 // disable request btn
-                requestRatesBtn.attr('disabled', true).html('requesting...');
+                $(this).attr({
+                    class: 'loading',
+                    disabled: true
+                });
 
                 // Request shipping rates
                 fetch_shipping_rates(addressPayload);
             } else {
                 // Display notice
-                $('.shipping-notice').show();
+                let errorBox = [];
+                let containerObject = {firstName, lastName, email, phone, streetAddress, city, selectedState, selectedCountry}
+
+                for (const key in containerObject) {
+                    if (containerObject[key] == '') {
+                        errorBox.push(`${key}`);
+                    }
+                }
+
+                $('<div>', {
+                    id: 'shipping-notice',
+                    class: 'woocommerce-error',
+                }).text(`Ensure that you have filled your ${errorBox.join(', ')}`).prependTo('#courier-section').show();
+
+                // Swal.fire({
+                //     position: 'top-end',
+                //     icon: 'error',
+                //     title: ``,
+                //     showConfirmButton: false,
+                //     timer: 5000,
+                // })
+
+                // $('.shipping-notice').show();
             }
             
         });
@@ -94,16 +120,27 @@
 
                         list.empty();
 
-                        $('.shipping-notice').removeAttr('class').attr('class', 'shipping-notice woocommerce-info').text(response['message']).show();
+                        $('<div>', {
+                            id: 'shipping-notice',
+                            class: 'woocommerce-info',
+                        }).text(`${response['message']}`).prependTo('#courier-section').show();
+
                     }
                 }
 
-                requestRatesBtn.attr('disabled', false).html('Request Courier Rates');
+                requestRatesBtn.attr({
+                    class: '',
+                    disabled: false
+                }).text('Request Courier Rates');
                 
             }).fail(function () { 
                 console.log("failed");
-                
-                $('.shipping-notice').removeAttr('class').attr('class', 'shipping-notice woocommerce-info').text('Unable to display Couriers List, Please Try again later').show();
+
+                $('<div>', {
+                    id: 'shipping-notice',
+                    class: 'woocommerce-error',
+                }).text(`Unable to display Couriers List, Please Try again later`).prependTo('#courier-section').show();
+
             });
         }
 

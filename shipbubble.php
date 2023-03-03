@@ -209,4 +209,11 @@
 
 	}
 
+	function themeslug_enqueue_script() {
+		wp_enqueue_script( 'sweetalert2', 'https://cdn.jsdelivr.net/npm/sweetalert2@11', false );
+		// here you can enqueue more js / css files 
+	}
+	
+	add_action( 'wp_enqueue_scripts', 'themeslug_enqueue_script' );
+
 	

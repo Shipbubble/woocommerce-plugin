@@ -1,11 +1,11 @@
 <?php
 
 	// Display error notice container
-	add_action( 'woocommerce_before_checkout_billing_form', 'shipbubble_echo_notice_shipping' );
+	// add_action( 'woocommerce_before_checkout_billing_form', 'shipbubble_echo_notice_shipping' );
 		
-	function shipbubble_echo_notice_shipping() {
-	echo '<div class="shipping-notice woocommerce-error" style="display:none">Ensure that you have filled your First & Last Name, Address, City, State and Country.</div>';
-	}
+	// function shipbubble_echo_notice_shipping() {
+	// echo '<div class="woocommerce-error">Ensure that you have filled your First & Last Name, Address, City, State and Country.</div>';
+	// }
 
 	add_action( 'woocommerce_after_checkout_billing_form', 'shipbubble_courier_list_container' );
 	function shipbubble_courier_list_container()
