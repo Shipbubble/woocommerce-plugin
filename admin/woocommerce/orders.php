@@ -151,3 +151,21 @@
             <?php
         }
     }
+
+
+    
+    add_action( 'woocommerce_admin_order_data_after_billing_address', 'shipbubble_display_wallet_balance', 10, 1 );
+
+    function shipbubble_display_wallet_balance( $order ) {
+        $balance = '0';
+        $currency = '₦';
+
+        $response = shipbubble_get_wallet_balance(shipbubble_get_token());
+
+        if (isset($response->status) && strtolower($response->status) == 'success') {
+            $balance = $response->data->balance;
+        }
+
+        echo '<p><strong>' . __( 'Shipbubble Wallet Balance:' ) . '</strong><br> ' . $currency . number_format( $balance, 2 ) . '</p>';
+    }
+    

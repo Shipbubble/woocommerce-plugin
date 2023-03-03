@@ -9,9 +9,9 @@
      * Authenticate & Fetch User Wallet Balance
      *
      * @param string $apiKey
-     * @return void
+     * @return object
      */
-    function shipbubble_get_wallet_balance(string $apiKey = '') 
+    function shipbubble_get_wallet_balance(string $apiKey = ''): object 
     {
 
         $url = SHIPBUBBLE_BASE_URL . '/wallet/balance';
@@ -27,7 +27,6 @@
             // get API key from options
             $token = shipbubble_get_token();
         }
-
         
         if (strlen($token) > 0) {
             $args = array( 
