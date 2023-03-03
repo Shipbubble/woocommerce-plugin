@@ -10,6 +10,10 @@
 				<input type="hidden" id="shipbubble_selected_courier" name="shipbubble_selected_courier" value="">
 				<input type="hidden" id="shipbubble_cost" name="shipbubble_cost" value="">
 
+				<input type="hidden" id="request_token" name="request_token" value="">
+				<input type="hidden" id="shipbubble_service_code" name="shipbubble_service_code" value="">
+				<input type="hidden" id="shipbubble_courier_id" name="shipbubble_courier_id" value="">
+
 				<button id="request_courier_rates" type="button" style="background: #D83854; color: #FFF; font-size: 12px; padding 16px 8px;">
 					Request Courier Rates
 				</button>
@@ -55,8 +59,10 @@
 									$('#shipbubble_shipment_details').val( JSON.stringify(shipment) );
 									$('#shipbubble_selected_courier').val( courier_name );
 									$('#shipbubble_cost').val( total );
-									// $('#shipbubble_service_code').val( service_code );
-									// $('#shipbubble_courier_id').val( courier_id );
+
+									$('#request_token').val( checked_courier.attr('data-request_token') );
+									$('#shipbubble_service_code').val( service_code );
+									$('#shipbubble_courier_id').val( courier_id );
 		
 									jQuery('body').trigger('update_checkout');
 		

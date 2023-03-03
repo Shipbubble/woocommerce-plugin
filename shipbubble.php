@@ -93,6 +93,7 @@
 			'courier_list' =>  array('all'),
 			'shipping_price' => 'default',
 			'shipping_category' => '',
+			'user_can_ship' => 'no',
 		);
 	}
 
@@ -195,16 +196,64 @@
 	function shipbubble_checkout_update_order_meta( $order_id ) 
 	{
 
-		if( isset( $_POST['shipbubble_shipment_details'] ) || ! empty( $_POST['shipbubble_shipment_details'] ) ) {
+		$options = get_option( WC_SHIPBUBBLE_ID, shipbubble_wc_options_default() );
 
-			// set shipbubble shipment details json 
+        $userCanShip = isset( $options['user_can_ship'] ) ? sanitize_text_field( $options['user_can_ship'] ) : 'default';
+
+		$requestToken = $_POST['request_token'];
+		$serviceCode = $_POST['shipbubble_service_code'];
+		$courierId = $_POST['shipbubble_courier_id'];
+		
+		if( isset( $_POST['shipbubble_shipment_details'] ) ) {
+
+			if (strtolower($userCanShip) == 'yes') {
+
+
+
+				// error_log(print_r($requestToken, true));
+				// error_log(print_r($serviceCode, true));
+				// error_log(print_r($courierId, true));
+
+				// die;
+
+				if (isset($requestToken, $serviceCode, $courierId) && !empty($requestToken) && !empty($serviceCode) && !empty($courierId) ) {
+					$shipmentPayload = array(
+						'request_token' => $requestToken,
+						'service_code' => $serviceCode,
+						'courier_id' => $courierId,
+					);
+	
+					$response = shipbubble_create_shipment($shipmentPayload); 
+
+					if (strtolower($response->status) == 'success') {
+						// set shipbubble order id
+						update_post_meta( $order_id, 'shipbubble_order_id', $response->data->order_id );
+	
+						// set shipping status
+						update_post_meta( $order_id, 'shipbubble_tracking_status', 'pending' );
+					}
+				}
+
+			} else {
+				// set shipbubble order id
+				update_post_meta( $order_id, 'shipbubble_order_id', '' );
+		
+				// set shipping status
+				update_post_meta( $order_id, 'shipbubble_tracking_status', '' );
+			}
+
+			// set shipbubble shipment details json
 		   update_post_meta( $order_id, 'shipbubble_shipment_details', $_POST['shipbubble_shipment_details'] );
+		   
+		} else {
+			$code = $serviceCode ?? 'speedaf-express';
+			update_post_meta( $order_id, 'shipbubble_shipment_details', json_encode(['service_code' => $code]) );
 
-		   // set shipbubble order id
-		   update_post_meta( $order_id, 'shipbubble_order_id', '' );
-
-		   // set shipping status
-		   update_post_meta( $order_id, 'shipbubble_tracking_status', '' );
+			// set shipbubble order id
+			update_post_meta( $order_id, 'shipbubble_order_id', '' );
+ 
+			// set shipping status
+			update_post_meta( $order_id, 'shipbubble_tracking_status', '' );
 		}
 
 	}

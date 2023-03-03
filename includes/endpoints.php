@@ -228,7 +228,13 @@
         return json_decode($body);
     }
 
-    function shipbubble_create_shipment($shipmentPayload)
+    /**
+     * Create ship for a given set of orders
+     *
+     * @param array $shipmentPayload
+     * @return object
+     */
+    function shipbubble_create_shipment(array $shipmentPayload): object
     {
         $url = SHIPBUBBLE_BASE_URL . '/labels';
 

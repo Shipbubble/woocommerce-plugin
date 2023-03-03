@@ -130,6 +130,12 @@
                                 'options' => $courier_options,
                                 'default'        => __( 'all', 'woocommerce' ),
                             ),
+                            'user_can_ship' => array(
+                                'title'         => __( 'Customer Can Ship', 'woocommerce' ),
+                                'type'             => 'checkbox',
+                                'description'     => __( 'Customer Can Ship Orders on Checkout.', 'woocommerce' ),
+                                'default'        => __( 'no', 'woocommerce' ),
+                            ),
                         );
                         
                     }
