@@ -37,9 +37,15 @@
                      */
                     public function init() 
                     {
+                        $this->validate_empty_fields();
+                        $this->set_address_code();
+
+                        $this->display_errors();
+
                         // Load the settings API
                         $this->init_form_fields(); // This is part of the settings API. Override the method to add your own settings
                         $this->init_settings(); // This is part of the settings API. Loads settings you previously init.
+
 
                         // Save settings in admin if you have any defined
                         add_action( 'woocommerce_update_options_shipping_' . $this->id, array( $this, 'process_admin_options' ) );
@@ -47,55 +53,47 @@
 
                     public function init_form_fields()
                     {
-                        $countryObject = WC()->countries;
-                        $country_state = explode(':', get_option( 'woocommerce_default_country' ));
-                        $streetAddress = trim(get_option( 'woocommerce_store_address' ));
-                        
-                        if ($streetAddress != $this->get_option('pickup_address')) 
-                        {
-                            $address = $streetAddress . ' ' . get_option('woocommerce_store_city') . ' ' . $countryObject->states[ $country_state[0] ][ $country_state[1] ] . ' ' . $countryObject->countries[$country_state[0]];
-
-                            $name = $this->get_option( 'store_name' );
-                            $phone = $this->get_option( 'store_phone' );
-                            $email = get_option('admin_email');
-                            
-                            $response = shipbubble_validate_address($name, $email, $phone, $address);
-                            
-                            if ($response->status == 'success') 
-                            {
-                                $this->update_option('pickup_address', $streetAddress);
-                                $this->update_option('address_code', $response->data->address_code);
-                            } else {
-                                $output = '<div id="message" class="updated woocommerce-message">
-                                    <a class="woocommerce-message-close notice-dismiss" href="/flagcommerce/wp-admin/admin.php?page=wc-settings&amp;tab=shipping&amp;section=shipbubble_shipping_services&amp;wc-hide-notice=no_secure_connection&amp;_wc_notice_nonce=0fda8979b4">Dismiss</a>
-                                
-                                    <p>' . $response->message . 'to generate address code. <br>
-                                    </p>
-                                </div>';
-                                echo $output;
-                            }
-                        }
+                        $countries_obj   = new WC_Countries();
+                        $countries   = $countries_obj->__get('countries');
+                        $default_country = $countries_obj->get_base_country();
                         
                         $courier_options = shipbubble_courier_options();
                         $categories_options = shipbubble_get_order_categories();
                         $this->form_fields = array(
-                            'store_name' => array(
-                                'title'         => __( 'Store Sender Name', 'woocommerce' ),
+                            'sender_name' => array(
+                                'title'         => __( 'Sender\'s Name', 'woocommerce' ),
                                 'type'             => 'text',
-                                'description'     => __( 'This is the first and last name of the store sender.', 'woocommerce' ),
+                                'description'     => __( 'This is the first and last name of the sender sender.', 'woocommerce' ),
                                 'placeholder'        => __( 'Store Sender Name', 'woocommerce' ),
                             ),
-                            'store_phone' => array(
-                                'title'         => __( 'Store Phone', 'woocommerce' ),
+                            'sender_phone' => array(
+                                'title'         => __( 'Sender\'s Phone Number', 'woocommerce' ),
                                 'type'             => 'text',
-                                'description'     => __( 'This is the phone number of the store.', 'woocommerce' ),
+                                'description'     => __( 'This is the phone number of the sender.', 'woocommerce' ),
+                            ),
+                            'sender_email' => array(
+                                'title'         => __( 'Sender\'s Email Address', 'woocommerce' ),
+                                'type'             => 'text',
+                                'description'     => __( 'This is the email of the sender.', 'woocommerce' ),
+                            ),
+                            'pickup_country' => array(
+                                'title'         => __( 'Pickup Country', 'woocommerce' ),
+                                'type'             => 'select',
+                                'description'     => __( 'Pickup Country.', 'woocommerce' ),
+                                'options' => $countries,
+                                'default'        => __( $default_country, 'woocommerce' ),
+                            ),
+                            'pickup_state' => array(
+                                'title'         => __( 'Pickup State', 'woocommerce' ),
+                                'type'             => 'text',
+                                'description'     => __( 'Pickup State.', 'woocommerce' ),
                             ),
                             'pickup_address' => array(
                                 'title'         => __( 'Pickup Address', 'woocommerce' ),
                                 'type'             => 'text',
                                 'description'     => __( 'This is the address setup for pickup.', 'woocommerce' ),
                                 'default'        => __( '', 'woocommerce' ),
-                                'custom_attributes' => array('readonly' => 'readonly')
+                                // 'custom_attributes' => array('readonly' => 'readonly')
                             ),
                             'address_code' => array(
                                 'title'         => __( 'Address Code', 'woocommerce' ),
@@ -119,9 +117,9 @@
                                 'default'        => __( 'default', 'woocommerce' ),
                             ),
                             'store_category' => array(
-                                'title'         => __( 'Store Categories', 'woocommerce' ),
+                                'title'         => __( 'Store Category', 'woocommerce' ),
                                 'type'             => 'select',
-                                'description'     => __( 'Store Categories.', 'woocommerce' ),
+                                'description'     => __( 'Store Category.', 'woocommerce' ),
                                 'options' => $categories_options,
                                 // 'default'        => __( '', 'woocommerce' ),
                             ),
@@ -134,6 +132,53 @@
                             ),
                         );
                         
+                    }
+
+                    protected function validate_empty_fields()
+                    {
+                        $storedOptions = get_option(WC_SHIPBUBBLE_ID);
+
+                        if (isset($storedOptions) && is_array($storedOptions)) {
+                            foreach ($storedOptions as $key => $value) {
+                                if ($value == '') {
+                                    $this->errors[] = 'Fill all the Fields to activate the plugin.';
+
+                                    break;
+                                }
+                            }
+                        } else {
+                            $this->errors[] = 'Fill all the Fields to activate the plugin.';
+                        }
+                    }
+
+                    protected function set_address_code()
+                    {
+                        $countryObject = WC()->countries;
+
+                        $pickupAddress = $this->get_option('pickup_address', '');
+                        $pickupState = $this->get_option('pickup_state', '');
+                        $pickupCountry = $this->get_option('pickup_country', '');
+                        $fullAddress = '';
+
+                        if ($pickupAddress != '' && $pickupState != '' && $pickupCountry != '') {
+                            $fullAddress .= $pickupAddress . ' ' . $pickupState . ' ' . $countryObject->countries[ $pickupCountry ];
+                            $name = $this->get_option( 'sender_name' );
+                            $phone = $this->get_option( 'sender_phone' );
+                            $email = $this->get_option( 'sender_email' ) ?? get_option('admin_email');
+
+                            $response = shipbubble_validate_address($name, $email, $phone, $fullAddress);
+                            
+                            if ($response->status == 'success') 
+                            {
+                                $this->update_option('pickup_address', $pickupAddress);
+                                $this->update_option('address_code', $response->data->address_code);
+                            } else {
+                                $this->update_option('pickup_address', '');
+                                $this->update_option('address_code', '');
+
+                                $this->errors[] = 'Invalid Address.';
+                            }
+                        }
                     }
 
                     /**
