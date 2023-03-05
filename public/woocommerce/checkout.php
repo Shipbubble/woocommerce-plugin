@@ -3,24 +3,30 @@
 	add_action( 'woocommerce_after_checkout_billing_form', 'shipbubble_courier_list_container' );
 	function shipbubble_courier_list_container()
 	{
-		$container = '
-			<div id="courier-section">
-				<div id="courier-list"></div>
-				<input type="hidden" id="shipbubble_shipment_details" name="shipbubble_shipment_details" value="">
-				<input type="hidden" id="shipbubble_selected_courier" name="shipbubble_selected_courier" value="">
-				<input type="hidden" id="shipbubble_cost" name="shipbubble_cost" value="">
+		$options = get_option( WC_SHIPBUBBLE_ID, shipbubble_wc_options_default() );
 
-				<input type="hidden" id="request_token" name="request_token" value="">
-				<input type="hidden" id="shipbubble_service_code" name="shipbubble_service_code" value="">
-				<input type="hidden" id="shipbubble_courier_id" name="shipbubble_courier_id" value="">
+        $isShipbubbleActive = isset( $options['activate_shipbubble'] ) ? sanitize_text_field( $options['activate_shipbubble'] ) : 'no';
+		
+		$container = '';
 
-				<button id="request_courier_rates" type="button" style="background: #D83854; color: #FFF; font-size: 12px; padding 16px 8px;">
-					Request Courier Rates
-				</button>
-			</div>
-		';
-
-		$container .= '';
+		if ($isShipbubbleActive == 'yes') {
+			$container .= '
+				<div id="courier-section">
+					<div id="courier-list"></div>
+					<input type="hidden" id="shipbubble_shipment_details" name="shipbubble_shipment_details" value="">
+					<input type="hidden" id="shipbubble_selected_courier" name="shipbubble_selected_courier" value="">
+					<input type="hidden" id="shipbubble_cost" name="shipbubble_cost" value="">
+	
+					<input type="hidden" id="request_token" name="request_token" value="">
+					<input type="hidden" id="shipbubble_service_code" name="shipbubble_service_code" value="">
+					<input type="hidden" id="shipbubble_courier_id" name="shipbubble_courier_id" value="">
+	
+					<button id="request_courier_rates" type="button" style="background: #D83854; color: #FFF; font-size: 12px; padding 16px 8px;">
+						Request Courier Rates
+					</button>
+				</div>
+			';
+		}
 
 		echo $container;
 	}

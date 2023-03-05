@@ -17,6 +17,8 @@
     // callback: text field
     function shipbubble_callback_field_text( $args ) 
     {
+        // echo '<pre>' . var_export($args, true) . '</pre>';
+        // die;
 
         $options = get_option( 'shipbubble_options', shipbubble_options_default() );
         
@@ -30,4 +32,11 @@
         echo '<label for="shipbubble_options_'. $id .'">'. $label .'</label><br />';
         echo '<span class="form_note_' . $id .'"></span>';
 
+        if (strlen($value) > 1) {
+            echo '<br>';
+            echo '<a href="http://localhost/newcommerce/wp-admin/admin.php?page=wc-settings&tab=shipping&section=shipbubble_shipping_services
+            " style="color: #D83854;">Go to ShipBubble Woocommerce Config</a>';
+        }
+
+        //
     }

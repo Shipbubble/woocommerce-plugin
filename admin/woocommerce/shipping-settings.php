@@ -20,10 +20,13 @@
                     {
                         $this->id                 = SHIPBUBBLE_ID; // Id for your shipping method. Should be uunique.
                         $this->method_title       = __( 'Shipbubble' );  // Title shown in admin
+
+                        
+                        
                         $this->method_description = __( 'Ship without limits ! We make e-commerce shipping quicker, easier, and more affordable.' ); // Description shown in admin
 
                         // Define user set variables
-                        $this->enabled            = "yes"; // This can be added as an setting but for this example its forced enabled
+                        $this->enabled            = $this->get_option('activate_shipbubble', 'no'); // This can be added as an setting but for this example its forced enabled
                         $this->title              = "Shipbubble"; // This can be added as an setting but for this example its forced.
 
                         $this->init();
@@ -42,8 +45,13 @@
 
                         $this->display_errors();
 
+                        $response = shipbubble_get_wallet_balance(shipbubble_get_token());
+    
                         // Load the settings API
-                        $this->init_form_fields(); // This is part of the settings API. Override the method to add your own settings
+                        if (isset($response->status) && strtolower($response->status) == 'success') {
+                            $this->init_form_fields(); // This is part of the settings API. Override the method to add your own settings
+                        }
+
                         $this->init_settings(); // This is part of the settings API. Loads settings you previously init.
 
 
@@ -59,7 +67,23 @@
                         
                         $courier_options = shipbubble_courier_options();
                         $categories_options = shipbubble_get_order_categories();
+
+                        $isEnabled = '<br><div style="border: 1px solid #D83874; color: #D83874; padding: 10px; border-radius: 20px; font-weight: bold; display: inline-flex !important;">Not Activated for use</div>';
+                        if ($this->get_option('activate_shipbubble', 'no') == 'yes') {
+                            $isEnabled = '<br><div style="border: 1px solid green; color: green; display: inline-block; padding: 10px; border-radius: 20px; font-weight: bold;">Activated for use</div>';
+                        }
+
+                        $this->method_description .= $isEnabled;
+
+                        
+
                         $this->form_fields = array(
+                            'activate_shipbubble' => array(
+                                'title'         => __( 'Activate to use', 'woocommerce' ),
+                                'type'             => 'checkbox',
+                                'description'     => __( 'Activate Shipubble on Checkout.', 'woocommerce' ),
+                                'default'        => __( 'no', 'woocommerce' ),
+                            ),
                             'sender_name' => array(
                                 'title'         => __( 'Sender\'s Name', 'woocommerce' ),
                                 'type'             => 'text',

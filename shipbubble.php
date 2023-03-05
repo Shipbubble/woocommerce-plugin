@@ -37,6 +37,7 @@
 		// Woocommerce
 		// require_once plugin_dir_path( __FILE__ ) . 'admin/woocommerce/shipping-settings.php';
 		require_once plugin_dir_path( __FILE__ ) . 'admin/woocommerce/async-create-shipment.php';
+		require_once plugin_dir_path( __FILE__ ) . 'admin/woocommerce/async-validate-address.php';
 		require_once plugin_dir_path( __FILE__ ) . 'admin/woocommerce/enqueue-styles.php';
 	}
 
@@ -94,6 +95,7 @@
 			'shipping_price' => 'default',
 			'shipping_category' => '',
 			'user_can_ship' => 'no',
+			'activate_shipbubble' => 'no',
 		);
 	}
 
@@ -198,7 +200,7 @@
 
 		$options = get_option( WC_SHIPBUBBLE_ID, shipbubble_wc_options_default() );
 
-        $userCanShip = isset( $options['user_can_ship'] ) ? sanitize_text_field( $options['user_can_ship'] ) : 'default';
+        $userCanShip = isset( $options['user_can_ship'] ) ? sanitize_text_field( $options['user_can_ship'] ) : 'no';
 
 		$requestToken = $_POST['request_token'];
 		$serviceCode = $_POST['shipbubble_service_code'];

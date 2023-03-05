@@ -15,8 +15,18 @@
             let lastName = $('input#billing_last_name').val();
             let email = $('input#billing_email').val();
             let phone = $('input#billing_phone').val();
+
             let streetAddress = $('input#shipping_address_1').val();
+            
+            if (streetAddress == '') {
+                streetAddress = $('input#billing_address_1').val();
+            }
+            
             let city = $('input#shipping_city').val();
+            if (city == '') {
+                city = $('input#billing_city').val();
+            }
+
             let selectedState = $('select#shipping_state').val();
             let selectedCountry = $('select#shipping_country').val();
 

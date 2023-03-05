@@ -160,12 +160,21 @@
         $balance = '0';
         $currency = '₦';
 
-        $response = shipbubble_get_wallet_balance(shipbubble_get_token());
+        $shipbubbleOrderId = get_post_meta( $order->get_id(), 'shipbubble_order_id', true );
 
-        if (isset($response->status) && strtolower($response->status) == 'success') {
-            $balance = $response->data->balance;
+        if( strlen($shipbubbleOrderId) < 1 ) {
+            $response = shipbubble_get_wallet_balance(shipbubble_get_token());
+    
+            if (isset($response->status) && strtolower($response->status) == 'success') {
+                $balance = $response->data->balance;
+            }
+    
+            echo '<p><strong>' . __( 'Shipbubble Wallet Balance:' ) . '</strong><br> <strong>' . $currency . number_format( $balance, 2 ) . '</strong></p>';
+            
+        } else {
+            
+            echo '<p><strong>' . __( 'Shipbubble Order ID:' ) . '</strong><br> ' . $shipbubbleOrderId . '</p>';
         }
 
-        echo '<p><strong>' . __( 'Shipbubble Wallet Balance:' ) . '</strong><br> ' . $currency . number_format( $balance, 2 ) . '</p>';
     }
     
