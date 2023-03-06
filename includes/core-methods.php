@@ -8,13 +8,14 @@
         return isset( $options['shipbubble_api_key'] ) ? sanitize_text_field( $options['shipbubble_api_key'] ) : '';
     }
 
-    function shipbubble_base_response($status = null, $message = null, $data = null): string
+    function shipbubble_base_response($status = null, $message = null, $data = null)
     {
         return json_encode(
             array(
+                'response_code' => '00',
                 'status' => $status ?? 'failed',
                 'message' => $message ?? 'Unable to complete request, try again later',
-                'data' => $data
+                'data' => $data ?? [],
             )
         );
     }
@@ -26,8 +27,7 @@
         );
 
         $response = shipbubble_get_couriers();
-        if ($response->status == 'success') 
-        {
+        if (isset($response->response_code) && $response->response_code == HTTP_RESPONSE_OK) {
             foreach ($response->data as $courier) {
                 $body[$courier->service_code] = $courier->name;
             }
@@ -41,15 +41,13 @@
         $body = array();
 
         $response = shipbubble_order_categories();
-        if ($response->status == 'success') 
-        {
+        if (isset($response->response_code) && $response->response_code == HTTP_RESPONSE_OK) {
             foreach ($response->data as $data) {
                 $body[$data->category_id] = $data->category;
             }
         }
         return $body;
     }
-
     
     function shipbubble_get_checkout_orders(): array
     {
@@ -148,8 +146,7 @@
 
         // return $response;
 
-        if (isset($response->status) && strtolower($response->status) == 'success') 
-        {
+        if (isset($response->response_code) && $response->response_code == HTTP_RESPONSE_OK) {
             $data = $response->data;
             $rates['request_token'] = $data->request_token;
             $rates['extra_charges'] = $extra_charges;
@@ -207,7 +204,7 @@
         $rates = array();
 
         // if successful
-		if (strtolower($addressResponse->status) === 'success') {
+		if (isset($addressResponse->response_code) && $addressResponse->response_code == HTTP_RESPONSE_OK) {
 			// $products = shipbubble_get_checkout_orders();
 			$addressCode = $addressResponse->data->address_code;
 

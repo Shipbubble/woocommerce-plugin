@@ -4,37 +4,47 @@
 	
 	$(document).ready(function() {
 
-        // var btn = $('#create-shipment');
-		// var details = $('input#shipment_details');
-		// var wc_order_id = $('input#wc_order_id');    
-
 		var mainform = $('form#mainform'); 
         var formBtn = mainform.find('button[type="submit"]');
         var senderName = mainform.find('#woocommerce_shipbubble_shipping_services_sender_name');
         var senderPhone = mainform.find('#woocommerce_shipbubble_shipping_services_sender_phone');
         var senderEmail = mainform.find('#woocommerce_shipbubble_shipping_services_sender_email');
         var senderAddress = mainform.find('#woocommerce_shipbubble_shipping_services_pickup_address');
+        var addressCodeField = mainform.find('#woocommerce_shipbubble_shipping_services_address_code');
         var senderState = mainform.find('#woocommerce_shipbubble_shipping_services_pickup_state');
         var senderCountry = mainform.find('#woocommerce_shipbubble_shipping_services_pickup_country');
+
+        const addressCodeInitValue = addressCodeField.val();
+
+        if (senderName.val() == '' && senderPhone.val() == '' && senderEmail.val() == '' && 
+            senderAddress.val() == '' && senderState.val() == '' && senderCountry.find('option:selected').val() == ''
+            ) {
+            formBtn.attr('disabled', true);
+        } else {
+            formBtn.attr('disabled', false);
+        }
         
         // console.log(senderCountry.find('option:selected').text());
         
-        $(senderName, senderPhone, senderEmail, senderAddress, senderState, senderCountry).change(function(e) {
-            console.log('mainform');
+        $('.address_form_field').change(function(e) {
+            e.preventDefault();
+            console.log('on change o');
+
             if (senderName.val() != '' && senderPhone.val() != '' && senderEmail.val() != '' && 
             senderAddress.val() != '' && senderState.val() != '' && senderCountry.find('option:selected').val() != ''
             ) {
-                console.log('done');
+                console.log('all filled');
                 var addressPayload = {
                     name: senderName.val(),
                     phone: senderPhone.val(),
                     email: senderEmail.val(),
                     address: `${senderAddress.val()} ${senderState.val()} ${senderCountry.find('option:selected').text()}`
                 };
-
-                validate_sender_address(addressPayload);
                 
+                validate_sender_address(addressPayload);
             } else {
+                console.log('still empty');
+
                 formBtn.attr('disabled', true);
             }
             
@@ -53,32 +63,47 @@
 
                 console.log(response);
                 
-                if (response.hasOwnProperty('status')) {
-                    if (response['status'] == 'success') {
+                if (response.hasOwnProperty('response_code')) {
+                    if (response['response_code'] == 200) {
+                        Swal.fire({
+                            icon: 'success',
+                            position: 'top-end',
+                            text: `Address ${response['message']}`,
+                            showConfirmButton: false,
+                            timer: 4500
+                        });
+
+                        addressCodeField.val( response['data'].address_code );
 
                         formBtn.attr('disabled', false);
 
                     } else {
-                        $(`<div id="message" class="notice notice-warning is-dismissible">
-                            <p>${response['message']}.</p>
-                            
-                            <button type="button" class="notice-dismiss">
-                                <span class="screen-reader-text">Dismiss this notice.</span>
-                            </button>
-                        </div>`).insertAfter($('ul.subsubsub'));
+                        Swal.fire({
+                            icon: 'warning',
+                            position: 'top-end',
+                            title: 'Address Validation Failed',
+                            text: `${response['message']}`,
+                            showConfirmButton: false,
+                            timer: 4500
+                        });
+
+                        addressCodeField.val( addressCodeInitValue );
 
                         formBtn.attr('disabled', true);
 
                         console.log('no');
                     }
                 } else {
-                    $(`<div id="message" class="notice notice-error is-dismissible">
-                        <p>${response['message']}.</p>
-                        
-                        <button type="button" class="notice-dismiss">
-                            <span class="screen-reader-text">Dismiss this notice.</span>
-                        </button>
-                    </div>`).insertAfter($('ul.subsubsub'));
+                    Swal.fire({
+                        icon: 'error',
+                        position: 'top-end',
+                        title: 'Address Validation Failed',
+                        text: `${response['message']}`,
+                        showConfirmButton: false,
+                        timer: 4500
+                    });
+
+                    addressCodeField.val( addressCodeInitValue );
 
                     formBtn.attr('disabled', true);
                     console.log('no');

@@ -20,8 +20,6 @@
                     {
                         $this->id                 = SHIPBUBBLE_ID; // Id for your shipping method. Should be uunique.
                         $this->method_title       = __( 'Shipbubble' );  // Title shown in admin
-
-                        
                         
                         $this->method_description = __( 'Ship without limits ! We make e-commerce shipping quicker, easier, and more affordable.' ); // Description shown in admin
 
@@ -40,15 +38,13 @@
                      */
                     public function init() 
                     {
-                        $this->validate_empty_fields();
-                        $this->set_address_code();
 
                         $this->display_errors();
 
                         $response = shipbubble_get_wallet_balance(shipbubble_get_token());
     
                         // Load the settings API
-                        if (isset($response->status) && strtolower($response->status) == 'success') {
+                        if (isset($response->response_code) && $response->response_code == HTTP_RESPONSE_OK) {
                             $this->init_form_fields(); // This is part of the settings API. Override the method to add your own settings
                         }
 
@@ -68,14 +64,12 @@
                         $courier_options = shipbubble_courier_options();
                         $categories_options = shipbubble_get_order_categories();
 
-                        $isEnabled = '<br><div style="border: 1px solid #D83874; color: #D83874; padding: 10px; border-radius: 20px; font-weight: bold; display: inline-flex !important;">Not Activated for use</div>';
+                        $isEnabled = '<br><div class="sb-activated-not">Not Activated for use</div>';
                         if ($this->get_option('activate_shipbubble', 'no') == 'yes') {
-                            $isEnabled = '<br><div style="border: 1px solid green; color: green; display: inline-block; padding: 10px; border-radius: 20px; font-weight: bold;">Activated for use</div>';
+                            $isEnabled = '<br><div class="sb-activated-success">Activated for use</div>';
                         }
 
                         $this->method_description .= $isEnabled;
-
-                        
 
                         $this->form_fields = array(
                             'activate_shipbubble' => array(
@@ -87,22 +81,26 @@
                             'sender_name' => array(
                                 'title'         => __( 'Sender\'s Name', 'woocommerce' ),
                                 'type'             => 'text',
+                                'class' => 'address_form_field',
                                 'description'     => __( 'This is the first and last name of the sender sender.', 'woocommerce' ),
                                 'placeholder'        => __( 'Store Sender Name', 'woocommerce' ),
                             ),
                             'sender_phone' => array(
                                 'title'         => __( 'Sender\'s Phone Number', 'woocommerce' ),
                                 'type'             => 'text',
+                                'class' => 'address_form_field',
                                 'description'     => __( 'This is the phone number of the sender.', 'woocommerce' ),
                             ),
                             'sender_email' => array(
                                 'title'         => __( 'Sender\'s Email Address', 'woocommerce' ),
                                 'type'             => 'text',
+                                'class' => 'address_form_field',
                                 'description'     => __( 'This is the email of the sender.', 'woocommerce' ),
                             ),
                             'pickup_country' => array(
                                 'title'         => __( 'Pickup Country', 'woocommerce' ),
                                 'type'             => 'select',
+                                'class' => 'address_form_field',
                                 'description'     => __( 'Pickup Country.', 'woocommerce' ),
                                 'options' => $countries,
                                 'default'        => __( $default_country, 'woocommerce' ),
@@ -110,11 +108,13 @@
                             'pickup_state' => array(
                                 'title'         => __( 'Pickup State', 'woocommerce' ),
                                 'type'             => 'text',
+                                'class' => 'address_form_field',
                                 'description'     => __( 'Pickup State.', 'woocommerce' ),
                             ),
                             'pickup_address' => array(
                                 'title'         => __( 'Pickup Address', 'woocommerce' ),
                                 'type'             => 'text',
+                                'class' => 'address_form_field',
                                 'description'     => __( 'This is the address setup for pickup.', 'woocommerce' ),
                                 'default'        => __( '', 'woocommerce' ),
                                 // 'custom_attributes' => array('readonly' => 'readonly')
@@ -162,53 +162,6 @@
                             ),
                         );
                         
-                    }
-
-                    protected function validate_empty_fields()
-                    {
-                        $storedOptions = get_option(WC_SHIPBUBBLE_ID);
-
-                        if (isset($storedOptions) && is_array($storedOptions)) {
-                            foreach ($storedOptions as $key => $value) {
-                                if ($value == '') {
-                                    $this->errors[] = 'Fill all the Fields to activate the plugin.';
-
-                                    break;
-                                }
-                            }
-                        } else {
-                            $this->errors[] = 'Fill all the Fields to activate the plugin.';
-                        }
-                    }
-
-                    protected function set_address_code()
-                    {
-                        $countryObject = WC()->countries;
-
-                        $pickupAddress = $this->get_option('pickup_address', '');
-                        $pickupState = $this->get_option('pickup_state', '');
-                        $pickupCountry = $this->get_option('pickup_country', '');
-                        $fullAddress = '';
-
-                        if ($pickupAddress != '' && $pickupState != '' && $pickupCountry != '') {
-                            $fullAddress .= $pickupAddress . ' ' . $pickupState . ' ' . $countryObject->countries[ $pickupCountry ];
-                            $name = $this->get_option( 'sender_name' );
-                            $phone = $this->get_option( 'sender_phone' );
-                            $email = $this->get_option( 'sender_email' ) ?? get_option('admin_email');
-
-                            $response = shipbubble_validate_address($name, $email, $phone, $fullAddress);
-                            
-                            if ($response->status == 'success') 
-                            {
-                                $this->update_option('pickup_address', $pickupAddress);
-                                $this->update_option('address_code', $response->data->address_code);
-                            } else {
-                                $this->update_option('pickup_address', '');
-                                $this->update_option('address_code', '');
-
-                                $this->errors[] = 'Invalid Address.';
-                            }
-                        }
                     }
 
                     /**

@@ -53,7 +53,7 @@
             );
 
             // successful
-            if (strtolower($addressResponse->status) === 'success') {
+            if (isset($addressResponse->response_code) && $addressResponse->response_code == HTTP_RESPONSE_OK) {
                 $products = shipbubble_get_checkout_orders();
                 $addressCode = $addressResponse->data->address_code;
                 $output = array();

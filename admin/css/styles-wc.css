@@ -9,3 +9,22 @@
     position:absolute; 
     left: 16px;
 }
+
+.sb-activated-not {
+    display: inline-flex;
+    border: 1px solid #D83874; 
+    color: #D83874; 
+    padding: 10px; 
+    border-radius: 20px; 
+    font-weight: bold; 
+}
+
+.sb-activated-success {
+    display: inline-flex;
+    border: 1px solid green; 
+    color: green; 
+    display: inline-block; 
+    padding: 10px; 
+    border-radius: 20px; 
+    font-weight: bold;
+}

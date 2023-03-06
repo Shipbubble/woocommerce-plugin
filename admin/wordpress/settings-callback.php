@@ -34,7 +34,7 @@
 
         if (strlen($value) > 1) {
             echo '<br>';
-            echo '<a href="http://localhost/newcommerce/wp-admin/admin.php?page=wc-settings&tab=shipping&section=shipbubble_shipping_services
+            echo '<a href="http://' . BASE_URL  . '/wp-admin/admin.php?page=wc-settings&tab=shipping&section=shipbubble_shipping_services
             " style="color: #D83854;">Go to ShipBubble Woocommerce Config</a>';
         }
 

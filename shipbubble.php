@@ -227,7 +227,7 @@
 	
 					$response = shipbubble_create_shipment($shipmentPayload); 
 
-					if (strtolower($response->status) == 'success') {
+					if (isset($response->response_code) && $response->response_code == HTTP_RESPONSE_OK) {
 						// set shipbubble order id
 						update_post_meta( $order_id, 'shipbubble_order_id', $response->data->order_id );
 	
@@ -260,11 +260,12 @@
 
 	}
 
-	// function themeslug_enqueue_script() {
-	// 	wp_enqueue_script( 'sweetalert2', 'https://cdn.jsdelivr.net/npm/sweetalert2@11', false );
-	// 	// here you can enqueue more js / css files 
-	// }
+	function themeslug_enqueue_script() {
+		wp_enqueue_script( 'sweetalert2', 'https://cdn.jsdelivr.net/npm/sweetalert2@11', false );
+		// here you can enqueue more js / css files 
+	}
 	
-	// add_action( 'wp_enqueue_scripts', 'themeslug_enqueue_script' );
+	add_action( 'wp_enqueue_scripts', 'themeslug_enqueue_script' );
+	add_action( 'admin_enqueue_scripts', 'themeslug_enqueue_script' );
 
 	

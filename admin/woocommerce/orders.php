@@ -126,10 +126,14 @@
 
             $shipbubbleOrderId = get_post_meta( $post->ID, 'shipbubble_order_id', true ) ?? '';
 
-            $response = shipbubble_track_shipment($shipbubbleOrderId);
+            $response = null;
+            if (strlen($shipbubbleOrderId) > 0) {
+                $response = shipbubble_track_shipment($shipbubbleOrderId);
+            }
+
             ?>
 
-                <?php if (isset($response->status) && strtolower($response->status) == 'success'): ?>
+                <?php if (isset($response->response_code) && $response->response_code == HTTP_RESPONSE_OK): ?>
                     <?php foreach($response->data[0]->package_status as $key => $data): ?>
 
                         <?php if ($key > 0): ?>
@@ -160,19 +164,27 @@
         $balance = '0';
         $currency = '₦';
 
+        // echo '<pre>' .  var_export($order->shipping_total, true) . '</pre>';
+        // die;
+
+        // $shipbubbleOrderId = get_post_meta( $order->get_id(), 'shipping_total', true );
+
         $shipbubbleOrderId = get_post_meta( $order->get_id(), 'shipbubble_order_id', true );
 
         if( strlen($shipbubbleOrderId) < 1 ) {
             $response = shipbubble_get_wallet_balance(shipbubble_get_token());
     
-            if (isset($response->status) && strtolower($response->status) == 'success') {
+            if (isset($response->response_code) && $response->response_code == HTTP_RESPONSE_OK) {
                 $balance = $response->data->balance;
             }
+
+            echo '<input type="hidden" id="shipbubble_shipping_cost" name="shipbubble_shipping_cost" value="' . $order->shipping_total . '"/>';
+
+            echo '<input type="hidden" id="shipbubble_wallet_balance" name="shipbubble_wallet_balance" value="' . $balance . '"/>';
     
             echo '<p><strong>' . __( 'Shipbubble Wallet Balance:' ) . '</strong><br> <strong>' . $currency . number_format( $balance, 2 ) . '</strong></p>';
             
         } else {
-            
             echo '<p><strong>' . __( 'Shipbubble Order ID:' ) . '</strong><br> ' . $shipbubbleOrderId . '</p>';
         }
 

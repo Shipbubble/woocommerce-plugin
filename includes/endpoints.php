@@ -9,17 +9,15 @@
      * Authenticate & Fetch User Wallet Balance
      *
      * @param string $apiKey
-     * @return object
+     * @return mixed
      */
-    function shipbubble_get_wallet_balance(string $apiKey = ''): object 
+    function shipbubble_get_wallet_balance(string $apiKey = '') 
     {
 
         $url = SHIPBUBBLE_BASE_URL . '/wallet/balance';
 
         $url = esc_url_raw( $url );
         $token = '';
-
-        $body = shipbubble_base_response(); // default response
         
         if (isset($apiKey)) {
             $token = $apiKey;
@@ -27,6 +25,8 @@
             // get API key from options
             $token = shipbubble_get_token();
         }
+
+        $body = shipbubble_base_response(); // default response
         
         if (strlen($token) > 0) {
             $args = array( 
@@ -36,12 +36,19 @@
             );
         
             $response = wp_safe_remote_get( $url, $args );
-        
+
             // response data
             $data = wp_remote_retrieve_body( $response );
-
-            if (isset($data)) {
-                $body = $data;
+            
+            if (!is_null($data)) {
+                // response code
+                $response_code = wp_remote_retrieve_response_code( $response );
+                
+                $data = json_decode($data, true);
+                
+                // append response code
+                $data['response_code'] = $response_code;
+                $body = json_encode($data);
             }
         }
         
@@ -52,9 +59,9 @@
     /**
      * Fetch all available couriers
      *
-     * @return object
+     * @return mixed
      */
-    function shipbubble_get_couriers(): object
+    function shipbubble_get_couriers()
     {
 
         $url = SHIPBUBBLE_BASE_URL . '/couriers';
@@ -77,8 +84,15 @@
         // response data
         $data = wp_remote_retrieve_body( $response );
 
-        if (isset($data)) {
-            $body = $data;
+        if (!is_null($data)) {
+            // response code
+            $response_code = wp_remote_retrieve_response_code( $response );
+            
+            $data = json_decode($data, true);
+            
+            // append response code
+            $data['response_code'] = $response_code;
+            $body = json_encode($data);
         }
 
         // output data
@@ -93,9 +107,9 @@
      * @param string $email
      * @param string $phone
      * @param string $address
-     * @return object addressCode
+     * @return mixed addressCode
      */
-    function shipbubble_validate_address(string $name, string $email, string $phone, string $address):object
+    function shipbubble_validate_address(string $name, string $email, string $phone, string $address)
     {
         $url = SHIPBUBBLE_BASE_URL . '/address/validate';
 
@@ -126,15 +140,29 @@
         // response data
         $data = wp_remote_retrieve_body( $response );
 
-        if (isset($data)) {
-            $body = $data;
+        if (!is_null($data)) {
+            // response code
+            $response_code = wp_remote_retrieve_response_code( $response );
+            
+            $data = json_decode($data, true);
+            
+            // append response code
+            $data['response_code'] = $response_code;
+            $body = json_encode($data);
         }
 
         // output data
         return json_decode($body);
     }
 
-    
+    /**
+     * Fetch Shipping rates from different Couriers
+     *
+     * @param string $addressCode
+     * @param array $products
+     * @param array $serviceCodes
+     * @return mixed
+     */
     function shipbubble_get_shipping_rates(string $addressCode, array $products, $serviceCodes = array())
     {
         $options = get_option( WC_SHIPBUBBLE_ID, shipbubble_wc_options_default() );
@@ -167,7 +195,6 @@
         // get API key from options
         $token = shipbubble_get_token();
         
-        $body = shipbubble_base_response(); // default response
         
         $args = array( 
             'headers' => array(
@@ -213,15 +240,24 @@
         // pass payload
         $args['body'] = $payload;
         
+        $body = shipbubble_base_response(); // default response
+
         // call endpoint
         $response = wp_safe_remote_post( $url, $args );
         
+        // return json_decode(json_encode($response));
         // response data
         $data = wp_remote_retrieve_body( $response );
-        
 
-        if (isset($data)) {
-            $body = $data;
+        if (!is_null($data)) {
+            // response code
+            $response_code = wp_remote_retrieve_response_code( $response );
+            
+            $data = json_decode($data, true);
+            
+            // append response code
+            $data['response_code'] = $response_code;
+            $body = json_encode($data);
         }
 
         // output data
@@ -229,12 +265,12 @@
     }
 
     /**
-     * Create ship for a given set of orders
+     * Create shipment for a given set of orders
      *
      * @param array $shipmentPayload
-     * @return object
+     * @return mixed
      */
-    function shipbubble_create_shipment(array $shipmentPayload): object
+    function shipbubble_create_shipment(array $shipmentPayload)
     {
         $url = SHIPBUBBLE_BASE_URL . '/labels';
 
@@ -242,25 +278,25 @@
 
         // get API key from options
         $token = shipbubble_get_token();
-
-        $body = shipbubble_base_response(); // default response
-
+        
         $args = array( 
             'headers' => array(
                 'Authorization' => 'Bearer ' . $token,
             ),
         );
-
+        
         $payload = array(
             'request_token' => $shipmentPayload['request_token'],
             'service_code' => $shipmentPayload['service_code'],
             'courier_id' => $shipmentPayload['courier_id'],
         );
-
+        
         // return json_decode(json_encode($payload));
-
+        
         // pass payload
         $args['body'] = $payload;
+        
+        $body = shipbubble_base_response(); // default response
 
         // call endpoint
         $response = wp_safe_remote_post( $url, $args );
@@ -268,71 +304,102 @@
         // response data
         $data = wp_remote_retrieve_body( $response );
 
-        if (isset($data)) {
-            $body = $data;
+        if (!is_null($data)) {
+            // response code
+            $response_code = wp_remote_retrieve_response_code( $response );
+            
+            $data = json_decode($data, true);
+            
+            // append response code
+            $data['response_code'] = $response_code;
+            $body = json_encode($data);
         }
 
         // output data
         return json_decode($body);
     }
 
-
-    function shipbubble_track_shipment( string $shipbubbleOrderId ): object
+    /**
+     * Track Shipment
+     *
+     * @param string $shipbubbleOrderId
+     * @return mixed
+     */
+    function shipbubble_track_shipment( string $shipbubbleOrderId )
     {
 
         $url = SHIPBUBBLE_BASE_URL . '/labels/list/' . $shipbubbleOrderId;
 
         $url = esc_url_raw( $url );
-
-        $body = shipbubble_base_response(); // default response
-
+        
         // get API key from options
         $token = shipbubble_get_token();
-
+        
         $args = array( 
             'headers' => array(
                 'Authorization' => 'Bearer ' . $token,
             ),
         );
 
+        $body = shipbubble_base_response(); // default response
+        
         $response = wp_safe_remote_get( $url, $args );
 
         // response data
         $data = wp_remote_retrieve_body( $response );
 
-        if (isset($data)) {
-            $body = $data;
+        if (!is_null($data)) {
+            // response code
+            $response_code = wp_remote_retrieve_response_code( $response );
+            
+            $data = json_decode($data, true);
+            
+            // append response code
+            $data['response_code'] = $response_code;
+            $body = json_encode($data);
         }
 
         // output data
         return json_decode($body);
     }
 
-    function shipbubble_order_categories( ): object
+    /**
+     * Fetch Shipbubble Package Categories
+     *
+     * @return mixed
+     */
+    function shipbubble_order_categories()
     {
 
         $url = SHIPBUBBLE_BASE_URL . '/labels/categories';
 
         $url = esc_url_raw( $url );
 
-        $body = shipbubble_base_response(); // default response
-
         // get API key from options
         $token = shipbubble_get_token();
-
+        
         $args = array( 
             'headers' => array(
                 'Authorization' => 'Bearer ' . $token,
             ),
         );
 
+        $body = shipbubble_base_response(); // default response
+        
         $response = wp_safe_remote_get( $url, $args );
 
         // response data
         $data = wp_remote_retrieve_body( $response );
 
-        if (isset($data)) {
-            $body = $data;
+        if (!is_null($data)) {
+            // response code
+            $response_code = wp_remote_retrieve_response_code( $response );
+            
+            $data = json_decode($data, true);
+            
+            // append response code
+            $data['response_code'] = $response_code;
+            $body = json_encode($data);
         }
 
         // output data

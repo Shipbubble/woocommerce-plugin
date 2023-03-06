@@ -6,26 +6,38 @@
 
         var btn = $('#create-shipment');
 		var details = $('input#shipment_details');
-		var wc_order_id = $('input#wc_order_id');    
+		var wc_order_id = $('input#wc_order_id');  
+
+		var walletBalance = $('input#shipbubble_wallet_balance').val();    
+		var shippingCost = $('input#shipbubble_shipping_cost').val();    
         
 		// when user submits the form
 		btn.on( 'click', function(event) {
-            btn.attr('disabled', 'true').html('loading...');
-
             // prevent form submission
-			event.preventDefault();
+            event.preventDefault();
             
-            if (details.val() != '') {
-                console.log(JSON.parse(details.val()).request_token)
-                // let payload = JSON.parse(form.find('#shipment_details'));
+            if ( walletBalance != '' && shippingCost != '' && (shippingCost > walletBalance)) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Oops...',
+                    text: 'Wallet Balance is insufficient, fund your account!',
+                    // showConfirmButton: false,
+                })
+            } else {
+                btn.attr('disabled', 'true').html('loading...');
 
-                const payload = JSON.parse(details.val());
-                payload['order_id'] = wc_order_id.val();
-                
-                // initiate shipment
-                initiate_shipment(payload);
+                if (details.val() != '') {
+                    console.log(JSON.parse(details.val()).request_token)
+                    // let payload = JSON.parse(form.find('#shipment_details'));
+    
+                    const payload = JSON.parse(details.val());
+                    payload['order_id'] = wc_order_id.val();
+                    
+                    // initiate shipment
+                    initiate_shipment(payload);
+                }
             }
-			
+
 		});
 		
         function initiate_shipment(shipment) {
@@ -41,8 +53,8 @@
 
                 console.log(response);
                 
-                if (response.hasOwnProperty('status')) {
-                    if (response['status'] == 'success') {
+                if (response.hasOwnProperty('response_code')) {
+                    if (response['response_code'] == 200) {
                         $(`<div id="message" class="notice notice-success is-dismissible">
                             <p>${response['message']}.</p>
                             
