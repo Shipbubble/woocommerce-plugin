@@ -134,6 +134,12 @@
             ?>
 
                 <?php if (isset($response->response_code) && $response->response_code == HTTP_RESPONSE_OK): ?>
+
+                    <a href="<?= $response->data[0]->tracking_url; ?>" target="_blank">
+                        Tracking Link
+                    </a>
+
+
                     <?php foreach($response->data[0]->package_status as $key => $data): ?>
 
                         <?php if ($key > 0): ?>
