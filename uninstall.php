@@ -9,3 +9,4 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) )
 
 // delete the plugin options
 delete_option( 'shipbubble_options' );
+delete_option( 'shipbubble_shipping_services_woocommerce_settings' );

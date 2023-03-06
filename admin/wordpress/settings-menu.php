@@ -26,7 +26,7 @@
         */
         
         add_menu_page(
-            'Shipbubble Settings',
+            'Connect your Shipbubble Account',
             'Shipbubble',
             'manage_options',
             'shipbubble',

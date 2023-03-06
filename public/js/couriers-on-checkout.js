@@ -67,15 +67,6 @@
                     class: 'woocommerce-error',
                 }).text(`Ensure that you have filled your ${errorBox.join(', ')}`).prependTo('#courier-section').show();
 
-                // Swal.fire({
-                //     position: 'top-end',
-                //     icon: 'error',
-                //     title: ``,
-                //     showConfirmButton: false,
-                //     timer: 5000,
-                // })
-
-                // $('.shipping-notice').show();
             }
             
         });
@@ -95,15 +86,10 @@
             // initialize courier listing html container
             let list = $('#courier-list');
 
-            // add loading message
-			// list.html('Loading...').insertAfter('#request_courier_rates');
-
 			$.post(
                 ajaxUrl,
                 data,
             ).done(function(data) {
-                console.log("final data below: >>>");
-                console.log(data);
                 
                 let response = JSON.parse(data);
                 list.empty();
@@ -118,11 +104,39 @@
                         
                         // dynamically add each courier
                         list.append("<h3>Delivery Options <sup>*</sup></h3>");
+
+                        
+
+
                         $.each(output.couriers, function(i, value){
                             // set total charge
                             let total = parseFloat(value.total) + parseFloat(output.extra_charges);
 
-                            list.append(`<p><input type="radio" name="delivery_option" data-request_token="${output.request_token}" data-courier_name="${value.courier_name}" data-cost="${total}" data-service_code="${value.service_code}" data-courier_id="${value.courier_id}" required /> ${value.currency}${total} ${value.courier_name} </p>`);
+                            list.append(`
+                                <div class="sb-card">
+                                    <label for="${value.courier_id}">
+                                        <input id="${value.courier_id}" type="radio" name="delivery_option" class="card-input-element" data-request_token="${output.request_token}" data-courier_name="${value.courier_name}" data-cost="${total}" data-service_code="${value.service_code}" data-courier_id="${value.courier_id}" required />
+                                        
+                                        <div class="card-input">
+                                            <div class="flex-container-sb">
+                                                <div style="display:flex;">
+                                                    <img src="${value.courier_image}" />
+
+                                                    <span>${value.courier_name}</span>
+                                                </div>
+                                    
+                                                <span class="sb-price">₦${total}</span>
+                                            </div>
+                        
+                                            <div style="flex-container-sb">
+                                                <span>Delivery Time EST:</span>
+                                                <span>${value.delivery_eta}</span>
+                                            </div>
+                                        </div>
+                                    </label>						 
+                                </div>
+                            `);
+
                         });
 
                     } else {
@@ -141,7 +155,7 @@
                 requestRatesBtn.attr({
                     class: '',
                     disabled: false
-                }).text('Request Courier Rates');
+                }).text('Get Delivery Prices');
                 
             }).fail(function () { 
                 console.log("failed");

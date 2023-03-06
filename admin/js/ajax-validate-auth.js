@@ -19,8 +19,13 @@
             // define url
 			var api_key = $(this).val();
 
-            if (api_key.length > 10) {
+            if (api_key.length > 10 && api_key.startsWith('sb_prod')) {
+                api_key_note.text('Validating your API Key...');
+
                 validate_shipbubble_api_key(api_key);
+            } else {
+                api_key_note.text('Please Provide your shipbubble production API Key');
+                api_key_note.css('color', 'red');
             }
 			
 		});
@@ -38,30 +43,17 @@
     
                 if (response.hasOwnProperty('response_code')) {
                     if (response['response_code'] == 200) {
-                        
-                        Swal.fire({
-                            icon: 'success',
-                            position: 'top-end',
-                            text: `Your API Key is valid`,
-                            showConfirmButton: false,
-                            timer: 4500
-                        });
 
                         btn.attr('disabled', false);
 
                         api_key_input.css('border', '2px solid green');
                         api_key_note.css('color', 'green');
                         api_key_note.text('Your API Key is valid');
+
+                        
                     } else {
                         console.log('no');
 
-                        Swal.fire({
-                            icon: 'error',
-                            position: 'top-end',
-                            text: `API Key is invalid, try again`,
-                            showConfirmButton: false,
-                            timer: 4500
-                        });
                         btn.attr('disabled', true);
 
                         // alert('API Key is invalid, try again');

@@ -141,11 +141,6 @@
 
         $response = shipbubble_get_shipping_rates($addressCode, $products, $serviceCodes);
 
-        // echo '<pre>' . var_export($response, true) . '</pre>';
-        // die;
-
-        // return $response;
-
         if (isset($response->response_code) && $response->response_code == HTTP_RESPONSE_OK) {
             $data = $response->data;
             $rates['request_token'] = $data->request_token;

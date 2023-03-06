@@ -27,7 +27,7 @@
                     do_settings_sections( 'shipbubble' );
                     
                     // submit button
-                    submit_button();
+                    submit_button('Connect Account');
                 
                 ?>
                 

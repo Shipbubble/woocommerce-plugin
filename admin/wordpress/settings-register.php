@@ -40,7 +40,7 @@
         
         add_settings_section( 
             'shipbubble_section_login', 
-            'Shipbubble Authentication', 
+            '', 
             'shipbubble_callback_section_login', 
             'shipbubble'
         );
@@ -66,7 +66,7 @@
             'shipbubble_callback_field_text',
             'shipbubble',
             'shipbubble_section_login',
-            [ 'id' => 'shipbubble_api_key', 'label' => 'Shipbubble API Key', 'placeholder' => 'sb_xxxxxxxxxxxxxxxxxxxxx' ]
+            [ 'id' => 'shipbubble_api_key', 'label' => '', 'placeholder' => 'sb_prod_xxxxxxxxxxxxxxxxxxxxx' ]
         );
 
     }

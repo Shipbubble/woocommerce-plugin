@@ -58,13 +58,10 @@
                 $addressCode = $addressResponse->data->address_code;
                 $output = array();
 
-                $response = shipbubble_process_shipping_rates($addressCode, $products);
+                $rates = shipbubble_process_shipping_rates($addressCode, $products);
 
-                // echo json_encode($response);
-                // wp_die();
-
-                if (count($response)) {
-                    $output = array('status' => 'success', 'data' => $response);
+                if (count($rates)) {
+                    $output = array('status' => 'success', 'data' => $rates);
                 } else {
                     $output = array('status' => 'failed', 'message' => 'Unable to fetch rates, try again later');
                 }

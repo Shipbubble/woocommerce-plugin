@@ -65,13 +65,6 @@
                 
                 if (response.hasOwnProperty('response_code')) {
                     if (response['response_code'] == 200) {
-                        Swal.fire({
-                            icon: 'success',
-                            position: 'top-end',
-                            text: `Address ${response['message']}`,
-                            showConfirmButton: false,
-                            timer: 4500
-                        });
 
                         addressCodeField.val( response['data'].address_code );
 
@@ -80,7 +73,6 @@
                     } else {
                         Swal.fire({
                             icon: 'warning',
-                            position: 'top-end',
                             title: 'Address Validation Failed',
                             text: `${response['message']}`,
                             showConfirmButton: false,
@@ -96,7 +88,6 @@
                 } else {
                     Swal.fire({
                         icon: 'error',
-                        position: 'top-end',
                         title: 'Address Validation Failed',
                         text: `${response['message']}`,
                         showConfirmButton: false,

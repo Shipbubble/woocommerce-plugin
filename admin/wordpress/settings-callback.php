@@ -10,7 +10,6 @@
     function shipbubble_callback_section_login() 
     {
         
-        echo '<p>These settings enable you to authenticate the plugin for use.</p>';
         
     }
 
@@ -33,9 +32,8 @@
         echo '<span class="form_note_' . $id .'"></span>';
 
         if (strlen($value) > 1) {
-            echo '<br>';
-            echo '<a href="http://' . BASE_URL  . '/wp-admin/admin.php?page=wc-settings&tab=shipping&section=shipbubble_shipping_services
-            " style="color: #D83854;">Go to ShipBubble Woocommerce Config</a>';
+            echo '<a href="' . BASE_URL . '/wp-admin/admin.php?page=wc-settings&tab=shipping&section=shipbubble_shipping_services
+            " style="color: #D83854;">Complete your shipbubble woocommerce setup</a>';
         }
 
         //

@@ -21,7 +21,7 @@
                         $this->id                 = SHIPBUBBLE_ID; // Id for your shipping method. Should be uunique.
                         $this->method_title       = __( 'Shipbubble' );  // Title shown in admin
                         
-                        $this->method_description = __( 'Ship without limits ! We make e-commerce shipping quicker, easier, and more affordable.' ); // Description shown in admin
+                        $this->method_description = __( '' ); // Description shown in admin
 
                         // Define user set variables
                         $this->enabled            = $this->get_option('activate_shipbubble', 'no'); // This can be added as an setting but for this example its forced enabled
@@ -97,65 +97,63 @@
                                 'class' => 'address_form_field',
                                 'description'     => __( 'This is the email of the sender.', 'woocommerce' ),
                             ),
-                            'pickup_country' => array(
-                                'title'         => __( 'Pickup Country', 'woocommerce' ),
-                                'type'             => 'select',
-                                'class' => 'address_form_field',
-                                'description'     => __( 'Pickup Country.', 'woocommerce' ),
-                                'options' => $countries,
-                                'default'        => __( $default_country, 'woocommerce' ),
-                            ),
-                            'pickup_state' => array(
-                                'title'         => __( 'Pickup State', 'woocommerce' ),
-                                'type'             => 'text',
-                                'class' => 'address_form_field',
-                                'description'     => __( 'Pickup State.', 'woocommerce' ),
-                            ),
                             'pickup_address' => array(
-                                'title'         => __( 'Pickup Address', 'woocommerce' ),
+                                'title'         => __( 'Sender Address', 'woocommerce' ),
                                 'type'             => 'text',
                                 'class' => 'address_form_field',
                                 'description'     => __( 'This is the address setup for pickup.', 'woocommerce' ),
                                 'default'        => __( '', 'woocommerce' ),
                                 // 'custom_attributes' => array('readonly' => 'readonly')
                             ),
-                            'address_code' => array(
-                                'title'         => __( 'Address Code', 'woocommerce' ),
+                            'pickup_state' => array(
+                                'title'         => __( 'Sender State', 'woocommerce' ),
                                 'type'             => 'text',
-                                'description'     => __( 'This is the address code setup for pickup (66502255).', 'woocommerce' ),
+                                'class' => 'address_form_field',
+                            ),
+                            'pickup_country' => array(
+                                'title'         => __( 'Sender Country', 'woocommerce' ),
+                                'type'             => 'select',
+                                'class' => 'address_form_field',
+                                'options' => $countries,
+                                'default'        => __( $default_country, 'woocommerce' ),
+                            ),
+                            'address_code' => array(
+                                // 'title'         => __( 'Address Code', 'woocommerce' ),
+                                'type'             => 'hidden',
+                                // 'description'     => __( 'This is the address code setup for pickup (66502255).', 'woocommerce' ),
                                 'default'        => __( '0', 'woocommerce' ),
-                                'custom_attributes' => array('readonly' => 'readonly')
+                                // 'custom_attributes' => array('readonly' => 'readonly')
                             ),
                             'extra_charges' => array(
-                                'title'         => __( 'Custom Shipping Extra Charges', 'woocommerce' ),
+                                'title'         => __( 'Shipping Extra Charges', 'woocommerce' ),
                                 'type'             => 'number',
-                                'description'     => __( 'This controls adds a fee to any logistics selected.', 'woocommerce' ),
+                                'description'     => __( 'This control adds a fee to any logistics selected.', 'woocommerce' ),
                                 'default'        => __( '0', 'woocommerce' ),
                                 'custom_attributes' => array('step' => '0.01', 'min' => '0')
                             ),
                             'shipping_price' => array(
-                                'title'         => __( 'Shipping Price', 'woocommerce' ),
+                                'title'         => __( 'Checkout Options', 'woocommerce' ),
                                 'type'             => 'select',
-                                'description'     => __( 'Shipbubble Courier Price Types.', 'woocommerce' ),
+                                'description'     => __( 'Choose what prices are displayed to customers.', 'woocommerce' ),
                                 'options' => array('default' => 'Default', 'fastest' => 'Fastest', 'cheapest' => 'Cheapest'),
                                 'default'        => __( 'default', 'woocommerce' ),
                             ),
                             'store_category' => array(
                                 'title'         => __( 'Store Category', 'woocommerce' ),
                                 'type'             => 'select',
-                                'description'     => __( 'Store Category.', 'woocommerce' ),
                                 'options' => $categories_options,
+                                'custom_attributes' => array('required' => 'required')
                                 // 'default'        => __( '', 'woocommerce' ),
                             ),
                             'courier_list' => array(
-                                'title'         => __( 'Courier List', 'woocommerce' ),
+                                'title'         => __( 'Select Logistics Company', 'woocommerce' ),
                                 'type'             => 'multiselect',
-                                'description'     => __( 'Onboarded Courier List.', 'woocommerce' ),
                                 'options' => $courier_options,
                                 'default'        => __( 'all', 'woocommerce' ),
+                                'description'     => __( 'To select multiple logistics companies, hold "control" (ctrl) and click on your desired option', 'woocommerce' ),
                             ),
                             'user_can_ship' => array(
-                                'title'         => __( 'Customer Can Ship', 'woocommerce' ),
+                                'title'         => __( 'Ship Orders at checkout', 'woocommerce' ),
                                 'type'             => 'checkbox',
                                 'description'     => __( 'Customer Can Ship Orders on Checkout.', 'woocommerce' ),
                                 'default'        => __( 'no', 'woocommerce' ),

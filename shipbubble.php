@@ -111,6 +111,7 @@
 
 			// public
 			require_once plugin_dir_path( __FILE__ ) . 'public/woocommerce/checkout.php';
+			require_once plugin_dir_path( __FILE__ ) . 'public/woocommerce/enqueue-styles.php';
 		// }
 	}
 
