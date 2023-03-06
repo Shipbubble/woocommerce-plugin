@@ -117,9 +117,9 @@
 					}
 					$rates[$rate_key]->cost = $post_data['shipbubble_cost'];
 				} 
-				// else {
-				// 	unset($rates[$rate_key]); // Remove
-				// }
+				else {
+					unset($rates[$rate_key]); // Remove other shipping methods
+				}
 			}
 		} else {
 			foreach( $rates as $rate_key => $rate ) {
