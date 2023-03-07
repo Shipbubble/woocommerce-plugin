@@ -137,7 +137,7 @@
 
                     <a href="<?= $response->data[0]->tracking_url; ?>" target="_blank">
                         Tracking Link
-                    </a>
+                    </a><br>
 
 
                     <?php foreach($response->data[0]->package_status as $key => $data): ?>
