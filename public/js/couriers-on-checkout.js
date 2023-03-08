@@ -45,7 +45,7 @@
 
                 // disable request btn
                 $(this).attr({
-                    class: 'loading',
+                    class: 'loading sb_request_btn',
                     disabled: true
                 });
 
@@ -100,13 +100,9 @@
                         // display data
                         console.log('token ==> ', output.request_token);
                         // var section = $("#courier-section");
-
                         
                         // dynamically add each courier
                         list.append("<h3>Delivery Options <sup>*</sup></h3>");
-
-                        
-
 
                         $.each(output.couriers, function(i, value){
                             // set total charge
@@ -153,7 +149,7 @@
                 }
 
                 requestRatesBtn.attr({
-                    class: '',
+                    class: 'sb_request_btn',
                     disabled: false
                 }).text('Get Delivery Prices');
                 

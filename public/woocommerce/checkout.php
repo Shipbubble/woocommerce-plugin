@@ -23,7 +23,7 @@
 					<input type="hidden" id="shipbubble_service_code" name="shipbubble_service_code" value="">
 					<input type="hidden" id="shipbubble_courier_id" name="shipbubble_courier_id" value="">
 	
-					<button id="request_courier_rates" type="button" style="background: #D83854; color: #FFF; font-size: 12px; padding 16px 8px;">
+					<button id="request_courier_rates" class="sb_request_btn" type="button">
 						Get Delivery Prices
 					</button>
 				</div>
