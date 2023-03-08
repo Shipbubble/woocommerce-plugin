@@ -114,41 +114,6 @@
 			require_once plugin_dir_path( __FILE__ ) . 'public/woocommerce/enqueue-styles.php';
 		// }
 	}
-
-	// 
-
-	// function lab_pacakge_cost() 
-	// {
-		
-	// 	global $woocommerce;
-		
-	// 	// $flat_fee    = get_option( 'techiepress_vat_pricing_flat_fee' );
-	// 	// $dynamic_fee = get_option( 'techiepress_vat_pricing_dynamic_fee' );
-		
-	// 	if ( ! $_POST || ( is_admin() && ! is_ajax() ) ) {
-	// 		return;
-	// 	}
-		
-	// 	if ( isset( $_POST['post_data'] ) ) {
-	// 		parse_str( $_POST['post_data'], $post_data );
-	// 	} else {
-	// 		$post_data = $_POST;
-	// 	}
-		
-	// 	if ( isset( $post_data['techiepress_vat_cancel'] ) ) {
-
-	// 		// WC()->cart->calculate_shipping();
-	// 		$taxable = 250 + ( $woocommerce->cart->cart_contents_total * 1 );
-			
-	// 		$woocommerce->cart->add_fee( __( 'VAT', 'om-service-widget' ), $taxable );
-	// 	}
-		
-	// 	return;
-		
-	// }
-	// add_action( 'woocommerce_cart_calculate_fees', 'lab_pacakge_cost');
-
-
 	
 
 	// Disable Shipping methods if not in checkout page

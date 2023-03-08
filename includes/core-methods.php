@@ -12,7 +12,7 @@
     {
         return json_encode(
             array(
-                'response_code' => '00',
+                'response_code' => '500',
                 'status' => $status ?? 'failed',
                 'message' => $message ?? 'Unable to complete request, try again later',
                 'data' => $data ?? [],

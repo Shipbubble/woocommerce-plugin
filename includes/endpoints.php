@@ -32,23 +32,37 @@
             $args = array( 
                 'headers' => array(
                     'Authorization' => 'Bearer ' . $token,
+                    'origin-app' => 'wordpress'
                 ),
+                'timeout'     => 10,
+                'redirection' => 5,
+                'httpversion' => '1.0',
+                'blocking'    => true,
+                'cookies'     => array(),
+                'compress'    => false,
+                'decompress'  => true,
+                'sslverify'   => true,
+                'stream'      => false,
+                'filename'    => null
             );
         
             $response = wp_safe_remote_get( $url, $args );
 
-            // response data
-            $data = wp_remote_retrieve_body( $response );
-            
-            if (!is_null($data)) {
+            if ( ! is_wp_error( $response ) ) {
+                // response data
+                $data = wp_remote_retrieve_body( $response );
                 // response code
                 $response_code = wp_remote_retrieve_response_code( $response );
-                
                 $data = json_decode($data, true);
-                
+    
                 // append response code
                 $data['response_code'] = $response_code;
                 $body = json_encode($data);
+    
+            } else {
+                $error_message = $response->get_error_message();
+                error_log(print_r($error_message, true));
+                // throw new Exception( $error_message );
             }
         }
         
@@ -76,23 +90,37 @@
         $args = array( 
             'headers' => array(
                 'Authorization' => 'Bearer ' . $token,
+                'origin-app' => 'wordpress'
             ),
+            'timeout'     => 10,
+            'redirection' => 5,
+            'httpversion' => '1.0',
+            'blocking'    => true,
+            'cookies'     => array(),
+            'compress'    => false,
+            'decompress'  => true,
+            'sslverify'   => true,
+            'stream'      => false,
+            'filename'    => null
         );
 
         $response = wp_safe_remote_get( $url, $args );
 
-        // response data
-        $data = wp_remote_retrieve_body( $response );
-
-        if (!is_null($data)) {
+        if ( ! is_wp_error( $response ) ) {
+            // response data
+            $data = wp_remote_retrieve_body( $response );
             // response code
             $response_code = wp_remote_retrieve_response_code( $response );
-            
             $data = json_decode($data, true);
-            
+
             // append response code
             $data['response_code'] = $response_code;
             $body = json_encode($data);
+
+        } else {
+            $error_message = $response->get_error_message();
+            error_log(print_r($error_message, true));
+            // throw new Exception( $error_message );
         }
 
         // output data
@@ -123,7 +151,18 @@
         $args = array( 
             'headers' => array(
                 'Authorization' => 'Bearer ' . $token,
+                'origin-app' => 'wordpress'
             ),
+            'timeout'     => 20,
+            'redirection' => 5,
+            'httpversion' => '1.0',
+            'blocking'    => true,
+            'cookies'     => array(),
+            'compress'    => false,
+            'decompress'  => true,
+            'sslverify'   => true,
+            'stream'      => false,
+            'filename'    => null
         );
 
         $payload = array(
@@ -137,18 +176,21 @@
 
         $response = wp_safe_remote_post( $url, $args );
 
-        // response data
-        $data = wp_remote_retrieve_body( $response );
-
-        if (!is_null($data)) {
+        if ( ! is_wp_error( $response ) ) {
+            // response data
+            $data = wp_remote_retrieve_body( $response );
             // response code
             $response_code = wp_remote_retrieve_response_code( $response );
-            
             $data = json_decode($data, true);
-            
+
             // append response code
             $data['response_code'] = $response_code;
             $body = json_encode($data);
+
+        } else {
+            $error_message = $response->get_error_message();
+            error_log(print_r($error_message, true));
+            // throw new Exception( $error_message );
         }
 
         // output data
@@ -199,7 +241,18 @@
         $args = array( 
             'headers' => array(
                 'Authorization' => 'Bearer ' . $token,
+                'origin-app' => 'wordpress'
             ),
+            'timeout'     => 10,
+            'redirection' => 5,
+            'httpversion' => '1.0',
+            'blocking'    => true,
+            'cookies'     => array(),
+            'compress'    => false,
+            'decompress'  => true,
+            'sslverify'   => true,
+            'stream'      => false,
+            'filename'    => null
         );
         
         $packages = array();
@@ -246,18 +299,21 @@
         $response = wp_safe_remote_post( $url, $args );
         
         // return json_decode(json_encode($response));
-        // response data
-        $data = wp_remote_retrieve_body( $response );
-
-        if (!is_null($data)) {
+        if ( ! is_wp_error( $response ) ) {
+            // response data
+            $data = wp_remote_retrieve_body( $response );
             // response code
             $response_code = wp_remote_retrieve_response_code( $response );
-            
             $data = json_decode($data, true);
-            
+
             // append response code
             $data['response_code'] = $response_code;
             $body = json_encode($data);
+
+        } else {
+            $error_message = $response->get_error_message();
+            error_log(print_r($error_message, true));
+            // throw new Exception( $error_message );
         }
 
         // output data
@@ -282,7 +338,18 @@
         $args = array( 
             'headers' => array(
                 'Authorization' => 'Bearer ' . $token,
+                'origin-app' => 'wordpress'
             ),
+            'timeout'     => 20,
+            'redirection' => 5,
+            'httpversion' => '1.0',
+            'blocking'    => true,
+            'cookies'     => array(),
+            'compress'    => false,
+            'decompress'  => true,
+            'sslverify'   => true,
+            'stream'      => false,
+            'filename'    => null
         );
         
         $payload = array(
@@ -301,18 +368,21 @@
         // call endpoint
         $response = wp_safe_remote_post( $url, $args );
 
-        // response data
-        $data = wp_remote_retrieve_body( $response );
-
-        if (!is_null($data)) {
+        if ( ! is_wp_error( $response ) ) {
+            // response data
+            $data = wp_remote_retrieve_body( $response );
             // response code
             $response_code = wp_remote_retrieve_response_code( $response );
-            
             $data = json_decode($data, true);
-            
+
             // append response code
             $data['response_code'] = $response_code;
             $body = json_encode($data);
+
+        } else {
+            $error_message = $response->get_error_message();
+            error_log(print_r($error_message, true));
+            // throw new Exception( $error_message );
         }
 
         // output data
@@ -338,25 +408,39 @@
         $args = array( 
             'headers' => array(
                 'Authorization' => 'Bearer ' . $token,
+                'origin-app' => 'wordpress'
             ),
+            'timeout'     => 10,
+            'redirection' => 5,
+            'httpversion' => '1.0',
+            'blocking'    => true,
+            'cookies'     => array(),
+            'compress'    => false,
+            'decompress'  => true,
+            'sslverify'   => true,
+            'stream'      => false,
+            'filename'    => null
         );
 
         $body = shipbubble_base_response(); // default response
         
         $response = wp_safe_remote_get( $url, $args );
 
-        // response data
-        $data = wp_remote_retrieve_body( $response );
-
-        if (!is_null($data)) {
+        if ( ! is_wp_error( $response ) ) {
+            // response data
+            $data = wp_remote_retrieve_body( $response );
             // response code
             $response_code = wp_remote_retrieve_response_code( $response );
-            
             $data = json_decode($data, true);
-            
+
             // append response code
             $data['response_code'] = $response_code;
             $body = json_encode($data);
+
+        } else {
+            $error_message = $response->get_error_message();
+            error_log(print_r($error_message, true));
+            // throw new Exception( $error_message );
         }
 
         // output data
@@ -381,25 +465,39 @@
         $args = array( 
             'headers' => array(
                 'Authorization' => 'Bearer ' . $token,
+                'origin-app' => 'wordpress'
             ),
+            'timeout'     => 10,
+            'redirection' => 5,
+            'httpversion' => '1.0',
+            'blocking'    => true,
+            'cookies'     => array(),
+            'compress'    => false,
+            'decompress'  => true,
+            'sslverify'   => true,
+            'stream'      => false,
+            'filename'    => null
         );
 
         $body = shipbubble_base_response(); // default response
         
         $response = wp_safe_remote_get( $url, $args );
 
-        // response data
-        $data = wp_remote_retrieve_body( $response );
-
-        if (!is_null($data)) {
+        if ( ! is_wp_error( $response ) ) {
+            // response data
+            $data = wp_remote_retrieve_body( $response );
             // response code
             $response_code = wp_remote_retrieve_response_code( $response );
-            
             $data = json_decode($data, true);
-            
+
             // append response code
             $data['response_code'] = $response_code;
             $body = json_encode($data);
+
+        } else {
+            $error_message = $response->get_error_message();
+            error_log(print_r($error_message, true));
+            // throw new Exception( $error_message );
         }
 
         // output data
