@@ -291,3 +291,17 @@
 
         return $label;
     }
+
+    function sb_create_address(string $address, string $city, string $stateLabel, string $countryLabel)
+    {
+        $countryObject = WC()->countries;
+        $state = $countryObject->states[ $countryLabel ][ $stateLabel ];
+        $country = $countryObject->countries[ $countryLabel ];
+        
+        return $address . ' ' . $city . ' ' . $state . ' ' . $country;
+    }
+
+    function sb_compare_addresses(string $address1, string $address2)
+    {
+        return trim(strtolower($address1)) == trim(strtolower($address2));
+    }

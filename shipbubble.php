@@ -198,7 +198,6 @@
 	add_action( 'woocommerce_checkout_update_order_meta', 'shipbubble_checkout_update_order_meta', 10, 1 );
 	function shipbubble_checkout_update_order_meta( $order_id ) 
 	{
-
 		$options = get_option( WC_SHIPBUBBLE_ID, shipbubble_wc_options_default() );
 
         $userCanShip = isset( $options['user_can_ship'] ) ? sanitize_text_field( $options['user_can_ship'] ) : 'no';
@@ -206,12 +205,38 @@
 		$requestToken = $_POST['request_token'];
 		$serviceCode = $_POST['shipbubble_service_code'];
 		$courierId = $_POST['shipbubble_courier_id'];
+
+		// initialize address
+		$streetAddress = $_POST['shipping_address_1'];
+		$city = $_POST['shipping_city'];
+		$stateTag = $_POST['shipping_state'];
+		$countryTag = $_POST['shipping_country'];
+
+		if (strlen($streetAddress) < 1) {
+			$streetAddress = $_POST['billing_address_1'];
+		}
+
+		if (strlen($city) < 1) {
+			$city = $_POST['billing_city'];
+		}
+
+		if (strlen($stateTag) < 1) {
+			$stateTag = $_POST['billing_state'];
+		}
+
+		if (strlen($countryTag) < 1) {
+			$countryTag = $_POST['billing_country'];
+		}
+
+		$address = sb_create_address($streetAddress, $city, $stateTag, $countryTag);
+
+		// error_log(print_r($address, true));
+		// error_log(print_r(json_decode(json_decode($_POST['shipbubble_shipment_details'])), true));
+		// die;
 		
 		if( isset( $_POST['shipbubble_shipment_details'] ) ) {
 
 			if (strtolower($userCanShip) == 'yes') {
-
-
 
 				// error_log(print_r($requestToken, true));
 				// error_log(print_r($serviceCode, true));
@@ -258,7 +283,9 @@
 			// set shipping status
 			update_post_meta( $order_id, 'shipbubble_tracking_status', '' );
 		}
-
+		
+		// setting the delivery address
+		update_post_meta( $order_id, 'shipbubble_delivery_address', $address );
 	}
 
 	function themeslug_enqueue_script() {

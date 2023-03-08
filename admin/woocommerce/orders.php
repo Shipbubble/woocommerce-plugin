@@ -3,11 +3,30 @@
     add_action( 'woocommerce_admin_order_data_after_billing_address', 'shibubble_order_data_after_billing_address', 10, 1 );
     function shibubble_order_data_after_billing_address( $order ) 
     {
+        // array (
+        //     'first_name' => 'mavi',
+        //     'last_name' => 'prince',
+        //     'company' => '',
+        //     'address_1' => '21 Ilamoye street, Ijeshatedo',
+        //     'address_2' => '',
+        //     'city' => 'Surulere',
+        //     'state' => 'LA',
+        //     'postcode' => '',
+        //     'country' => 'NG',
+        //     'phone' => '',
+        //   )
+
+        $shippingData = $order->data['shipping'];
+        $orderAddress = sb_create_address($shippingData['address_1'], $shippingData['city'], $shippingData['state'],$shippingData['country']);
+
+        // echo '<pre> ' . var_export($orderAddress, true) . '</pre>';
         // echo '<pre> ' . var_export($order->data['shipping'], true) . '</pre>';
         // die;
         // echo '<pre>' . var_export(wc_get_product( $order->get_items()[9]['product_id'] ), true) . '</pre>';
         // echo '<pre> ' . var_export(json_decode($shipment)->service_code, true) . '</pre>';
         // die;
+
+        $shipbubbleDeliveryAddress = get_post_meta( $order->get_id(), 'shipbubble_delivery_address', true );
 
         $shipbubbleOrderId = get_post_meta( $order->get_id(), 'shipbubble_order_id', true );
         $shipment = get_post_meta( $order->get_id(), 'shipbubble_shipment_details' )[0];
@@ -20,11 +39,24 @@
         $orderDate = new DateTime( $order->date_created );
         $interval = $orderDate->diff($today);
 
+        // check token has lasted longer than 48hrs before regenerating new request token
         if( strlen($shipbubbleOrderId) < 1 && $interval->h > SHIPBUBBLE_REQUEST_TOKEN_EXPIRY) {
             $rates = shipbubble_regenerate_rate_token($order, $serviceCode);
             if (count($rates)) {
                 $shipment = json_encode($rates);
                 update_post_meta( $order->get_id(), 'shipbubble_shipment_details', $shipment );
+                update_post_meta( $order->get_id(), 'shipbubble_delivery_address', $orderAddress );
+            }
+        }
+
+        // Check address has changed under 48hrs before before regenerating new request token
+        if ( strlen($shipbubbleOrderId) < 1 && !sb_compare_addresses($shipbubbleDeliveryAddress, $orderAddress) && $interval->h < SHIPBUBBLE_REQUEST_TOKEN_EXPIRY ) {
+            // regenerate
+            $rates = shipbubble_regenerate_rate_token($order, $serviceCode);
+            if (count($rates)) {
+                $shipment = json_encode($rates);
+                update_post_meta( $order->get_id(), 'shipbubble_shipment_details', $shipment );
+                update_post_meta( $order->get_id(), 'shipbubble_delivery_address', $orderAddress );
             }
         }
 
@@ -102,6 +134,12 @@
     function hide_meta_shipbubble_order_id($protected, $meta_key)
     {
         return $meta_key == 'shipbubble_order_id' ? true : $protected;
+    }
+
+    add_filter('is_protected_meta', 'hide_meta_shipbubble_delivery_address', 10, 2);
+    function hide_meta_shipbubble_delivery_address($protected, $meta_key)
+    {
+        return $meta_key == 'shipbubble_delivery_address' ? true : $protected;
     }
 
     // end
