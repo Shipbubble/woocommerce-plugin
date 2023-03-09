@@ -32,7 +32,7 @@ function shipbubble_get_wallet_balance(string $apiKey = '')
         $args = array(
             'headers' => array(
                 'Authorization' => 'Bearer ' . $token,
-                'origin-app' => 'wordpress'
+                'x-shipbubble-platform' => 'wordpress'
             ),
             'timeout'     => 10,
             'redirection' => 5,
@@ -89,7 +89,7 @@ function shipbubble_get_couriers()
     $args = array(
         'headers' => array(
             'Authorization' => 'Bearer ' . $token,
-            'origin-app' => 'wordpress'
+            'x-shipbubble-platform' => 'wordpress'
         ),
         'timeout'     => 10,
         'redirection' => 5,
@@ -149,7 +149,7 @@ function shipbubble_validate_address(string $name, string $email, string $phone,
     $args = array(
         'headers' => array(
             'Authorization' => 'Bearer ' . $token,
-            'origin-app' => 'wordpress'
+            'x-shipbubble-platform' => 'wordpress'
         ),
         'timeout'     => 20,
         'redirection' => 5,
@@ -238,7 +238,7 @@ function shipbubble_get_shipping_rates(string $addressCode, array $products, $se
     $args = array(
         'headers' => array(
             'Authorization' => 'Bearer ' . $token,
-            'origin-app' => 'wordpress'
+            'x-shipbubble-platform' => 'wordpress'
         ),
         'timeout'     => 10,
         'redirection' => 5,
@@ -334,7 +334,7 @@ function shipbubble_create_shipment(array $shipmentPayload)
     $args = array(
         'headers' => array(
             'Authorization' => 'Bearer ' . $token,
-            'origin-app' => 'wordpress'
+            'x-shipbubble-platform' => 'wordpress'
         ),
         'timeout'     => 20,
         'redirection' => 5,
@@ -403,7 +403,7 @@ function shipbubble_track_shipment(string $shipbubbleOrderId)
     $args = array(
         'headers' => array(
             'Authorization' => 'Bearer ' . $token,
-            'origin-app' => 'wordpress'
+            'x-shipbubble-platform' => 'wordpress'
         ),
         'timeout'     => 10,
         'redirection' => 5,
@@ -459,7 +459,7 @@ function shipbubble_order_categories()
     $args = array(
         'headers' => array(
             'Authorization' => 'Bearer ' . $token,
-            'origin-app' => 'wordpress'
+            'x-shipbubble-platform' => 'wordpress'
         ),
         'timeout'     => 10,
         'redirection' => 5,
