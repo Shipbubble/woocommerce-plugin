@@ -1,15 +1,15 @@
 // JavaScript for Public Checkout Area
-(function($) {
-	
-	$(document).ready(function() {
+(function ($) {
+
+    $(document).ready(function () {
 
         var requestRatesBtn = $('#request_courier_rates');
-        
-        requestRatesBtn.click(function (e) { 
-            
+
+        requestRatesBtn.click(function (e) {
+
             e.preventDefault();
             $('#shipping-notice').remove();
-            
+
             // initialize variables
             let firstName = $('input#billing_first_name').val();
             let lastName = $('input#billing_last_name').val();
@@ -17,11 +17,11 @@
             let phone = $('input#billing_phone').val();
 
             let streetAddress = $('input#shipping_address_1').val();
-            
+
             if (streetAddress == '') {
                 streetAddress = $('input#billing_address_1').val();
             }
-            
+
             let city = $('input#shipping_city').val();
             if (city == '') {
                 city = $('input#billing_city').val();
@@ -31,7 +31,7 @@
             let selectedCountry = $('select#shipping_country').val();
 
             // check requirements are met
-            if(firstName != '' && lastName != '' && email != '' && phone != '' && streetAddress != '' && city != '' && selectedState != '' && selectedCountry != '') {
+            if (firstName != '' && lastName != '' && email != '' && phone != '' && streetAddress != '' && city != '' && selectedState != '' && selectedCountry != '') {
                 // hide notice
                 $('#shipping-notice').remove();
 
@@ -54,7 +54,7 @@
             } else {
                 // Display notice
                 let errorBox = [];
-                let containerObject = {firstName, lastName, email, phone, streetAddress, city, selectedState, selectedCountry}
+                let containerObject = { firstName, lastName, email, phone, streetAddress, city, selectedState, selectedCountry }
 
                 for (const key in containerObject) {
                     if (containerObject[key] == '') {
@@ -68,43 +68,43 @@
                 }).text(`Ensure that you have filled your ${errorBox.join(', ')}`).prependTo('#courier-section').show();
 
             }
-            
+
         });
 
-		
+
         function fetch_shipping_rates(payload) {
             // submit the data
             let ajaxUrl = ajax_public.ajaxurl;
 
             // set ajax payload
             let data = {
-                nonce:     ajax_public.nonce,
-				action:    'request_shipping_rates',
+                nonce: ajax_public.nonce,
+                action: 'request_shipping_rates',
                 data: payload
             };
 
             // initialize courier listing html container
             let list = $('#courier-list');
 
-			$.post(
+            $.post(
                 ajaxUrl,
                 data,
-            ).done(function(data) {
-                
+            ).done(function (data) {
+
                 let response = JSON.parse(data);
                 list.empty();
-                
+
                 if (response.hasOwnProperty('status')) {
                     if (response['status'] == 'success') {
                         let output = response['data'];
                         // display data
                         console.log('token ==> ', output.request_token);
                         // var section = $("#courier-section");
-                        
-                        // dynamically add each courier
-                        list.append("<h3>Delivery Options <sup>*</sup></h3>");
 
-                        $.each(output.couriers, function(i, value){
+                        // dynamically add each courier
+                        list.append("<h3>Select a delivery option <sup>*</sup></h3>");
+
+                        $.each(output.couriers, function (i, value) {
                             // set total charge
                             let total = parseFloat(value.total) + parseFloat(output.extra_charges);
 
@@ -151,9 +151,9 @@
                 requestRatesBtn.attr({
                     class: 'sb_request_btn',
                     disabled: false
-                }).text('Get Delivery Prices');
-                
-            }).fail(function () { 
+                }).html('<span style="margin-left: auto;">Get Delivery Prices</span>&nbsp;&nbsp;<img style="margin-right: auto;" width="120" height="80" src="https://res.cloudinary.com/delivry/image/upload/v1678320403/app_assets/powered-by_rr4pbc.svg" alt="powered_by">');
+
+            }).fail(function () {
                 console.log("failed");
 
                 $('<div>', {
@@ -164,6 +164,6 @@
             });
         }
 
-	});
-	
-})( jQuery );
+    });
+
+})(jQuery);

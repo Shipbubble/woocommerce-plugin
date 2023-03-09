@@ -25,31 +25,40 @@ label {
 }
 
 .card-input img {
-    width: 30px; 
+    width: 30px;
     height: 30px;
-    margin-right:8px;
+    margin-right: 8px;
 }
 
 .card-input:hover {
     cursor: pointer;
 }
 
-.card-input-element:checked + .card-input {
+.card-input-element:checked+.card-input {
     box-shadow: 0 0 1px 1px #D83854;
 }
 
 .sb-price {
-    font-weight: bold; 
+    font-weight: bold;
     /* font-size: 16px; */
 }
 
 .flex-container-sb {
-    display:flex; 
+    display: flex;
     justify-content: space-between;
 }
 
 .sb_request_btn {
-    background-color: #D83854 !important; 
-    color: #FFF !important; 
-    font-size: 12px !important;
+    background-color: #D83854 !important;
+    color: #FFF !important;
+    font-size: 15px !important;
+    padding: 8px 10px !important;
+    border: none !important;
+    border-radius: 5px !important;
+    transition: 1.5s !important;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    text-align: left;
+    margin-bottom: 10px;
 }
