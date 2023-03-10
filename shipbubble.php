@@ -2,6 +2,7 @@
 
 /**
  * Contributors: Shipbubble, Mavi Onogomuho
+ * Plugin Name: Shipbubble
  * Donate link: https://www.shipbubble.com/
  * Description:  Shipbubble is a platform that enables retailers to conveniently delight their customers with multiple shipping options, thereby increasing conversion rates
  * Tags: logistics, deliveries, shipping rates, multiple couriers, post purchase experience
