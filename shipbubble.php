@@ -9,6 +9,7 @@
  * Requires at least: 4.0
  * Tested up to: 8.1
  * Stable tag: 1.0
+ * Version: 1.0
  * Requires PHP: 5.6
  *Text Domain:  shipbubble
  * Domain Path:  /languages
