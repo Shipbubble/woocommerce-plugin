@@ -6,10 +6,10 @@
  * Description:  Shipbubble is a platform that enables retailers to conveniently delight their customers with multiple shipping options, thereby increasing conversion rates
  * Tags: logistics, deliveries, shipping rates, multiple couriers, post purchase experience
  * Requires at least: 4.0
- * Tested up to: 8.1
+ * Tested up to: 6.1.1
  * Stable tag: 1.0
  * Requires PHP: 5.6
- *Text Domain:  shipbubble
+ * Text Domain:  shipbubble
  * Domain Path:  /languages
  * License: GPLv2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
