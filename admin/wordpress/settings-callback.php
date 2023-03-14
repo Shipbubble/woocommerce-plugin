@@ -32,7 +32,7 @@
         echo '<span class="form_note_' . $id .'"></span>';
 
         if (strlen($value) > 1) {
-            echo '<a href="' . BASE_URL . '/wp-admin/admin.php?page=wc-settings&tab=shipping&section=shipbubble_shipping_services
+            echo '<a href="' . PLATFORM_BASE_URL . '/wp-admin/admin.php?page=wc-settings&tab=shipping&section=shipbubble_shipping_services
             " style="color: #D83854;">Complete your shipbubble woocommerce setup</a>';
         }
 

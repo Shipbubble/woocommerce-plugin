@@ -112,8 +112,8 @@ function shipbubble_wc_api_init()
 
 
 // Disable Shipping methods if not in checkout page
-add_filter('woocommerce_package_rates', 'keep_shipping_methods_on_checkout', 100, 2);
-function keep_shipping_methods_on_checkout($rates, $package)
+add_filter('woocommerce_package_rates', 'shipbubble_keep_shipping_methods_on_checkout', 100, 2);
+function shipbubble_keep_shipping_methods_on_checkout($rates, $package)
 {
 	if (!is_checkout()) {
 		// Loop through shipping methods rates
@@ -125,9 +125,9 @@ function keep_shipping_methods_on_checkout($rates, $package)
 }
 
 // Shipping packages
-add_filter('woocommerce_shipping_packages', 'keep_shipping_packages_on_checkout', 20, 1);
-add_filter('woocommerce_cart_shipping_packages', 'keep_shipping_packages_on_checkout', 20, 1);
-function keep_shipping_packages_on_checkout($packages)
+add_filter('woocommerce_shipping_packages', 'shipbubble_keep_shipping_packages_on_checkout', 20, 1);
+add_filter('woocommerce_cart_shipping_packages', 'shipbubble_keep_shipping_packages_on_checkout', 20, 1);
+function shipbubble_keep_shipping_packages_on_checkout($packages)
 {
 	if (!is_checkout()) {
 		foreach ($packages as $key => $package) {
@@ -139,8 +139,8 @@ function keep_shipping_packages_on_checkout($packages)
 }
 
 // prevent proceed to order if shipping method has not been selected
-add_filter('woocommerce_order_button_html', 'disable_place_order_button_html');
-function disable_place_order_button_html($button)
+add_filter('woocommerce_order_button_html', 'shipbubble_disable_place_order_button_html');
+function shipbubble_disable_place_order_button_html($button)
 {
 	// HERE define your targeted shipping method id
 	$targeted_shipping_method = "flat_rate:14";
@@ -158,22 +158,22 @@ function disable_place_order_button_html($button)
 }
 
 // Append custom checkout fields to db when order has been paid for
-add_action('woocommerce_checkout_update_order_meta', 'shipbubble_checkout_update_order_meta', 10, 1);
-function shipbubble_checkout_update_order_meta($order_id)
+add_action('woocommerce_checkout_update_order_meta', 'shipbubble_update_order_meta_on_checkout', 10, 1);
+function shipbubble_update_order_meta_on_checkout($order_id)
 {
 	$options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
 
 	$userCanShip = isset($options['user_can_ship']) ? sanitize_text_field($options['user_can_ship']) : 'no';
 
-	$requestToken = $_POST['request_token'];
-	$serviceCode = $_POST['shipbubble_service_code'];
-	$courierId = $_POST['shipbubble_courier_id'];
+	$requestToken = sanitize_text_field($_POST['request_token']);
+	$serviceCode = sanitize_text_field($_POST['shipbubble_service_code']);
+	$courierId = sanitize_text_field($_POST['shipbubble_courier_id']);
 
 	// initialize address
-	$streetAddress = $_POST['shipping_address_1'];
-	$city = $_POST['shipping_city'];
-	$stateTag = $_POST['shipping_state'];
-	$countryTag = $_POST['shipping_country'];
+	$streetAddress = sanitize_text_field($_POST['shipping_address_1']);
+	$city = sanitize_text_field($_POST['shipping_city']);
+	$stateTag = sanitize_text_field($_POST['shipping_state']);
+	$countryTag = sanitize_text_field($_POST['shipping_country']);
 
 	if (strlen($streetAddress) < 1) {
 		$streetAddress = $_POST['billing_address_1'];
@@ -216,7 +216,7 @@ function shipbubble_checkout_update_order_meta($order_id)
 
 				$response = shipbubble_create_shipment($shipmentPayload);
 
-				if (isset($response->response_code) && $response->response_code == HTTP_RESPONSE_OK) {
+				if (isset($response->response_code) && $response->response_code == THIS_RESPONSE_IS_OK) {
 					// set shipbubble order id
 					update_post_meta($order_id, 'shipbubble_order_id', $response->data->order_id);
 
@@ -249,11 +249,11 @@ function shipbubble_checkout_update_order_meta($order_id)
 	update_post_meta($order_id, 'shipbubble_delivery_address', $address);
 }
 
-function themeslug_enqueue_script()
+function shipbubble_append_enqueue_script()
 {
-	wp_enqueue_script('sweetalert2', 'https://cdn.jsdelivr.net/npm/sweetalert2@11', false);
+	wp_enqueue_script('sweetalert2', plugin_dir_path(__FILE__) . 'public/js/sweetalert2.min.js', false);
 	// here you can enqueue more js / css files 
 }
 
-add_action('wp_enqueue_scripts', 'themeslug_enqueue_script');
-add_action('admin_enqueue_scripts', 'themeslug_enqueue_script');
+add_action('wp_enqueue_scripts', 'shipbubble_append_enqueue_script');
+add_action('admin_enqueue_scripts', 'shipbubble_append_enqueue_script');

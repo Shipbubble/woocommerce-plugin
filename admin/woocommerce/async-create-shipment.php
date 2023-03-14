@@ -45,7 +45,7 @@
 
         $response = shipbubble_create_shipment($shipmentPayload); 
         
-        if (isset($response->response_code) && $response->response_code == HTTP_RESPONSE_OK) {
+        if (isset($response->response_code) && $response->response_code == THIS_RESPONSE_IS_OK) {
             // set shipbubble order id
             update_post_meta( $orderId, 'shipbubble_order_id', $response->data->order_id );
 

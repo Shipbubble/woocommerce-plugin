@@ -3,7 +3,7 @@ Contributors: Shipbubble, Mavi Onogomuho
 Donate link: https://www.shipbubble.com/
 Tags: logistics, deliveries, shipping rates, multiple couriers, post purchase experience
 Requires at least: 4.0
-Tested up to: 8.1
+Tested up to: 6.1.1
 Stable tag: 1.0
 Requires PHP: 5.6
 License: GPLv2 or later

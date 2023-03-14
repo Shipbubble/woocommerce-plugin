@@ -89,32 +89,25 @@ function shipbubble_courier_setup_on_change()
 add_filter('woocommerce_package_rates', 'shipbubble_change_rates', 100, 2);
 function shipbubble_change_rates($rates, $packages)
 {
+	$post_data = [];
 	if (isset($_POST['post_data'])) {
-		parse_str($_POST['post_data'], $post_data);
+		$post_data = $_POST['post_data'];
+		// parse_str($_POST['post_data'], $post_data);
 	} else {
 		$post_data = $_POST;
 	}
 
-	// $customer = WC()->customer;
-
-	// error_log(print_r($packages, true));
-
-	// if (empty($packages['destination']['address']) ) {
-	// 	foreach( $rates as $rate_key => $rate ) {
-	// 		if ( 'shipbubble_shipping_services' === $rate->method_id ) {
-	// 			unset( $rates[$rate_key] );
-	// 		}
-	// 	}
-	// }
-
 	if (isset($post_data['delivery_option'])) {
+		$selectedCourier = sanitize_text_field($post_data['shipbubble_selected_courier']);
+		$cost = (float) sanitize_text_field($post_data['shipbubble_cost']);
+
 		foreach ($rates as $rate_key => $rate) {
 			if (SHIPBUBBLE_ID === $rate->method_id) {
 				// set rate cost
-				if (!empty($post_data['shipbubble_selected_courier']) && strlen($post_data['shipbubble_selected_courier'])) {
-					$rates[$rate_key]->label = $post_data['shipbubble_selected_courier'];
+				if (!empty($selectedCourier) && strlen($selectedCourier)) {
+					$rates[$rate_key]->label = $selectedCourier;
 				}
-				$rates[$rate_key]->cost = $post_data['shipbubble_cost'];
+				$rates[$rate_key]->cost = $cost;
 			} else {
 				unset($rates[$rate_key]); // Remove other shipping methods
 			}
