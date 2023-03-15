@@ -91,8 +91,8 @@ function shipbubble_change_rates($rates, $packages)
 {
 	$post_data = [];
 	if (isset($_POST['post_data'])) {
-		$post_data = $_POST['post_data'];
-		// parse_str($_POST['post_data'], $post_data);
+		// $post_data = $_POST['post_data'];
+		wp_parse_str($_POST['post_data'], $post_data);
 	} else {
 		$post_data = $_POST;
 	}

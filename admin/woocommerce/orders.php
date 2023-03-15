@@ -205,20 +205,20 @@
                 $balance = $response->data->balance;
             }
 
-            $shippingCostInputTag = '<input type="hidden" id="shipbubble_shipping_cost" name="shipbubble_shipping_cost" value="' . $order->shipping_total . '"/>';
+            $shippingCostInputTag = '<input type="hidden" id="shipbubble_shipping_cost" name="shipbubble_shipping_cost" value="' . (float) $order->shipping_total . '"/>';
 
-            $balanceInputTag = '<input type="hidden" id="shipbubble_wallet_balance" name="shipbubble_wallet_balance" value="' . $balance . '"/>';
+            $balanceInputTag = '<input type="hidden" id="shipbubble_wallet_balance" name="shipbubble_wallet_balance" value="' . (float) $balance . '"/>';
 
             $balanceLabel = '<p><strong>' . __( 'Shipbubble Wallet Balance:' ) . '</strong><br> <strong>' . $currency . number_format( $balance, 2 ) . '</strong></p>';
 
-            echo esc_html($shippingCostInputTag);
-            echo esc_html($balanceInputTag);
-            echo esc_html($balanceLabel);
+            echo $shippingCostInputTag;
+            echo $balanceInputTag;
+            echo $balanceLabel;
             
         } else {
-            $orderIdLabel = '<p><strong>' . __( 'Shipbubble Order ID:' ) . '</strong><br> ' . $shipbubbleOrderId . '</p>';
+            $orderIdLabel = '<p><strong>' . __( 'Shipbubble Order ID:' ) . '</strong><br> ' . esc_html($shipbubbleOrderId) . '</p>';
 
-            echo esc_html($orderIdLabel);
+            echo $orderIdLabel;
         }
 
     }
