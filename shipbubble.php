@@ -252,7 +252,7 @@ function shipbubble_update_order_meta_on_checkout($order_id)
 
 function shipbubble_append_enqueue_script()
 {
-	wp_enqueue_script('sweetalert2', plugin_dir_path(__FILE__) . 'public/js/sweetalert2.min.js', false);
+	wp_enqueue_script('sweetalert2', plugins_url( 'public/js/sweetalert2.min.js', __FILE__ ), array());
 	// here you can enqueue more js / css files 
 }
 
