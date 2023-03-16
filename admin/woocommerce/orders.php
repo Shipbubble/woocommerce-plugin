@@ -154,7 +154,7 @@
 
             ?>
 
-                <?php if (isset($response->response_code) && $response->response_code == HTTP_RESPONSE_OK): ?>
+                <?php if (isset($response->response_code) && $response->response_code == THIS_RESPONSE_IS_OK): ?>
 
                     <a href="<?= $response->data[0]->tracking_url; ?>" target="_blank">
                         Tracking Link
@@ -201,18 +201,24 @@
         if( strlen($shipbubbleOrderId) < 1 ) {
             $response = shipbubble_get_wallet_balance(shipbubble_get_token());
     
-            if (isset($response->response_code) && $response->response_code == HTTP_RESPONSE_OK) {
+            if (isset($response->response_code) && $response->response_code == THIS_RESPONSE_IS_OK) {
                 $balance = $response->data->balance;
             }
 
-            echo '<input type="hidden" id="shipbubble_shipping_cost" name="shipbubble_shipping_cost" value="' . $order->shipping_total . '"/>';
+            $shippingCostInputTag = '<input type="hidden" id="shipbubble_shipping_cost" name="shipbubble_shipping_cost" value="' . (float) $order->shipping_total . '"/>';
 
-            echo '<input type="hidden" id="shipbubble_wallet_balance" name="shipbubble_wallet_balance" value="' . $balance . '"/>';
-    
-            echo '<p><strong>' . __( 'Shipbubble Wallet Balance:' ) . '</strong><br> <strong>' . $currency . number_format( $balance, 2 ) . '</strong></p>';
+            $balanceInputTag = '<input type="hidden" id="shipbubble_wallet_balance" name="shipbubble_wallet_balance" value="' . (float) $balance . '"/>';
+
+            $balanceLabel = '<p><strong>' . __( 'Shipbubble Wallet Balance:' ) . '</strong><br> <strong>' . $currency . number_format( $balance, 2 ) . '</strong></p>';
+
+            echo $shippingCostInputTag;
+            echo $balanceInputTag;
+            echo $balanceLabel;
             
         } else {
-            echo '<p><strong>' . __( 'Shipbubble Order ID:' ) . '</strong><br> ' . $shipbubbleOrderId . '</p>';
+            $orderIdLabel = '<p><strong>' . __( 'Shipbubble Order ID:' ) . '</strong><br> ' . esc_html($shipbubbleOrderId) . '</p>';
+
+            echo $orderIdLabel;
         }
 
     }

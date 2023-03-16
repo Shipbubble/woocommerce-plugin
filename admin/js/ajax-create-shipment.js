@@ -8,15 +8,15 @@
 		var details = $('input#shipment_details');
 		var wc_order_id = $('input#wc_order_id');  
 
-		var walletBalance = $('input#shipbubble_wallet_balance').val();    
-		var shippingCost = $('input#shipbubble_shipping_cost').val();    
+		var walletBalance = parseFloat($('input#shipbubble_wallet_balance').val());
+		var shippingCost = parseFloat($('input#shipbubble_shipping_cost').val());
         
 		// when user submits the form
 		btn.on( 'click', function(event) {
             // prevent form submission
             event.preventDefault();
             
-            if ( walletBalance != '' && shippingCost != '' && (shippingCost > walletBalance)) {
+            if ( $.isNumeric(walletBalance) && $.isNumeric(shippingCost) && (shippingCost > walletBalance)) {
                 Swal.fire({
                     icon: 'warning',
                     title: 'Oops...',

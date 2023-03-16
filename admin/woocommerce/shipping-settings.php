@@ -44,7 +44,7 @@
                         $response = shipbubble_get_wallet_balance(shipbubble_get_token());
     
                         // Load the settings API
-                        if (isset($response->response_code) && $response->response_code == HTTP_RESPONSE_OK) {
+                        if (isset($response->response_code) && $response->response_code == THIS_RESPONSE_IS_OK) {
                             $this->init_form_fields(); // This is part of the settings API. Override the method to add your own settings
                         }
 
