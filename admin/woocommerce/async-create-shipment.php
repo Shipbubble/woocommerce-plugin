@@ -37,15 +37,16 @@
         if ( ! current_user_can( 'manage_options' ) ) return;
 
         // $shipmentPayload = $_POST['data'];
-        $shipmentPayload = $_POST['data']['shipment'];
-        $orderId = $shipmentPayload['order_id'];
+        $shipmentPayload = isset( $_POST['data']['shipment'] ) ? (array) $_POST['data']['shipment'] : array();
 
-        // var_dump($shipmentPayload);
-        // die;
+        // Any of the WordPress data sanitization functions can be used here
+        $shipmentPayload = array_map( 'esc_attr', $shipmentPayload );
+        $orderId = sanitize_text_field($shipmentPayload['order_id']);
+
 
         $response = shipbubble_create_shipment($shipmentPayload); 
         
-        if (isset($response->response_code) && $response->response_code == THIS_RESPONSE_IS_OK) {
+        if (isset($response->response_code) && $response->response_code == SHIPBUBBLE_RESPONSE_IS_OK) {
             // set shipbubble order id
             update_post_meta( $orderId, 'shipbubble_order_id', $response->data->order_id );
 

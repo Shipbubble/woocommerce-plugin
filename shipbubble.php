@@ -177,19 +177,19 @@ function shipbubble_update_order_meta_on_checkout($order_id)
 	$countryTag = sanitize_text_field($_POST['shipping_country']);
 
 	if (strlen($streetAddress) < 1) {
-		$streetAddress = $_POST['billing_address_1'];
+		$streetAddress = sanitize_text_field($_POST['billing_address_1']);
 	}
 
 	if (strlen($city) < 1) {
-		$city = $_POST['billing_city'];
+		$city = sanitize_text_field($_POST['billing_city']);
 	}
 
 	if (strlen($stateTag) < 1) {
-		$stateTag = $_POST['billing_state'];
+		$stateTag = sanitize_text_field($_POST['billing_state']);
 	}
 
 	if (strlen($countryTag) < 1) {
-		$countryTag = $_POST['billing_country'];
+		$countryTag = sanitize_text_field($_POST['billing_country']);
 	}
 
 	$address = sb_create_address($streetAddress, $city, $stateTag, $countryTag);
@@ -217,7 +217,7 @@ function shipbubble_update_order_meta_on_checkout($order_id)
 
 				$response = shipbubble_create_shipment($shipmentPayload);
 
-				if (isset($response->response_code) && $response->response_code == THIS_RESPONSE_IS_OK) {
+				if (isset($response->response_code) && $response->response_code == SHIPBUBBLE_RESPONSE_IS_OK) {
 					// set shipbubble order id
 					update_post_meta($order_id, 'shipbubble_order_id', $response->data->order_id);
 
@@ -234,7 +234,7 @@ function shipbubble_update_order_meta_on_checkout($order_id)
 		}
 
 		// set shipbubble shipment details json
-		update_post_meta($order_id, 'shipbubble_shipment_details', $_POST['shipbubble_shipment_details']);
+		update_post_meta($order_id, 'shipbubble_shipment_details', sanitize_text_field($_POST['shipbubble_shipment_details']));
 	} else {
 		$code = $serviceCode ?? 'speedaf-express';
 		update_post_meta($order_id, 'shipbubble_shipment_details', json_encode(['service_code' => $code]));

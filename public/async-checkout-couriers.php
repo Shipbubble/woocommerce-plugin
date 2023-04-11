@@ -36,7 +36,10 @@
 
         $output = array();
 
-        $data = $_POST['data'];
+        $data = isset( $_POST['data'] ) ? (array) $_POST['data'] : array();
+
+        // Any of the WordPress data sanitization functions can be used here
+        $data = array_map( 'esc_attr', $data );
 
         if ( empty($_POST['data']) || empty($data['name'])  || empty($data['email']) || empty($data['phone']) || empty($data['address']) ) {
 
@@ -46,14 +49,14 @@
         } else {
             // validate address
             $addressResponse = shipbubble_validate_address(
-                $data['name'], 
-                $data['email'], 
-                $data['phone'], 
-                $data['address']
+                sanitize_text_field($data['name']), 
+                sanitize_email($data['email']), 
+                sanitize_text_field($data['phone']), 
+                sanitize_text_field($data['address'])
             );
 
             // successful
-            if (isset($addressResponse->response_code) && $addressResponse->response_code == THIS_RESPONSE_IS_OK) {
+            if (isset($addressResponse->response_code) && $addressResponse->response_code == SHIPBUBBLE_RESPONSE_IS_OK) {
                 $products = shipbubble_get_checkout_orders();
                 $addressCode = $addressResponse->data->address_code;
                 $output = array();

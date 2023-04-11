@@ -38,7 +38,7 @@
         // check user
         if ( ! current_user_can( 'manage_options' ) ) return;
 
-        $apiKey = $_POST['data']['api_key'];
+        $apiKey = sanitize_text_field($_POST['data']['api_key']);
 
         echo json_encode(shipbubble_get_wallet_balance($apiKey)); 
 
