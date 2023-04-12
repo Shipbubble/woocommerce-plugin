@@ -27,7 +27,7 @@
         );
 
         $response = shipbubble_get_couriers();
-        if (isset($response->response_code) && $response->response_code == THIS_RESPONSE_IS_OK) {
+        if (isset($response->response_code) && $response->response_code == SHIPBUBBLE_RESPONSE_IS_OK) {
             foreach ($response->data as $courier) {
                 $body[$courier->service_code] = $courier->name;
             }
@@ -41,7 +41,7 @@
         $body = array();
 
         $response = shipbubble_order_categories();
-        if (isset($response->response_code) && $response->response_code == THIS_RESPONSE_IS_OK) {
+        if (isset($response->response_code) && $response->response_code == SHIPBUBBLE_RESPONSE_IS_OK) {
             foreach ($response->data as $data) {
                 $body[$data->category_id] = $data->category;
             }
@@ -141,7 +141,7 @@
 
         $response = shipbubble_get_shipping_rates($addressCode, $products, $serviceCodes);
 
-        if (isset($response->response_code) && $response->response_code == THIS_RESPONSE_IS_OK) {
+        if (isset($response->response_code) && $response->response_code == SHIPBUBBLE_RESPONSE_IS_OK) {
             $data = $response->data;
             $rates['request_token'] = $data->request_token;
             $rates['extra_charges'] = $extra_charges;
@@ -199,7 +199,7 @@
         $rates = array();
 
         // if successful
-		if (isset($addressResponse->response_code) && $addressResponse->response_code == THIS_RESPONSE_IS_OK) {
+		if (isset($addressResponse->response_code) && $addressResponse->response_code == SHIPBUBBLE_RESPONSE_IS_OK) {
 			// $products = shipbubble_get_checkout_orders();
 			$addressCode = $addressResponse->data->address_code;
 
