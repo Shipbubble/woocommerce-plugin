@@ -27,12 +27,12 @@
         
         $value = isset( $options[$id] ) ? sanitize_text_field( $options[$id] ) : '';
         
-        echo '<input id="shipbubble_options_'. $id .'" name="shipbubble_options['. $id .']" type="text" size="40" value="'. $value .'" placeholder="' . $placeholder . '"><br />';
-        echo '<label for="shipbubble_options_'. $id .'">'. $label .'</label><br />';
-        echo '<span class="form_note_' . $id .'"></span>';
+        echo '<input id="shipbubble_options_'. esc_html( $id ) .'" name="shipbubble_options['. esc_html( $id ) .']" type="text" size="40" value="'. esc_html( $value ) .'" placeholder="' . esc_html( $placeholder ) . '"><br />';
+        echo '<label for="shipbubble_options_'. esc_html( $id ) .'">'. esc_html( $label ) .'</label><br />';
+        echo '<span class="form_note_' . esc_html( $id ) .'"></span>';
 
         if (strlen($value) > 1) {
-            echo '<a href="' . SHIPBUBBLE_EXT_BASE_URL . '/wp-admin/admin.php?page=wc-settings&tab=shipping&section=shipbubble_shipping_services
+            echo '<a href="' . esc_html( SHIPBUBBLE_EXT_BASE_URL ) . '/wp-admin/admin.php?page=wc-settings&tab=shipping&section=shipbubble_shipping_services
             " style="color: #D83854;">Complete your shipbubble woocommerce setup</a>';
         }
 
