@@ -36,7 +36,10 @@
 
         $output = array();
 
-        $data = isset( $_POST['data'] ) ? (array) $_POST['data'] : array();
+        // Any of the WordPress data sanitization functions can be used here
+        $postData = array_map( 'esc_attr', $_POST['data'] );
+
+        $data = isset( $postData ) ? (array) $postData : array();
 
         // Any of the WordPress data sanitization functions can be used here
         $data = array_map( 'esc_attr', $data );

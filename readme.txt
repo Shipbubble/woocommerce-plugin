@@ -46,7 +46,9 @@ Please visit our website - https://shipbubble.com
 2. Create a personalized branded tracking experience for your customers.
 
 == Changelog ==
-
+= 0.1 =
+* Initial release.
 
 == Upgrade Notice ==
-
+= 0.2 =
+Upgrade notices describe the reason a user should upgrade
