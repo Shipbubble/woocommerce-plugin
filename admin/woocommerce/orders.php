@@ -160,12 +160,15 @@
                         Tracking Link
                     </a><br>
 
+                    <?php
+                        $latestPackageStatus = end($response->data[0]->package_status);
+
+                        // set shipping status
+                        update_post_meta( $post->ID, 'shipbubble_tracking_status', strtolower($latestPackageStatus->status) );
+
+                    ?>
 
                     <?php foreach($response->data[0]->package_status as $key => $data): ?>
-
-                        <?php if ($key > 0): ?>
-                            <div class="sb-status-indicator"></div>
-                        <?php endif; ?>
 
                         <div class="sb-flex-container">
                             <span>
@@ -173,7 +176,9 @@
                                 <br>
                                 <?php echo esc_html( date('H:i A', strtotime($data->datetime)) ); ?>
                             </span>
-                            <span><?php echo esc_html( $data->status ); ?></span>
+                            <span>
+                                <?php echo esc_html( $data->status ); ?>
+                            </span>
                         </div>
                         
                     <?php endforeach; ?>
