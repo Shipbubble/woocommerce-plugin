@@ -37,7 +37,7 @@
         $output = array();
 
         // Any of the WordPress data sanitization functions can be used here
-        $postData = array_map( 'esc_attr', $_POST['data'] );
+        $postData = array_map( 'sanitize_text_field', $_POST['data'] );
 
         $data = isset( $postData ) ? (array) $postData : array();
 
