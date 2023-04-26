@@ -48,9 +48,9 @@
 
         ?>
             <?php if (strlen($shipbubbleOrderId) < 1): ?>
-                <input type="hidden" id="wc_order_id" name="wc_order_id" value='<?= $order->get_id(); ?>' />
+                <input type="hidden" id="wc_order_id" name="wc_order_id" value='<?php echo esc_html($order->get_id()); ?>' />
 
-                <input type="hidden" id="shipment_details" name="shipment_details" value='<?= $shipment; ?>' />
+                <input type="hidden" id="shipment_details" name="shipment_details" value='<?php echo esc_html($shipment); ?>' />
 
                 <button id="create-shipment" style="background-color: #FF5170; color: #FFF; padding: 4px 16px; border: 1px solid #FF5170; border-radius: 3px; cursor: pointer;">
                     Create Shipment
@@ -156,16 +156,19 @@
 
                 <?php if (isset($response->response_code) && $response->response_code == SHIPBUBBLE_RESPONSE_IS_OK): ?>
 
-                    <a href="<?= $response->data[0]->tracking_url; ?>" target="_blank">
+                    <a href="<?php echo esc_html($response->data[0]->tracking_url); ?>" target="_blank">
                         Tracking Link
                     </a><br>
 
+                    <?php
+                        $latestPackageStatus = end($response->data[0]->package_status);
+
+                        // set shipping status
+                        update_post_meta( $post->ID, 'shipbubble_tracking_status', strtolower($latestPackageStatus->status) );
+
+                    ?>
 
                     <?php foreach($response->data[0]->package_status as $key => $data): ?>
-
-                        <?php if ($key > 0): ?>
-                            <div class="sb-status-indicator"></div>
-                        <?php endif; ?>
 
                         <div class="sb-flex-container">
                             <span>
@@ -173,7 +176,9 @@
                                 <br>
                                 <?php echo esc_html( date('H:i A', strtotime($data->datetime)) ); ?>
                             </span>
-                            <span><?php echo esc_html( $data->status ); ?></span>
+                            <span>
+                                <?php echo esc_html( $data->status ); ?>
+                            </span>
                         </div>
                         
                     <?php endforeach; ?>

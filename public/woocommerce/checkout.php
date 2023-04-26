@@ -95,7 +95,7 @@ function shipbubble_change_rates($rates, $packages)
 		wp_parse_str($_POST['post_data'], $post_data);
 	} else {
 		// Any of the WordPress data sanitization functions can be used here
-        $post_data = array_map( 'esc_attr', $_POST );
+        $post_data = array_map( 'sanitize_text_field', $_POST );
 	}
 
 	if (isset($post_data['delivery_option'])) {

@@ -15,7 +15,7 @@
             let lastName = $('input#billing_last_name').val();
             let email = $('input#billing_email').val();
             let phone = $('input#billing_phone').val();
-
+            //08036922
             let streetAddress = $('input#shipping_address_1').val();
 
             if (streetAddress == '') {
@@ -44,10 +44,12 @@
                 }
 
                 // disable request btn
-                $(this).attr({
-                    class: 'loading sb_request_btn',
-                    disabled: true
-                });
+                // $(this).attr({
+                //     class: 'loading sb_request_btn',
+                //     disabled: true
+                // });
+                this.disabled = true;
+                this.setAttribute('class', 'loading sb_request_btn');
 
                 // Request shipping rates
                 fetch_shipping_rates(addressPayload);
@@ -148,10 +150,16 @@
                     }
                 }
 
-                requestRatesBtn.attr({
-                    class: 'sb_request_btn',
-                    disabled: false
-                }).html('<span style="margin-left: auto;">Get Delivery Prices</span>&nbsp;&nbsp;<img style="margin-right: auto;" width="120" height="80" src="https://res.cloudinary.com/delivry/image/upload/v1678320403/app_assets/powered-by_rr4pbc.svg" alt="powered_by">');
+                requestRatesBtn = document.querySelector('#request_courier_rates');
+
+                requestRatesBtn.disabled = false;
+                requestRatesBtn.setAttribute('class', 'sb_request_btn');
+                requestRatesBtn.innerHTML = '<span style="margin-left: auto;">Get Delivery Prices</span>&nbsp;&nbsp;<img style="margin-right: auto;" width="120" height="80" src="https://res.cloudinary.com/delivry/image/upload/v1678320403/app_assets/powered-by_rr4pbc.svg" alt="powered_by">';
+
+                // requestRatesBtn.attr({
+                //     class: 'sb_request_btn',
+                //     disabled: false
+                // }).html('<span style="margin-left: auto;">Get Delivery Prices</span>&nbsp;&nbsp;<img style="margin-right: auto;" width="120" height="80" src="https://res.cloudinary.com/delivry/image/upload/v1678320403/app_assets/powered-by_rr4pbc.svg" alt="powered_by">');
 
             }).fail(function () {
                 console.log("failed");
