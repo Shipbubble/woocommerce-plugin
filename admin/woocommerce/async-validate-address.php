@@ -36,10 +36,11 @@
         // check user
         if ( ! current_user_can( 'manage_options' ) ) return;
 
-        $data = isset( $_POST['data']['payload'] ) ? (array) $_POST['data']['payload'] : array();
+        $payload = array_map( 'sanitize_text_field', $_POST['data']['payload'] );
+
+        $data = isset( $payload ) ? (array) $payload : array();
 
         // Any of the WordPress data sanitization functions can be used here
-        $data = array_map( 'esc_attr', $data );
 
         if ( empty($data) || empty($data['name']) || empty($data['email']) || empty($data['phone']) || 
             empty($data['address']) ) {
