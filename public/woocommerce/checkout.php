@@ -89,6 +89,9 @@ function shipbubble_courier_setup_on_change()
 add_filter('woocommerce_package_rates', 'shipbubble_change_rates', 100, 2);
 function shipbubble_change_rates($rates, $packages)
 {
+	$options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
+	$disableOtherShippingMethods = isset($options['disable_other_shipping_methods']) ? sanitize_text_field($options['disable_other_shipping_methods']) : 'no';
+
 	$post_data = [];
 	if (isset($_POST['post_data'])) {
 		// $post_data = $_POST['post_data'];
@@ -106,16 +109,24 @@ function shipbubble_change_rates($rates, $packages)
 			if (SHIPBUBBLE_ID === $rate->method_id) {
 				// set rate cost
 				if (!empty($selectedCourier) && strlen($selectedCourier)) {
-					$rates[$rate_key]->label = $selectedCourier;
+					$rates[$rate_key]->label = 'Shipbubble (' . $selectedCourier . ')';
 				}
 				$rates[$rate_key]->cost = $cost;
 			} else {
-				unset($rates[$rate_key]); // Remove other shipping methods
+				if (strtolower($disableOtherShippingMethods) == 'yes') {
+					unset($rates[$rate_key]); // Remove other shipping methods
+				}
 			}
 		}
 	} else {
 		foreach ($rates as $rate_key => $rate) {
-			unset($rates[$rate_key]);
+			if (SHIPBUBBLE_ID === $rate->method_id) {
+				unset($rates[$rate_key]);
+			} else {
+				if (strtolower($disableOtherShippingMethods) == 'yes') {
+					unset($rates[$rate_key]); // Remove other shipping methods
+				}
+			}
 		}
 	}
 	return $rates;

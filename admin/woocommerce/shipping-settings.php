@@ -158,6 +158,12 @@
                                 'description'     => __( 'Customer Can Ship Orders on Checkout.', 'woocommerce' ),
                                 'default'        => __( 'no', 'woocommerce' ),
                             ),
+                            'disable_other_shipping_methods' => array(
+                                'title'         => __( 'Disable Other Shipping Method', 'woocommerce' ),
+                                'type'             => 'checkbox',
+                                'description'     => __( 'Shipbubble will disable other shipping methods.', 'woocommerce' ),
+                                'default'        => __( 'no', 'woocommerce' ),
+                            ),
                         );
                         
                     }
