@@ -19,6 +19,7 @@ function shipbubble_courier_list_container()
 					<input type="hidden" id="request_token" name="request_token" value="">
 					<input type="hidden" id="shipbubble_service_code" name="shipbubble_service_code" value="">
 					<input type="hidden" id="shipbubble_courier_id" name="shipbubble_courier_id" value="">
+					<input type="hidden" id="shipbubble_reset_cost" name="shipbubble_reset_cost" value="no">
 	
 					<button id="request_courier_rates" class="sb_request_btn" type="button">
 						<span style="margin-left: auto;">Get Delivery Prices</span>&nbsp;&nbsp;<img style="margin-right: auto;" width="120" height="80" src="https://res.cloudinary.com/delivry/image/upload/v1678320403/app_assets/powered-by_rr4pbc.svg" alt="powered_by">
@@ -53,7 +54,7 @@ function shipbubble_courier_setup_on_change()
 								const courier_id = checked_courier.attr('data-courier_id');
 								const service_code = checked_courier.attr('data-service_code');
 
-								console.log('value is s ', checked_courier.attr('data-request_token'));
+								// console.log('value is s ', checked_courier.attr('data-request_token'));
 
 								const shipment = {
 									request_token: checked_courier.attr('data-request_token'),
@@ -71,9 +72,18 @@ function shipbubble_courier_setup_on_change()
 								$('#shipbubble_service_code').val(service_code);
 								$('#shipbubble_courier_id').val(courier_id);
 
+								$('#shipbubble_reset_cost').val('no');
+
 								jQuery('body').trigger('update_checkout');
 
 							}
+						});
+
+						const request_rates_btn = $('button#request_courier_rates');
+						request_rates_btn.click(function() {
+							$('#shipbubble_reset_cost').val('yes');
+
+							jQuery('body').trigger('update_checkout');
 						});
 					});
 
@@ -99,6 +109,17 @@ function shipbubble_change_rates($rates, $packages)
 	} else {
 		// Any of the WordPress data sanitization functions can be used here
         $post_data = array_map( 'sanitize_text_field', $_POST );
+	}
+
+	if (isset($post_data['shipbubble_reset_cost'])) {
+		$reset_shipbubble_cost = sanitize_text_field($post_data['shipbubble_reset_cost']);
+		if (strtolower($reset_shipbubble_cost) == 'yes') {
+			foreach ($rates as $rate_key => $rate) {
+				if (SHIPBUBBLE_ID === $rate->method_id) {
+					unset($rates[$rate_key]);
+				}
+			}
+		}
 	}
 
 	if (isset($post_data['delivery_option'])) {
