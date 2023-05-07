@@ -91,6 +91,7 @@ function shipbubble_wc_options_default(): array
 		'shipping_category' => '',
 		'user_can_ship' => 'no',
 		'activate_shipbubble' => 'no',
+		'disable_other_shipping_methods' => 'no',
 	);
 }
 
@@ -116,10 +117,19 @@ function shipbubble_wc_api_init()
 add_filter('woocommerce_package_rates', 'shipbubble_keep_shipping_methods_on_checkout', 100, 2);
 function shipbubble_keep_shipping_methods_on_checkout($rates, $package)
 {
+	$options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
+	$disableOtherShippingMethods = isset($options['disable_other_shipping_methods']) ? sanitize_text_field($options['disable_other_shipping_methods']) : 'no';
+	
 	if (!is_checkout()) {
 		// Loop through shipping methods rates
 		foreach ($rates as $rate_key => $rate) {
-			unset($rates[$rate_key]); // Remove
+			if (SHIPBUBBLE_ID === $rate->method_id) {
+				unset($rates[$rate_key]);
+			} else {
+				if (strtolower($disableOtherShippingMethods) == 'yes') {
+					unset($rates[$rate_key]); // Remove other shipping methods
+				}
+			}
 		}
 	}
 	return $rates;
