@@ -42,7 +42,6 @@
         $data = isset( $postData ) ? (array) $postData : array();
 
         // Any of the WordPress data sanitization functions can be used here
-        $data = array_map( 'esc_attr', $data );
 
         if ( empty($_POST['data']) || empty($data['name'])  || empty($data['email']) || empty($data['phone']) || empty($data['address']) ) {
 

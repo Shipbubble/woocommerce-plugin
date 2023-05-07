@@ -37,12 +37,11 @@
         if ( ! current_user_can( 'manage_options' ) ) return;
 
         // $shipmentPayload = $_POST['data'];
-        $shipmentPayload = isset( $_POST['data']['shipment'] ) ? (array) $_POST['data']['shipment'] : array();
+        $payload = array_map( 'sanitize_text_field', $_POST['data']['shipment'] );
 
-        // Any of the WordPress data sanitization functions can be used here
-        $shipmentPayload = array_map( 'esc_attr', $shipmentPayload );
+        $shipmentPayload = isset( $payload ) ? (array) $payload : array();
+        
         $orderId = sanitize_text_field($shipmentPayload['order_id']);
-
 
         $response = shipbubble_create_shipment($shipmentPayload); 
         
