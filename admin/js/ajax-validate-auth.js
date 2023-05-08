@@ -24,6 +24,7 @@
             if (api_key.length > 10 && api_key.startsWith('sb_prod')) {
                 api_key_note.text('Validating your API Key...');
 
+                link.remove();
                 validate_shipbubble_api_key(api_key);
             } else {
                 api_key_note.text('Please Provide your shipbubble production API Key');
