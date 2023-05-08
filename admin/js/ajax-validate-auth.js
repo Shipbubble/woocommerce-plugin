@@ -21,7 +21,7 @@
             // define url
 			var api_key = $(this).val();
 
-            if (api_key.length > 10) {
+            if (api_key.length > 10 && api_key.startsWith('sb_prod')) {
                 api_key_note.text('Validating your API Key...');
 
                 link.remove();
