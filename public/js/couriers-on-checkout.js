@@ -94,9 +94,6 @@
             ).done(function (data) {
 
                 let response = JSON.parse(data);
-                // list.fadeOut(500, function() {
-                //     list.empty();
-                // });
                 list.empty();
 
                 if (response.hasOwnProperty('status')) {

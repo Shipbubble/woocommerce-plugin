@@ -33,7 +33,7 @@
 
         if (strlen($value) > 1) {
             echo '<a href="' . esc_html( SHIPBUBBLE_EXT_BASE_URL ) . '/wp-admin/admin.php?page=wc-settings&tab=shipping&section=shipbubble_shipping_services
-            " style="color: #D83854;">Complete your shipbubble woocommerce setup</a>';
+            " style="color: #D83854;" id="shipbubble_link_directive">Complete your shipbubble woocommerce setup</a>';
         }
 
         //

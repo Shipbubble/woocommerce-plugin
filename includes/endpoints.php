@@ -34,7 +34,7 @@ function shipbubble_get_wallet_balance(string $apiKey = '')
                 'Authorization' => 'Bearer ' . $token,
                 'x-shipbubble-platform' => 'wordpress'
             ),
-            'timeout'     => 10,
+            'timeout'     => SHIPBUBBLE_EP_REQUEST_TIMEOUT,
             'redirection' => 5,
             'httpversion' => '1.0',
             'blocking'    => true,
@@ -91,7 +91,7 @@ function shipbubble_get_couriers()
             'Authorization' => 'Bearer ' . $token,
             'x-shipbubble-platform' => 'wordpress'
         ),
-        'timeout'     => 10,
+        'timeout'     => SHIPBUBBLE_EP_REQUEST_TIMEOUT,
         'redirection' => 5,
         'httpversion' => '1.0',
         'blocking'    => true,
@@ -151,7 +151,7 @@ function shipbubble_validate_address(string $name, string $email, string $phone,
             'Authorization' => 'Bearer ' . $token,
             'x-shipbubble-platform' => 'wordpress'
         ),
-        'timeout'     => 20,
+        'timeout'     => SHIPBUBBLE_EP_REQUEST_TIMEOUT,
         'redirection' => 5,
         'httpversion' => '1.0',
         'blocking'    => true,
@@ -240,7 +240,7 @@ function shipbubble_get_shipping_rates(string $addressCode, array $products, $se
             'Authorization' => 'Bearer ' . $token,
             'x-shipbubble-platform' => 'wordpress'
         ),
-        'timeout'     => 10,
+        'timeout'     => SHIPBUBBLE_EP_REQUEST_TIMEOUT,
         'redirection' => 5,
         'httpversion' => '1.0',
         'blocking'    => true,
@@ -312,6 +312,8 @@ function shipbubble_get_shipping_rates(string $addressCode, array $products, $se
         // throw new Exception( $error_message );
     }
 
+    error_log(print_r($body, true));
+
     // output data
     return json_decode($body);
 }
@@ -336,7 +338,7 @@ function shipbubble_create_shipment(array $shipmentPayload)
             'Authorization' => 'Bearer ' . $token,
             'x-shipbubble-platform' => 'wordpress'
         ),
-        'timeout'     => 20,
+        'timeout'     => SHIPBUBBLE_EP_REQUEST_TIMEOUT,
         'redirection' => 5,
         'httpversion' => '1.0',
         'blocking'    => true,
@@ -405,7 +407,7 @@ function shipbubble_track_shipment(string $shipbubbleOrderId)
             'Authorization' => 'Bearer ' . $token,
             'x-shipbubble-platform' => 'wordpress'
         ),
-        'timeout'     => 10,
+        'timeout'     => SHIPBUBBLE_EP_REQUEST_TIMEOUT,
         'redirection' => 5,
         'httpversion' => '1.0',
         'blocking'    => true,
@@ -461,7 +463,7 @@ function shipbubble_order_categories()
             'Authorization' => 'Bearer ' . $token,
             'x-shipbubble-platform' => 'wordpress'
         ),
-        'timeout'     => 10,
+        'timeout'     => SHIPBUBBLE_EP_REQUEST_TIMEOUT,
         'redirection' => 5,
         'httpversion' => '1.0',
         'blocking'    => true,

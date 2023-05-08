@@ -10,6 +10,8 @@
 
         btn.attr('disabled', true);
 
+        let link = $('#shipbubble_link_directive');
+
 		// when user submits the form
 		api_key_input.on( 'change', function(event) {
 			
@@ -26,6 +28,8 @@
             } else {
                 api_key_note.text('Please Provide your shipbubble production API Key');
                 api_key_note.css('color', 'red');
+
+                link.remove();
             }
 			
 		});
@@ -39,6 +43,7 @@
                 dataType: 'json'
             }, function(data) {
     
+                let link = $('#shipbubble_link_directive');
                 let response = JSON.parse(data);
     
                 if (response.hasOwnProperty('response_code')) {
@@ -60,6 +65,8 @@
                         api_key_input.css('border', '1px solid red');
                         api_key_note.css('color', 'red');
                         api_key_note.text('API Key is invalid, try again');
+
+                        link.remove();
                     }
                 } else {
                     btn.attr('disabled', true);
@@ -68,6 +75,8 @@
                     api_key_note.css('color', 'red');
                     api_key_note.text('API Key is invalid, try again');
                     // alert('API Key is invalid, try again');
+
+                    link.remove();
                 }
                 
             });
