@@ -104,14 +104,10 @@ function shipbubble_change_rates($rates, $packages)
 
 	$post_data = [];
 	if (isset($_POST['post_data'])) {
-		// $post_data = $_POST['post_data'];
-		wp_parse_str($_POST['post_data'], $post_data);
-	} else {
-		// Any of the WordPress data sanitization functions can be used here
-        $post_data = array_map( 'sanitize_text_field', $_POST );
+		$post_data = array_map( 'sanitize_text_field', (array) $_POST['post_data'] );
 	}
 
-	if (isset($post_data['shipbubble_reset_cost'])) {
+	if (count($post_data) > 0 && isset($post_data['shipbubble_reset_cost'])) {
 		$reset_shipbubble_cost = sanitize_text_field($post_data['shipbubble_reset_cost']);
 		if (strtolower($reset_shipbubble_cost) == 'yes') {
 			foreach ($rates as $rate_key => $rate) {
@@ -122,7 +118,7 @@ function shipbubble_change_rates($rates, $packages)
 		}
 	}
 
-	if (isset($post_data['delivery_option'])) {
+	if (count($post_data) > 0 && isset($post_data['delivery_option'])) {
 		$selectedCourier = sanitize_text_field($post_data['shipbubble_selected_courier']);
 		$cost = (float) sanitize_text_field($post_data['shipbubble_cost']);
 
