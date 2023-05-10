@@ -104,7 +104,17 @@ function shipbubble_change_rates($rates, $packages)
 
 	$post_data = [];
 	if (isset($_POST['post_data'])) {
-		$post_data = array_map( 'sanitize_text_field', (array) $_POST['post_data'] );
+		wp_parse_str($_POST['post_data'], $post_data);
+		// $post_data = array_map( 'sanitize_text_field', $post_data );
+		foreach ($post_data as $key => $value) {
+			if (is_array($value)) {
+				$post_data[$key] = $value;
+			} else {
+				$post_data[$key] = sanitize_text_field($value);
+			}
+		}
+
+		error_log(print_r($post_data, true));
 	}
 
 	if (count($post_data) > 0 && isset($post_data['shipbubble_reset_cost'])) {
