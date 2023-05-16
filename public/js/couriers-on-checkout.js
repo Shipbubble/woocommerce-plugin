@@ -100,7 +100,8 @@
                     if (response['status'] == 'success') {
                         let output = response['data'];
                         // display data
-                        console.log('token ==> ', output.request_token);
+                        // console.log('token ==> ', output.request_token);
+                        // console.log('data ==> ', output);
                         // var section = $("#courier-section");
 
                         // dynamically add each courier
@@ -108,7 +109,7 @@
 
                         $.each(output.couriers, function (i, value) {
                             // set total charge
-                            let total = parseFloat(value.total) + parseFloat(output.extra_charges);
+                            let total = parseFloat(value.rate_card_amount) + parseFloat(output.extra_charges);
 
                             list.append(`
                                 <div class="sb-card">
