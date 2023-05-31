@@ -282,7 +282,7 @@ function shipbubble_get_shipping_rates(string $addressCode, array $products, $se
             'height' => $setDimensions['height']
         ],
         'service_type' => 'pickup',
-        'delivery_instructions' => 'n/a'
+        'delivery_instructions' => 'please handle carefully'
     ];
 
     // return json_decode(json_encode($payload));
