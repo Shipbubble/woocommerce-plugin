@@ -59,7 +59,7 @@
 
                 // disable request btn
                 $(this).prop('disabled', true);
-                $(this).addClass('load');
+                // $(this).addClass('load');
 
                 // Request shipping rates
                 fetch_shipping_rates(addressPayload);
@@ -101,7 +101,7 @@
 
             list.append(`
                 <div class="container-delivery-card-header">
-                    <p>Select a delivery option</p>
+                    <p id="sb-status-text">Fetching delivery prices...</p>
                 </div>
             `);
             
@@ -136,6 +136,7 @@
                         // var section = $("#courier-section");
 
                         // dynamically add each courier
+                        $('#sb-status-text').html('Select a delivery option');
 
                         loaders.hide();
                         
@@ -202,7 +203,7 @@
 
                 var requestRatesBtn = $('#request_courier_rates');
                 requestRatesBtn.prop('disabled', false);
-                requestRatesBtn.removeClass('load');
+                // requestRatesBtn.removeClass('load');
 
             }).fail(function () {
                 console.log("failed");

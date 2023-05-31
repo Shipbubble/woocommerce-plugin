@@ -146,7 +146,7 @@ function shipbubble_change_rates($rates, $packages)
 			if (SHIPBUBBLE_ID === $rate->method_id) {
 				// set rate cost
 				if (!empty($selectedCourier) && strlen($selectedCourier)) {
-					$rates[$rate_key]->label = 'Shipbubble (' . $selectedCourier . ')';
+					$rates[$rate_key]->label = $selectedCourier . ' (via Shipbubble)';
 				}
 				$rates[$rate_key]->cost = $cost;
 			} else {
