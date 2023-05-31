@@ -11,24 +11,35 @@
             $('#shipping-notice').remove();
 
             // initialize variables
-            let firstName = $('input#billing_first_name').val();
-            let lastName = $('input#billing_last_name').val();
-            let email = $('input#billing_email').val();
-            let phone = $('input#billing_phone').val();
+            let firstName = lastName = email = phone = selectedCountry = selectedState = city = streetAddress = '';
             //08036922
-            let streetAddress = $('input#shipping_address_1').val();
+            
+            let useShippingAddress = $('#ship-to-different-address-checkbox');
+            
+            // use shipping variables
+            if (useShippingAddress.is(':checked')) {
+                console.log('checked here');
+                firstName = $('input#shipping_first_name').val();
+                lastName = $('input#shipping_last_name').val();
+                email = $('input#shipping_email').val();
+                phone = $('input#shipping_phone').val();
+                selectedCountry = $('select#shipping_country').val();
+                selectedState = $('select#shipping_state').val();
+                city = $('input#shipping_city').val();
+                streetAddress = $('input#shipping_address_1').val();
 
-            if (streetAddress == '') {
+            } else {
+                console.log('NOT oo checked here');
+                // use billing variables
+                firstName = $('input#billing_first_name').val();
+                lastName = $('input#billing_last_name').val();
+                email = $('input#billing_email').val();
+                phone = $('input#billing_phone').val();
+                selectedCountry = $('select#billing_country').val();
+                selectedState = $('select#billing_state').val();
+                city = $('input#billing_city').val();
                 streetAddress = $('input#billing_address_1').val();
             }
-
-            let city = $('input#shipping_city').val();
-            if (city == '') {
-                city = $('input#billing_city').val();
-            }
-
-            let selectedState = $('select#shipping_state').val();
-            let selectedCountry = $('select#shipping_country').val();
 
             // check requirements are met
             if (firstName != '' && lastName != '' && email != '' && phone != '' && streetAddress != '' && city != '' && selectedState != '' && selectedCountry != '') {
@@ -43,13 +54,12 @@
                     address: streetAddress + ', ' + city + ', ' + selectedState + ', ' + selectedCountry,
                 }
 
+                let sbSlogan = $('.sb-slogan-container');
+                sbSlogan.show();
+
                 // disable request btn
-                // $(this).attr({
-                //     class: 'loading sb_request_btn',
-                //     disabled: true
-                // });
-                this.disabled = true;
-                this.setAttribute('class', 'loading sb_request_btn');
+                $(this).prop('disabled', true);
+                $(this).addClass('load');
 
                 // Request shipping rates
                 fetch_shipping_rates(addressPayload);
@@ -68,7 +78,6 @@
                     id: 'shipping-notice',
                     class: 'woocommerce-error',
                 }).text(`Ensure that you have filled your ${errorBox.join(', ')}`).prependTo('#courier-section').show();
-
             }
 
         });
@@ -88,13 +97,35 @@
             // initialize courier listing html container
             let list = $('#courier-list');
 
+            list.empty();
+
+            list.append(`
+                <div class="container-delivery-card-header">
+                    <p>Select a delivery option</p>
+                </div>
+            `);
+            
+            let newCourierList = $('<div class="container-delivery-card-list loading"></div');
+
+            list.append(newCourierList);
+
+            let loaders = $(`<div class="loading">
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>`);
+
+            $(loaders).insertAfter(newCourierList);
+
+            loaders.show();
+
             $.post(
                 ajaxUrl,
                 data,
             ).done(function (data) {
 
                 let response = JSON.parse(data);
-                list.empty();
 
                 if (response.hasOwnProperty('status')) {
                     if (response['status'] == 'success') {
@@ -105,38 +136,56 @@
                         // var section = $("#courier-section");
 
                         // dynamically add each courier
-                        list.append("<h3>Select a delivery option <sup>*</sup></h3>");
+
+                        loaders.hide();
+                        
+                        newCourierList.removeClass('loading');
 
                         $.each(output.couriers, function (i, value) {
                             // set total charge
                             let total = parseFloat(value.rate_card_amount) + parseFloat(output.extra_charges);
 
-                            list.append(`
-                                <div class="sb-card">
-                                    <label for="${value.courier_id}">
-                                        <input id="${value.courier_id}" type="radio" name="delivery_option" class="card-input-element" data-request_token="${output.request_token}" data-courier_name="${value.courier_name}" data-cost="${total}" data-service_code="${value.service_code}" data-courier_id="${value.courier_id}" required />
-                                        
-                                        <div class="card-input">
-                                            <div class="flex-container-sb">
-                                                <div style="display:flex;">
-                                                    <img src="${value.courier_image}" />
-
-                                                    <span>${value.courier_name}</span>
-                                                </div>
-                                    
-                                                <span class="sb-price">₦${total}</span>
-                                            </div>
-                        
-                                            <div style="flex-container-sb">
-                                                <span>Delivery Time EST:</span>
+                            newCourierList.append(`
+                                <div class="container-delivery-card-list-item">
+                                    <div class="container-delivery-card-list-item-top">
+                                        <img
+                                            src="${value.courier_image}" />
+                                        <div class="message">
+                                            <p class="title">${value.courier_name}</p>
+                                            <span>
                                                 <span>${value.delivery_eta}</span>
-                                            </div>
+                                            </span>
                                         </div>
-                                    </label>						 
+                                    </div>
+            
+                                    <div class='radio-item special-radio'>
+                                        <input type='radio' id="${value.courier_id}" name="delivery_option" 
+                                        data-request_token="${output.request_token}" data-courier_name="${value.courier_name}" data-cost="${total}" data-service_code="${value.service_code}" data-courier_id="${value.courier_id}"
+                                        />
+                                        <label for='${value.courier_id}'>
+                                            <p>
+                                                ₦ ${total.toLocaleString()}
+                                            </p>
+                                            <span class='address-span'></span>
+            
+                                        </label>
+                                    </div>
                                 </div>
                             `);
 
                         });
+
+                        const courier_radio_btn = $('input[name="delivery_option"]');
+
+                        courier_radio_btn.change(function(){ 
+                            //first remove class from all
+                            courier_radio_btn.parent().parent().removeClass('active');
+                        
+                            if ($(this).is(':checked')) {
+                                $(this).parent().parent().addClass('active')
+                            }                                        
+                         });
+
 
                     } else {
                         console.log(response['data']);
@@ -151,16 +200,9 @@
                     }
                 }
 
-                requestRatesBtn = document.querySelector('#request_courier_rates');
-
-                requestRatesBtn.disabled = false;
-                requestRatesBtn.setAttribute('class', 'sb_request_btn');
-                requestRatesBtn.innerHTML = '<span style="margin-left: auto;">Get Delivery Prices</span>&nbsp;&nbsp;<img style="margin-right: auto;" width="120" height="80" src="https://res.cloudinary.com/delivry/image/upload/v1678320403/app_assets/powered-by_rr4pbc.svg" alt="powered_by">';
-
-                // requestRatesBtn.attr({
-                //     class: 'sb_request_btn',
-                //     disabled: false
-                // }).html('<span style="margin-left: auto;">Get Delivery Prices</span>&nbsp;&nbsp;<img style="margin-right: auto;" width="120" height="80" src="https://res.cloudinary.com/delivry/image/upload/v1678320403/app_assets/powered-by_rr4pbc.svg" alt="powered_by">');
+                var requestRatesBtn = $('#request_courier_rates');
+                requestRatesBtn.prop('disabled', false);
+                requestRatesBtn.removeClass('load');
 
             }).fail(function () {
                 console.log("failed");
