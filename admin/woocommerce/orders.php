@@ -217,23 +217,28 @@
 
         // $shipbubbleOrderId = get_post_meta( $order->get_id(), 'shipping_total', true );
 
-        $shipbubbleOrderId = get_post_meta( $order->get_id(), 'shipbubble_order_id', true );
+        $orderShippingMethodId = reset($order->get_items( 'shipping' ))->get_method_id();
 
-        if( strlen($shipbubbleOrderId) < 1 ) {
-            $response = shipbubble_get_wallet_balance(shipbubble_get_token());
+        if (strtolower($orderShippingMethodId) === strtolower(SHIPBUBBLE_ID)) {
+            $shipbubbleOrderId = get_post_meta( $order->get_id(), 'shipbubble_order_id', true );
     
-            if (isset($response->response_code) && $response->response_code == SHIPBUBBLE_RESPONSE_IS_OK) {
-                $balance = $response->data->balance;
+            if( strlen($shipbubbleOrderId) < 1 ) {
+                $response = shipbubble_get_wallet_balance(shipbubble_get_token());
+        
+                if (isset($response->response_code) && $response->response_code == SHIPBUBBLE_RESPONSE_IS_OK) {
+                    $balance = $response->data->balance;
+                }
+    
+                echo '<input type="hidden" id="shipbubble_shipping_cost" name="shipbubble_shipping_cost" value="' . esc_html( (float) $order->shipping_total ) . '"/>';
+    
+                echo'<input type="hidden" id="shipbubble_wallet_balance" name="shipbubble_wallet_balance" value="' . esc_html( (float) $balance ) . '"/>';
+    
+                echo '<p><strong>' . __( 'Shipbubble Wallet Balance:' ) . '</strong><br> <strong>' . esc_html( $currency ) . esc_html( number_format( $balance, 2 ) ) . '</strong></p>';
+                
+            } else {
+                echo '<p><strong>' . __( 'Shipbubble Order ID:' ) . '</strong><br> ' . esc_html($shipbubbleOrderId) . '</p>';
             }
 
-            echo '<input type="hidden" id="shipbubble_shipping_cost" name="shipbubble_shipping_cost" value="' . esc_html( (float) $order->shipping_total ) . '"/>';
-
-            echo'<input type="hidden" id="shipbubble_wallet_balance" name="shipbubble_wallet_balance" value="' . esc_html( (float) $balance ) . '"/>';
-
-            echo '<p><strong>' . __( 'Shipbubble Wallet Balance:' ) . '</strong><br> <strong>' . esc_html( $currency ) . esc_html( number_format( $balance, 2 ) ) . '</strong></p>';
-            
-        } else {
-            echo '<p><strong>' . __( 'Shipbubble Order ID:' ) . '</strong><br> ' . esc_html($shipbubbleOrderId) . '</p>';
         }
 
     }
