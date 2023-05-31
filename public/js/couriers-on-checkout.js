@@ -191,6 +191,9 @@
                     } else {
                         console.log(response['data']);
 
+                        let sbSlogan = $('.sb-slogan-container');
+                        sbSlogan.hide();
+
                         list.empty();
 
                         $('<div>', {
