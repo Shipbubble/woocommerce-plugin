@@ -7,18 +7,25 @@
         $shippingData = $order->data['shipping'];
         $orderAddress = sb_create_address($shippingData['address_1'], $shippingData['city'], $shippingData['state'],$shippingData['country']);
 
+        // echo '<pre> ' . var_export(reset($order->get_items( 'shipping' ))->get_method_id(), true) . '</pre>';
+        // echo '<pre> ' . var_export($shippingData, true) . '</pre>';
         // echo '<pre> ' . var_export($order->data['shipping'], true) . '</pre>';
         // echo '<pre>' . var_export(wc_get_product( $order->get_items()[9]['product_id'] ), true) . '</pre>';
         // echo '<pre> ' . var_export(json_decode($shipment)->service_code, true) . '</pre>';
         // die;
-
+        
         $shipbubbleDeliveryAddress = get_post_meta( $order->get_id(), 'shipbubble_delivery_address', true );
-
+        
         $shipbubbleOrderId = get_post_meta( $order->get_id(), 'shipbubble_order_id', true );
         $shipment = get_post_meta( $order->get_id(), 'shipbubble_shipment_details' )[0];
-
+        
         // $serviceCode = array( 'speedaf-express' ); // test
-        $serviceCode = array( json_decode($shipment)->service_code ); // prod
+        
+        if (empty($shipment)) {
+            $serviceCode = array(); // prod
+        } else {
+            $serviceCode = array( json_decode($shipment)->service_code ); // prod
+        }
         
         // Check date meets 48hr mark
         $today = new DateTime('now');
@@ -26,7 +33,7 @@
         $interval = $orderDate->diff($today);
 
         // check token has lasted longer than 48hrs before regenerating new request token
-        if( strlen($shipbubbleOrderId) < 1 && $interval->h > SHIPBUBBLE_REQUEST_TOKEN_EXPIRY) {
+        if( strlen($shipbubbleOrderId) < 1 && $interval->h > SHIPBUBBLE_REQUEST_TOKEN_EXPIRY && !is_null($shipment)) {
             $rates = shipbubble_regenerate_rate_token($order, $serviceCode);
             if (count($rates)) {
                 $shipment = json_encode($rates);
@@ -36,7 +43,7 @@
         }
 
         // Check address has changed under 48hrs before before regenerating new request token
-        if ( strlen($shipbubbleOrderId) < 1 && !sb_compare_addresses($shipbubbleDeliveryAddress, $orderAddress) && $interval->h < SHIPBUBBLE_REQUEST_TOKEN_EXPIRY ) {
+        if ( strlen($shipbubbleOrderId) < 1 && !sb_compare_addresses($shipbubbleDeliveryAddress, $orderAddress) && $interval->h < SHIPBUBBLE_REQUEST_TOKEN_EXPIRY && !is_null($shipment)) {
             // regenerate
             $rates = shipbubble_regenerate_rate_token($order, $serviceCode);
             if (count($rates)) {
@@ -46,14 +53,16 @@
             }
         }
 
+        $orderShippingMethodId = reset($order->get_items( 'shipping' ))->get_method_id();
+
         ?>
-            <?php if (strlen($shipbubbleOrderId) < 1): ?>
+            <?php if (strlen($shipbubbleOrderId) < 1 && !is_null($shipment) && (strtolower($orderShippingMethodId) === strtolower(SHIPBUBBLE_ID))): ?>
                 <input type="hidden" id="wc_order_id" name="wc_order_id" value='<?php echo esc_html($order->get_id()); ?>' />
 
                 <input type="hidden" id="shipment_details" name="shipment_details" value='<?php echo esc_html($shipment); ?>' />
 
                 <button id="create-shipment" style="background-color: #FF5170; color: #FFF; padding: 4px 16px; border: 1px solid #FF5170; border-radius: 3px; cursor: pointer;">
-                    Create Shipment
+                    Create Shipment via ShipBubble
                 </button>
             <?php endif; ?>
 
@@ -83,15 +92,22 @@
     {
         switch ($column) {
             case 'shipping_status':
+                $order = wc_get_order( $post_id );
+                $orderShippingMethodId = reset($order->get_items( 'shipping' ))->get_method_id();
 
-                $status = get_post_meta( $post_id, 'shipbubble_tracking_status', true );
-                if (!empty($status)) {
-                    echo shipbubble_shipment_status_label($status);
+                if (strtolower($orderShippingMethodId) === strtolower(SHIPBUBBLE_ID)) {
+                    $status = get_post_meta( $post_id, 'shipbubble_tracking_status', true );
+                    if (!empty($status)) {
+                        echo shipbubble_shipment_status_label($status);
+                    } else {
+                        echo '<mark class="order-status status-on-hold">
+                            <span>No Shipment Yet</span>
+                        </mark>';
+                    }
                 } else {
-                    echo '<mark class="order-status status-on-hold">
-                        <span>No Shipment Yet</span>
-                    </mark>';
+                    echo esc_html($order->get_shipping_method());
                 }
+
 
                 break;
         }
