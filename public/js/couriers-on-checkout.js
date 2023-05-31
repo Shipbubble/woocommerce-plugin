@@ -14,32 +14,41 @@
             let firstName = lastName = email = phone = selectedCountry = selectedState = city = streetAddress = '';
             //08036922
             
-            let useShippingAddress = $('#ship-to-different-address-checkbox');
+            let useShippingAddress = $('input#ship-to-different-address-checkbox');
             
             // use shipping variables
             if (useShippingAddress.is(':checked')) {
-                console.log('checked here');
                 firstName = $('input#shipping_first_name').val();
                 lastName = $('input#shipping_last_name').val();
-                email = $('input#shipping_email').val();
-                phone = $('input#shipping_phone').val();
-                selectedCountry = $('select#shipping_country').val();
-                selectedState = $('select#shipping_state').val();
+                selectedCountry = $('select#shipping_country option:selected').text();
+                selectedState = $('select#shipping_state option:selected').text();
                 city = $('input#shipping_city').val();
                 streetAddress = $('input#shipping_address_1').val();
 
+                if ($('input#shipping_email').val() == undefined) {
+                    email = $('input#billing_email').val();
+                } else {
+                    email = $('input#shipping_email').val();
+                }
+
+                if ($('input#shipping_phone').val() == undefined) {
+                    phone = $('input#billing_phone').val();
+                } else {
+                    phone = $('input#shipping_phone').val();
+                }
+
             } else {
-                console.log('NOT oo checked here');
                 // use billing variables
                 firstName = $('input#billing_first_name').val();
                 lastName = $('input#billing_last_name').val();
                 email = $('input#billing_email').val();
                 phone = $('input#billing_phone').val();
-                selectedCountry = $('select#billing_country').val();
-                selectedState = $('select#billing_state').val();
+                selectedCountry = $('select#billing_country option:selected').text();
+                selectedState = $('select#billing_state option:selected').text();
                 city = $('input#billing_city').val();
                 streetAddress = $('input#billing_address_1').val();
             }
+            
 
             // check requirements are met
             if (firstName != '' && lastName != '' && email != '' && phone != '' && streetAddress != '' && city != '' && selectedState != '' && selectedCountry != '') {
@@ -189,17 +198,23 @@
 
 
                     } else {
-                        console.log(response['data']);
-
                         let sbSlogan = $('.sb-slogan-container');
                         sbSlogan.hide();
 
                         list.empty();
 
+                        let responseMessage = '';
+
+                        if (response.hasOwnProperty('errors')) {
+                            responseMessage = response['errors'][0];
+                        } else {
+                            responseMessage = response['message']
+                        }
+
                         $('<div>', {
                             id: 'shipping-notice',
                             class: 'woocommerce-info',
-                        }).text(`${response['message']}`).prependTo('#courier-section').show();
+                        }).text(`${responseMessage}`).prependTo('#courier-section').show();
 
                     }
                 }
@@ -209,8 +224,6 @@
                 // requestRatesBtn.removeClass('load');
 
             }).fail(function () {
-                console.log("failed");
-
                 $('<div>', {
                     id: 'shipping-notice',
                     class: 'woocommerce-error',

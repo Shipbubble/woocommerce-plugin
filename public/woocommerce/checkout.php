@@ -28,7 +28,7 @@ function shipbubble_courier_list_container()
 
 						<div id="courier-list" class="container-delivery-card"></div>
 					</div>
-					<div class="sb-slogan-container" hidden>
+					<div class="sb-slogan-container" style="display:none; !important">
 						<div class="sb-slogan">
 							<span>Powered by</span>
 							<img

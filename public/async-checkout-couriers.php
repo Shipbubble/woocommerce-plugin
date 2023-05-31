@@ -45,7 +45,7 @@
 
         if ( empty($_POST['data']) || empty($data['name'])  || empty($data['email']) || empty($data['phone']) || empty($data['address']) ) {
 
-            $output = array('status' => 'failed', 'data' => 'some items are missing, please fill');
+            $output = array('status' => 'failed', 'message' => 'some items are missing, please fill');
 
             echo json_encode($output);
         } else {
