@@ -1,6 +1,6 @@
 <?php
 
-add_action('woocommerce_after_checkout_billing_form', 'shipbubble_courier_list_container');
+add_action('woocommerce_checkout_before_order_review', 'shipbubble_courier_list_container');
 function shipbubble_courier_list_container()
 {
 	$options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
@@ -20,12 +20,22 @@ function shipbubble_courier_list_container()
 					<input type="hidden" id="shipbubble_service_code" name="shipbubble_service_code" value="">
 					<input type="hidden" id="shipbubble_courier_id" name="shipbubble_courier_id" value="">
 					<input type="hidden" id="shipbubble_reset_cost" name="shipbubble_reset_cost" value="no">
-	
-					<button id="request_courier_rates" class="sb_request_btn" type="button">
-						<span style="margin-left: auto;">Get Delivery Prices</span>&nbsp;&nbsp;<img style="margin-right: auto;" width="120" height="80" src="https://res.cloudinary.com/delivry/image/upload/v1678320403/app_assets/powered-by_rr4pbc.svg" alt="powered_by">
-					</button>
 
-					<div id="courier-list"></div>
+					<div class="container-card">
+						<button id="request_courier_rates">
+							<p>Get Delivery Prices</p>
+						</button>
+
+						<div id="courier-list" class="container-delivery-card"></div>
+					</div>
+					<div class="sb-slogan-container" hidden>
+						<div class="sb-slogan">
+							<span>Powered by</span>
+							<img
+								src="https://res.cloudinary.com/delivry/image/upload/v1684423516/app_assets/shipbubble-logo-black_t0gonq.svg" />
+						</div>
+					</div>
+
 				</div>
 			';
 	}
@@ -136,7 +146,7 @@ function shipbubble_change_rates($rates, $packages)
 			if (SHIPBUBBLE_ID === $rate->method_id) {
 				// set rate cost
 				if (!empty($selectedCourier) && strlen($selectedCourier)) {
-					$rates[$rate_key]->label = 'Shipbubble (' . $selectedCourier . ')';
+					$rates[$rate_key]->label = $selectedCourier . ' (via Shipbubble)';
 				}
 				$rates[$rate_key]->cost = $cost;
 			} else {
