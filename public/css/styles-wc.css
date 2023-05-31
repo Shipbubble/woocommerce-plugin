@@ -1,14 +1,3 @@
-@media screen and (min-width: 768px) {
-    #courier-section {
-        width: 41.1764705882%;
-        float: right;
-        margin-right: 0;
-        clear: right;
-        margin-bottom: 0;
-        padding-bottom: .6180469716em;
-    }
-}
-
 .container-card>button {
     background: #D83854;
     outline: none;
