@@ -63,7 +63,6 @@
 }
 
 .sb-slogan {
-    background: #090102;
     display: inline-flex;
     text-decoration: none !important;
     border-radius: 8px;
@@ -74,10 +73,10 @@
 
 .sb-slogan>span {
     font-weight: 400;
-    font-size: 12px;
+    font-size: 11px;
     line-height: 16px;
     margin: 0;
-    color: #FFFFFF;
+    color: #000;
     margin-right: 8px;
 }
 

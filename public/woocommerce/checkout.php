@@ -32,7 +32,7 @@ function shipbubble_courier_list_container()
 						<div class="sb-slogan">
 							<span>Powered by</span>
 							<img
-								src="https://res.cloudinary.com/delivry/image/upload/v1681655396/website-images/shipbubble-lg-logo_wlzabl.svg" />
+								src="https://res.cloudinary.com/delivry/image/upload/v1684423516/app_assets/shipbubble-logo-black_t0gonq.svg" />
 						</div>
 					</div>
 
