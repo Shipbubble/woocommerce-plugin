@@ -90,12 +90,17 @@
     add_action('manage_shop_order_posts_custom_column', 'custom_orders_list_column_content', 20, 2);
     function custom_orders_list_column_content( $column, $post_id)
     {
+        $order = wc_get_order( $post_id );
+        $orderShippingMethod = $order->get_items( 'shipping' );
+        $orderShippingMethodId = '';
+
         switch ($column) {
             case 'shipping_status':
-                $order = wc_get_order( $post_id );
-                $orderShippingMethodId = reset($order->get_items( 'shipping' ))->get_method_id();
+                if (is_array($orderShippingMethod)) {
+                    $orderShippingMethodId = reset($orderShippingMethod)->get_method_id();
+                }
 
-                if (strtolower($orderShippingMethodId) === strtolower(SHIPBUBBLE_ID)) {
+                if (!empty($orderShippingMethodId) && strtolower($orderShippingMethodId) === strtolower(SHIPBUBBLE_ID)) {
                     $status = get_post_meta( $post_id, 'shipbubble_tracking_status', true );
                     if (!empty($status)) {
                         echo shipbubble_shipment_status_label($status);
@@ -104,12 +109,13 @@
                             <span>No Shipment Yet</span>
                         </mark>';
                     }
-                } else {
+                } elseif (!empty($orderShippingMethodId)) {
                     echo esc_html($order->get_shipping_method());
+                } else {
+                    echo esc_html('Not Specified');
                 }
 
-
-                break;
+            break;
         }
     }
 
