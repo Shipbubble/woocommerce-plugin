@@ -184,6 +184,14 @@
     margin-left: 16px;
 }
 
+.container-card>button#request_courier_rates {
+    outline: none !important;
+}
+
+.container-delivery-card-list-item .radio-item.special-radio label span.address-span:before {
+    box-sizing: content-box !important;
+}
+
 .radio-item.special-radio label {
     display: flex;
 }
