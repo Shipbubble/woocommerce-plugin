@@ -124,13 +124,13 @@
                                 'default'        => __( '0', 'woocommerce' ),
                                 // 'custom_attributes' => array('readonly' => 'readonly')
                             ),
-                            'extra_charges' => array(
-                                'title'         => __( 'Shipping Extra Charges', 'woocommerce' ),
-                                'type'             => 'number',
-                                'description'     => __( 'This control adds a fee to any logistics selected.', 'woocommerce' ),
-                                'default'        => __( '0', 'woocommerce' ),
-                                'custom_attributes' => array('step' => '0.01', 'min' => '0')
-                            ),
+                            // 'extra_charges' => array(
+                            //     'title'         => __( 'Shipping Extra Charges', 'woocommerce' ),
+                            //     'type'             => 'number',
+                            //     'description'     => __( 'This control adds a fee to any logistics selected.', 'woocommerce' ),
+                            //     'default'        => __( '0', 'woocommerce' ),
+                            //     'custom_attributes' => array('step' => '0.01', 'min' => '0')
+                            // ),
                             'shipping_price' => array(
                                 'title'         => __( 'Checkout Options', 'woocommerce' ),
                                 'type'             => 'select',
