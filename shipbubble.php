@@ -89,7 +89,7 @@ function shipbubble_wc_options_default(): array
 		'courier_list' =>  array('all'),
 		'shipping_price' => 'default',
 		'shipping_category' => '',
-		'user_can_ship' => 'no',
+		'user_can_ship' => 'yes',
 		'activate_shipbubble' => 'no',
 		'disable_other_shipping_methods' => 'no',
 	);
