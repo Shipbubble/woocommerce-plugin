@@ -117,13 +117,6 @@
                                 'options' => $countries,
                                 'default'        => __( $default_country, 'woocommerce' ),
                             ),
-                            'address_code' => array(
-                                // 'title'         => __( 'Address Code', 'woocommerce' ),
-                                'type'             => 'hidden',
-                                // 'description'     => __( 'This is the address code setup for pickup (66502255).', 'woocommerce' ),
-                                'default'        => __( '0', 'woocommerce' ),
-                                // 'custom_attributes' => array('readonly' => 'readonly')
-                            ),
                             // 'extra_charges' => array(
                             //     'title'         => __( 'Shipping Extra Charges', 'woocommerce' ),
                             //     'type'             => 'number',
@@ -163,6 +156,13 @@
                                 'type'             => 'checkbox',
                                 'description'     => __( 'Shipbubble will disable other shipping methods.', 'woocommerce' ),
                                 'default'        => __( 'no', 'woocommerce' ),
+                            ),
+                            'address_code' => array(
+                                // 'title'         => __( 'Address Code', 'woocommerce' ),
+                                'type'             => 'hidden',
+                                // 'description'     => __( 'This is the address code setup for pickup (66502255).', 'woocommerce' ),
+                                'default'        => __( '0', 'woocommerce' ),
+                                // 'custom_attributes' => array('readonly' => 'readonly')
                             ),
                         );
                         

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Plugin Name:  ShipBubble
+ * Plugin Name:  Shipbubble
  * Description:  Shipbubble is a platform that enables retailers to conveniently delight their customers with multiple shipping options, thereby increasing conversion rates
  * Contributors: Shipbubble, Mavi Onogomuho
  * Donate link: https://www.shipbubble.com/

@@ -62,7 +62,7 @@
                 <input type="hidden" id="shipment_details" name="shipment_details" value='<?php echo esc_html($shipment); ?>' />
 
                 <button id="create-shipment" style="background-color: #FF5170; color: #FFF; padding: 4px 16px; border: 1px solid #FF5170; border-radius: 3px; cursor: pointer;">
-                    Create Shipment via ShipBubble
+                    Create Shipment via Shipbubble
                 </button>
             <?php endif; ?>
 
