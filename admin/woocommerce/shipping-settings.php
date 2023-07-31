@@ -152,12 +152,12 @@
                             //     'default'        => __( 'all', 'woocommerce' ),
                             //     'description'     => __( 'To select multiple logistics companies, hold "control" (ctrl) and click on your desired option', 'woocommerce' ),
                             // ),
-                            'user_can_ship' => array(
-                                'title'         => __( 'Ship Orders at checkout', 'woocommerce' ),
-                                'type'             => 'checkbox',
-                                'description'     => __( 'Customer Can Ship Orders on Checkout.', 'woocommerce' ),
-                                'default'        => __( 'no', 'woocommerce' ),
-                            ),
+                            // 'user_can_ship' => array(
+                            //     'title'         => __( 'Ship Orders at checkout', 'woocommerce' ),
+                            //     'type'             => 'checkbox',
+                            //     'description'     => __( 'Customer Can Ship Orders on Checkout.', 'woocommerce' ),
+                            //     'default'        => __( 'no', 'woocommerce' ),
+                            // ),
                             'disable_other_shipping_methods' => array(
                                 'title'         => __( 'Disable Other Shipping Method', 'woocommerce' ),
                                 'type'             => 'checkbox',
