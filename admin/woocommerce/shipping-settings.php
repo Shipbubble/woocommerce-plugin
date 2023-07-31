@@ -131,13 +131,13 @@
                             //     'default'        => __( '0', 'woocommerce' ),
                             //     'custom_attributes' => array('step' => '0.01', 'min' => '0')
                             // ),
-                            'shipping_price' => array(
-                                'title'         => __( 'Checkout Options', 'woocommerce' ),
-                                'type'             => 'select',
-                                'description'     => __( 'Choose what prices are displayed to customers.', 'woocommerce' ),
-                                'options' => array('default' => 'Default', 'fastest' => 'Fastest', 'cheapest' => 'Cheapest'),
-                                'default'        => __( 'default', 'woocommerce' ),
-                            ),
+                            // 'shipping_price' => array(
+                            //     'title'         => __( 'Checkout Options', 'woocommerce' ),
+                            //     'type'             => 'select',
+                            //     'description'     => __( 'Choose what prices are displayed to customers.', 'woocommerce' ),
+                            //     'options' => array('default' => 'Default', 'fastest' => 'Fastest', 'cheapest' => 'Cheapest'),
+                            //     'default'        => __( 'default', 'woocommerce' ),
+                            // ),
                             'store_category' => array(
                                 'title'         => __( 'Store Category', 'woocommerce' ),
                                 'type'             => 'select',
