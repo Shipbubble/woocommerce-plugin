@@ -61,7 +61,7 @@
                         $countries   = $countries_obj->__get('countries');
                         $default_country = $countries_obj->get_base_country();
                         
-                        $courier_options = shipbubble_courier_options();
+                        // $courier_options = shipbubble_courier_options();
                         $categories_options = shipbubble_get_order_categories();
 
                         $isEnabled = '<br><div class="sb-activated-not">Not Activated for use</div>';
@@ -145,13 +145,13 @@
                                 'custom_attributes' => array('required' => 'required')
                                 // 'default'        => __( '', 'woocommerce' ),
                             ),
-                            'courier_list' => array(
-                                'title'         => __( 'Select Logistics Company', 'woocommerce' ),
-                                'type'             => 'multiselect',
-                                'options' => $courier_options,
-                                'default'        => __( 'all', 'woocommerce' ),
-                                'description'     => __( 'To select multiple logistics companies, hold "control" (ctrl) and click on your desired option', 'woocommerce' ),
-                            ),
+                            // 'courier_list' => array(
+                            //     'title'         => __( 'Select Logistics Company', 'woocommerce' ),
+                            //     'type'             => 'multiselect',
+                            //     'options' => $courier_options,
+                            //     'default'        => __( 'all', 'woocommerce' ),
+                            //     'description'     => __( 'To select multiple logistics companies, hold "control" (ctrl) and click on your desired option', 'woocommerce' ),
+                            // ),
                             'user_can_ship' => array(
                                 'title'         => __( 'Ship Orders at checkout', 'woocommerce' ),
                                 'type'             => 'checkbox',
