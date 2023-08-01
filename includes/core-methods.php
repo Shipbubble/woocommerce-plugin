@@ -133,7 +133,7 @@
     {
         $options = get_option( WC_SHIPBUBBLE_ID, shipbubble_wc_options_default() );
 
-        $courier_price_type = isset( $options['shipping_price'] ) ? sanitize_text_field( $options['shipping_price'] ) : 'default';
+        // $courier_price_type = isset( $options['shipping_price'] ) ? sanitize_text_field( $options['shipping_price'] ) : 'default';
 
         $extra_charges = isset( $options['extra_charges'] ) ? sanitize_text_field( $options['extra_charges'] ) : '0';
 
@@ -145,29 +145,32 @@
             $data = $response->data;
             $rates['request_token'] = $data->request_token;
             $rates['extra_charges'] = $extra_charges;
+
+            $rates['rate'] = 'default';
+            $rates['couriers'] = $data->couriers;
             
-            switch(strtolower($courier_price_type))
-            {
-                case 'default':
-                    $rates['rate'] = 'default';
-                    $rates['couriers'] = $data->couriers;
-                    break;
+            // switch(strtolower($courier_price_type))
+            // {
+            //     case 'default':
+            //         $rates['rate'] = 'default';
+            //         $rates['couriers'] = $data->couriers;
+            //         break;
 
-                case 'fastest':
-                    $rates['rate'] = 'fastest';
-                    $rates['couriers'][] = $data->fastest_courier;
-                    break;
+            //     case 'fastest':
+            //         $rates['rate'] = 'fastest';
+            //         $rates['couriers'][] = $data->fastest_courier;
+            //         break;
 
-                case 'cheapest':
-                    $rates['rate'] = 'cheapest';
-                    $rates['couriers'][] = $data->cheapest_courier;
-                    break;
+            //     case 'cheapest':
+            //         $rates['rate'] = 'cheapest';
+            //         $rates['couriers'][] = $data->cheapest_courier;
+            //         break;
 
-                default:
-                    $rates['rate'] = 'default';
-                    $rates['couriers'] = $data->couriers;
-                    break;
-            }
+            //     default:
+            //         $rates['rate'] = 'default';
+            //         $rates['couriers'] = $data->couriers;
+            //         break;
+            // }
         }
 
         return $rates;

@@ -61,7 +61,7 @@
                         $countries   = $countries_obj->__get('countries');
                         $default_country = $countries_obj->get_base_country();
                         
-                        $courier_options = shipbubble_courier_options();
+                        // $courier_options = shipbubble_courier_options();
                         $categories_options = shipbubble_get_order_categories();
 
                         $isEnabled = '<br><div class="sb-activated-not">Not Activated for use</div>';
@@ -117,27 +117,6 @@
                                 'options' => $countries,
                                 'default'        => __( $default_country, 'woocommerce' ),
                             ),
-                            'address_code' => array(
-                                // 'title'         => __( 'Address Code', 'woocommerce' ),
-                                'type'             => 'hidden',
-                                // 'description'     => __( 'This is the address code setup for pickup (66502255).', 'woocommerce' ),
-                                'default'        => __( '0', 'woocommerce' ),
-                                // 'custom_attributes' => array('readonly' => 'readonly')
-                            ),
-                            'extra_charges' => array(
-                                'title'         => __( 'Shipping Extra Charges', 'woocommerce' ),
-                                'type'             => 'number',
-                                'description'     => __( 'This control adds a fee to any logistics selected.', 'woocommerce' ),
-                                'default'        => __( '0', 'woocommerce' ),
-                                'custom_attributes' => array('step' => '0.01', 'min' => '0')
-                            ),
-                            'shipping_price' => array(
-                                'title'         => __( 'Checkout Options', 'woocommerce' ),
-                                'type'             => 'select',
-                                'description'     => __( 'Choose what prices are displayed to customers.', 'woocommerce' ),
-                                'options' => array('default' => 'Default', 'fastest' => 'Fastest', 'cheapest' => 'Cheapest'),
-                                'default'        => __( 'default', 'woocommerce' ),
-                            ),
                             'store_category' => array(
                                 'title'         => __( 'Store Category', 'woocommerce' ),
                                 'type'             => 'select',
@@ -145,24 +124,18 @@
                                 'custom_attributes' => array('required' => 'required')
                                 // 'default'        => __( '', 'woocommerce' ),
                             ),
-                            'courier_list' => array(
-                                'title'         => __( 'Select Logistics Company', 'woocommerce' ),
-                                'type'             => 'multiselect',
-                                'options' => $courier_options,
-                                'default'        => __( 'all', 'woocommerce' ),
-                                'description'     => __( 'To select multiple logistics companies, hold "control" (ctrl) and click on your desired option', 'woocommerce' ),
-                            ),
-                            'user_can_ship' => array(
-                                'title'         => __( 'Ship Orders at checkout', 'woocommerce' ),
-                                'type'             => 'checkbox',
-                                'description'     => __( 'Customer Can Ship Orders on Checkout.', 'woocommerce' ),
-                                'default'        => __( 'no', 'woocommerce' ),
-                            ),
                             'disable_other_shipping_methods' => array(
                                 'title'         => __( 'Disable Other Shipping Method', 'woocommerce' ),
                                 'type'             => 'checkbox',
                                 'description'     => __( 'Shipbubble will disable other shipping methods.', 'woocommerce' ),
                                 'default'        => __( 'no', 'woocommerce' ),
+                            ),
+                            'address_code' => array(
+                                // 'title'         => __( 'Address Code', 'woocommerce' ),
+                                'type'             => 'hidden',
+                                // 'description'     => __( 'This is the address code setup for pickup (66502255).', 'woocommerce' ),
+                                'default'        => __( '0', 'woocommerce' ),
+                                // 'custom_attributes' => array('readonly' => 'readonly')
                             ),
                         );
                         

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Plugin Name:  ShipBubble
+ * Plugin Name:  Shipbubble
  * Description:  Shipbubble is a platform that enables retailers to conveniently delight their customers with multiple shipping options, thereby increasing conversion rates
  * Contributors: Shipbubble, Mavi Onogomuho
  * Plugin Name: Shipbubble
@@ -91,7 +91,7 @@ function shipbubble_wc_options_default(): array
 		'courier_list' =>  array('all'),
 		'shipping_price' => 'default',
 		'shipping_category' => '',
-		'user_can_ship' => 'no',
+		'user_can_ship' => 'yes',
 		'activate_shipbubble' => 'no',
 		'disable_other_shipping_methods' => 'no',
 	);
@@ -176,7 +176,7 @@ function shipbubble_update_order_meta_on_checkout($order_id)
 {
 	$options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
 
-	$userCanShip = isset($options['user_can_ship']) ? sanitize_text_field($options['user_can_ship']) : 'no';
+	$userCanShip = 'yes';
 
 	$requestToken = sanitize_text_field($_POST['request_token']);
 	$serviceCode = sanitize_text_field($_POST['shipbubble_service_code']);
@@ -237,12 +237,6 @@ function shipbubble_update_order_meta_on_checkout($order_id)
 					update_post_meta($order_id, 'shipbubble_tracking_status', 'pending');
 				}
 			}
-		} else {
-			// set shipbubble order id
-			update_post_meta($order_id, 'shipbubble_order_id', '');
-
-			// set shipping status
-			update_post_meta($order_id, 'shipbubble_tracking_status', '');
 		}
 
 		// set shipbubble shipment details json

@@ -50,12 +50,15 @@ Please visit our website - https://shipbubble.com
 5. Complete set up
 
 == Changelog ==
-= 0.1 =
+= 1.01 =
+* Bug Fixes release 1.
+    * Fixed shipping status message when order has no shipping method
+= 1.00 =
 * Initial release.
 
 = 0.0.1 =
 * Rate card design fix.
 
 == Upgrade Notice ==
-= 0.2 =
+= 1.1 =
 Upgrade notices describe the reason a user should upgrade
