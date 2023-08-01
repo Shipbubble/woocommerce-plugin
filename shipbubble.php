@@ -174,8 +174,6 @@ function shipbubble_update_order_meta_on_checkout($order_id)
 {
 	$options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
 
-	// $userCanShip = isset($options['user_can_ship']) ? sanitize_text_field($options['user_can_ship']) : 'no';
-
 	$userCanShip = 'yes';
 
 	$requestToken = sanitize_text_field($_POST['request_token']);
@@ -237,12 +235,6 @@ function shipbubble_update_order_meta_on_checkout($order_id)
 					update_post_meta($order_id, 'shipbubble_tracking_status', 'pending');
 				}
 			}
-		} else {
-			// set shipbubble order id
-			// update_post_meta($order_id, 'shipbubble_order_id', '');
-
-			// set shipping status
-			// update_post_meta($order_id, 'shipbubble_tracking_status', '');
 		}
 
 		// set shipbubble shipment details json
