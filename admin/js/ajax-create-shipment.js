@@ -16,26 +16,17 @@
             // prevent form submission
             event.preventDefault();
             
-            if ( $.isNumeric(walletBalance) && $.isNumeric(shippingCost) && (shippingCost > walletBalance)) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Oops...',
-                    text: 'Wallet Balance is insufficient, fund your account!',
-                    // showConfirmButton: false,
-                })
-            } else {
-                btn.attr('disabled', 'true').html('loading...');
+            btn.attr('disabled', 'true').html('loading...');
 
-                if (details.val() != '') {
-                    console.log(JSON.parse(details.val()).request_token)
-                    // let payload = JSON.parse(form.find('#shipment_details'));
-    
-                    const payload = JSON.parse(details.val());
-                    payload['order_id'] = wc_order_id.val();
-                    
-                    // initiate shipment
-                    initiate_shipment(payload);
-                }
+            if (details.val() != '') {
+                console.log(JSON.parse(details.val()).request_token)
+                // let payload = JSON.parse(form.find('#shipment_details'));
+
+                const payload = JSON.parse(details.val());
+                payload['order_id'] = wc_order_id.val();
+                
+                // initiate shipment
+                initiate_shipment(payload);
             }
 
 		});
