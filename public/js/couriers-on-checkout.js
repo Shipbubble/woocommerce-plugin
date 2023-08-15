@@ -86,7 +86,8 @@
                 $('<div>', {
                     id: 'shipping-notice',
                     class: 'woocommerce-error',
-                }).text(`Ensure that you have filled your ${errorBox.join(', ')}`).prependTo('#courier-section').show();
+                }).text(`Ensure that yo
+                style: 'font-size:16px',u have filled your ${errorBox.join(', ')}`).appendTo('#order_review_heading').show();
             }
 
         });
@@ -214,7 +215,8 @@
                         $('<div>', {
                             id: 'shipping-notice',
                             class: 'woocommerce-info',
-                        }).text(`${responseMessage}`).prependTo('#courier-section').show();
+                            style: 'font-size:16px',
+                        }).text(`${responseMessage}`).appendTo('#order_review_heading').show();
 
                     }
                 }
@@ -227,7 +229,8 @@
                 $('<div>', {
                     id: 'shipping-notice',
                     class: 'woocommerce-error',
-                }).text(`Unable to display Couriers List, Please Try again later`).prependTo('#courier-section').show();
+                }).text(`Unable to disp
+                style: 'font-size:16px',lay Couriers List, Please Try again later`).appendTo('#order_review_heading').show();
 
             });
         }
