@@ -240,7 +240,8 @@
                         if (response.hasOwnProperty('errors')) {
                             responseMessage = response['errors'][0];
                         } else {
-                            responseMessage = response['message']
+                            // console.log(response['message']);
+                            responseMessage = response['message'].message;
                         }
 
                         $('<div>', {
