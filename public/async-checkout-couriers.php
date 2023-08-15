@@ -65,10 +65,10 @@
 
                 $rates = shipbubble_process_shipping_rates($addressCode, $products);
 
-                if (count($rates)) {
+                if (count($rates) > 1) {
                     $output = array('status' => 'success', 'data' => $rates);
                 } else {
-                    $output = array('status' => 'failed', 'message' => 'Unable to fetch rates, try again later');
+                    $output = array('status' => 'failed', 'message' => $rates['error']);
                 }
                 
                 echo json_encode($output);

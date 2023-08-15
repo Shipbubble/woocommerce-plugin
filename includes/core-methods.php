@@ -148,29 +148,8 @@
 
             $rates['rate'] = 'default';
             $rates['couriers'] = $data->couriers;
-            
-            // switch(strtolower($courier_price_type))
-            // {
-            //     case 'default':
-            //         $rates['rate'] = 'default';
-            //         $rates['couriers'] = $data->couriers;
-            //         break;
-
-            //     case 'fastest':
-            //         $rates['rate'] = 'fastest';
-            //         $rates['couriers'][] = $data->fastest_courier;
-            //         break;
-
-            //     case 'cheapest':
-            //         $rates['rate'] = 'cheapest';
-            //         $rates['couriers'][] = $data->cheapest_courier;
-            //         break;
-
-            //     default:
-            //         $rates['rate'] = 'default';
-            //         $rates['couriers'] = $data->couriers;
-            //         break;
-            // }
+        } else {
+            $rates['error'] = $response;
         }
 
         return $rates;
