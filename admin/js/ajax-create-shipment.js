@@ -16,7 +16,7 @@
             // prevent form submission
             event.preventDefault();
             
-            btn.attr('disabled', 'true').html('loading...');
+            btn.attr('disabled', 'true').html('processing...');
 
             if (details.val() != '') {
                 console.log(JSON.parse(details.val()).request_token)
@@ -24,6 +24,8 @@
 
                 const payload = JSON.parse(details.val());
                 payload['order_id'] = wc_order_id.val();
+
+                console.log(payload);
                 
                 // initiate shipment
                 initiate_shipment(payload);
@@ -68,6 +70,7 @@
                         </div>`).insertAfter($('.wp-header-end'));
 
                         console.log('no');
+                        btn.attr('disabled', 'false').html('Create shipment via shipbubble');
                     }
                 } else {
                     $(`<div id="message" class="notice notice-error is-dismissible">
@@ -78,6 +81,8 @@
                         </button>
                     </div>`).insertAfter($('.wp-header-end'));
                     console.log('no');
+
+                    btn.attr('disabled', 'false').html('Create shipment via shipbubble');
                 }
                 
             });

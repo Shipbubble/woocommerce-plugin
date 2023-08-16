@@ -270,7 +270,7 @@
                     id: 'shipping-notice',
                     class: 'woocommerce-error',
                     style: 'font-size:16px',
-                }).text(`Unable to display Couriers List, Please Try again later`).appendTo('#order_review_heading').show();
+                }).text(`unable to display couriers list, please try again later`).appendTo('#order_review_heading').show();
 
             });
     

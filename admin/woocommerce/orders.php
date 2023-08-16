@@ -31,9 +31,10 @@
         $today = new DateTime('now');
         $orderDate = new DateTime( $order->date_created );
         $interval = $orderDate->diff($today);
+        $hrsInterval = $interval->h + ($interval->days * 24);
 
         // check token has lasted longer than 48hrs before regenerating new request token
-        if( strlen($shipbubbleOrderId) < 1 && $interval->h > SHIPBUBBLE_REQUEST_TOKEN_EXPIRY && !is_null($shipment)) {
+        if( strlen($shipbubbleOrderId) < 1 && $hrsInterval > SHIPBUBBLE_REQUEST_TOKEN_EXPIRY && !is_null($shipment)) {
             $rates = shipbubble_regenerate_rate_token($order, $serviceCode);
             if (count($rates)) {
                 $shipment = json_encode($rates);
@@ -43,7 +44,7 @@
         }
 
         // Check address has changed under 48hrs before before regenerating new request token
-        if ( strlen($shipbubbleOrderId) < 1 && !sb_compare_addresses($shipbubbleDeliveryAddress, $orderAddress) && $interval->h < SHIPBUBBLE_REQUEST_TOKEN_EXPIRY && !is_null($shipment)) {
+        if ( strlen($shipbubbleOrderId) < 1 && !sb_compare_addresses($shipbubbleDeliveryAddress, $orderAddress) && $hrsInterval < SHIPBUBBLE_REQUEST_TOKEN_EXPIRY && !is_null($shipment)) {
             // regenerate
             $rates = shipbubble_regenerate_rate_token($order, $serviceCode);
             if (count($rates)) {
