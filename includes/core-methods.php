@@ -149,7 +149,13 @@
             $rates['rate'] = 'default';
             $rates['couriers'] = $data->couriers;
         } else {
-            $rates['error'] = $response;
+            if (isset($response['error'][0])) {
+                $rates['error'] = $response['error'][0];
+            } elseif (isset($response['message'])) {
+                $rates['error'] = $response['message'];
+            } else {
+                $rates['error'] = 'unable to fetch rates';
+            }
         }
 
         return $rates;

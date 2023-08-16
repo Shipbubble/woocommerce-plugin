@@ -239,9 +239,12 @@
 
                         if (response.hasOwnProperty('errors')) {
                             responseMessage = response['errors'][0];
+                        } else if (response.hasOwnProperty('message')) {
+                            responseMessage = response['message'];
+                        } else if (response.hasOwnProperty('data')) {
+                            responseMessage = response['data'];
                         } else {
-                            // console.log(response['message']);
-                            responseMessage = response['message'].message;
+                            responseMessage = 'unable to fetch rates, contact admin';
                         }
 
                         $('<div>', {
@@ -253,11 +256,16 @@
                     }
                 }
 
-                var requestRatesBtn = $('#request_courier_rates');
-                requestRatesBtn.prop('disabled', false);
+                // var requestRatesBtn = $('#request_courier_rates');
+                // requestRatesBtn.prop('disabled', false);
                 // requestRatesBtn.removeClass('load');
 
             }).fail(function () {
+                let sbSlogan = $('.sb-slogan-container');
+                sbSlogan.hide();
+    
+                list.empty();
+
                 $('<div>', {
                     id: 'shipping-notice',
                     class: 'woocommerce-error',
@@ -265,6 +273,10 @@
                 }).text(`Unable to display Couriers List, Please Try again later`).appendTo('#order_review_heading').show();
 
             });
+    
+            var requestRatesBtn = $('#request_courier_rates');
+            requestRatesBtn.prop('disabled', false);
+
         }
 
     });
