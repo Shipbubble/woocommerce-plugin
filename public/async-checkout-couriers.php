@@ -41,6 +41,8 @@
 
         $data = isset( $postData ) ? (array) $postData : array();
 
+        // error_log(print_r($data, true));
+
         // Any of the WordPress data sanitization functions can be used here
 
         if ( empty($_POST['data']) || empty($data['name'])  || empty($data['email']) || empty($data['phone']) || empty($data['address']) ) {
@@ -60,6 +62,7 @@
             // successful
             if (isset($addressResponse->response_code) && $addressResponse->response_code == SHIPBUBBLE_RESPONSE_IS_OK) {
                 $products = shipbubble_get_checkout_orders();
+                $products['comments'] = !empty($data['comments']) ? $data['comments'] : 'please handle carefully';
                 $addressCode = $addressResponse->data->address_code;
                 $output = array();
 

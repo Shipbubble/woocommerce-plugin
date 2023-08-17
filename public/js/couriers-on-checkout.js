@@ -18,6 +18,9 @@
 
             let useShippingAddress = $('input#ship-to-different-address-checkbox');
 
+            // order comments
+            orderComments = $('textarea#order_comments').val();
+
             // use shipping variables
             if (useShippingAddress.is(':checked')) {
                 firstName = $('input#shipping_first_name').val();
@@ -80,6 +83,7 @@
                     email,
                     phone,
                     address: streetAddress + ', ' + city + ', ' + selectedState + ', ' + selectedCountry,
+                    comments: orderComments,
                 }
 
                 let sbSlogan = $('.sb-slogan-container');

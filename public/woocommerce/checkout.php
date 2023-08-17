@@ -122,7 +122,7 @@ function shipbubble_change_rates($rates, $packages)
 			}
 		}
 
-		error_log(print_r($post_data, true));
+		// error_log(print_r($post_data, true));
 	}
 
 	if (count($post_data) > 0 && isset($post_data['shipbubble_reset_cost'])) {
