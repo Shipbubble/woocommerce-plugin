@@ -13,15 +13,19 @@
             // initialize variables
             let firstName = lastName = email = phone = selectedCountry = selectedState = city = streetAddress = '';
             //08036922
-            
+
+            let shippingStateRequired = billingStateRequired = 0;
+
             let useShippingAddress = $('input#ship-to-different-address-checkbox');
-            
+
+            // order comments
+            orderComments = $('textarea#order_comments').val();
+
             // use shipping variables
             if (useShippingAddress.is(':checked')) {
                 firstName = $('input#shipping_first_name').val();
                 lastName = $('input#shipping_last_name').val();
                 selectedCountry = $('select#shipping_country option:selected').text();
-                selectedState = $('select#shipping_state option:selected').text();
                 city = $('input#shipping_city').val();
                 streetAddress = $('input#shipping_address_1').val();
 
@@ -37,6 +41,14 @@
                     phone = $('input#shipping_phone').val();
                 }
 
+                billingStateRequired = $('label[for="billing_state"]').find('abbr.required').length;
+
+                if ($('select#shipping_state').length) {
+                    selectedState = $('select#shipping_state option:selected').text();
+                } else {
+                    selectedState = $('input#shipping_state').val();
+                }
+
             } else {
                 // use billing variables
                 firstName = $('input#billing_first_name').val();
@@ -44,14 +56,24 @@
                 email = $('input#billing_email').val();
                 phone = $('input#billing_phone').val();
                 selectedCountry = $('select#billing_country option:selected').text();
-                selectedState = $('select#billing_state option:selected').text();
                 city = $('input#billing_city').val();
                 streetAddress = $('input#billing_address_1').val();
+
+                shippingStateRequired = $('label[for="shipping_state"]').find('abbr.required').length;
+
+                if ($('select#billing_state').length) {
+                    selectedState = $('select#billing_state option:selected').text();
+                } else {
+                    selectedState = $('input#billing_state').val();
+                }
             }
-            
 
             // check requirements are met
-            if (firstName != '' && lastName != '' && email != '' && phone != '' && streetAddress != '' && city != '' && selectedState != '' && selectedCountry != '') {
+            if (
+                (((!billingStateRequired || !shippingStateRequired) && selectedState.length >= 0)
+                    || (billingStateRequired || shippingStateRequired) && selectedState.length > 0)
+                &&
+                firstName != '' && lastName != '' && email != '' && phone != '' && streetAddress != '' && city != '' && selectedCountry != '') {
                 // hide notice
                 $('#shipping-notice').remove();
 
@@ -61,6 +83,7 @@
                     email,
                     phone,
                     address: streetAddress + ', ' + city + ', ' + selectedState + ', ' + selectedCountry,
+                    comments: orderComments,
                 }
 
                 let sbSlogan = $('.sb-slogan-container');
@@ -75,18 +98,31 @@
             } else {
                 // Display notice
                 let errorBox = [];
-                let containerObject = { firstName, lastName, email, phone, streetAddress, city, selectedState, selectedCountry }
+                let containerObject = { firstName, lastName, email, phone, streetAddress, city, selectedCountry }
+
+                if ((billingStateRequired || shippingStateRequired)) {
+                    containerObject['selectedState'] = '';
+                }
 
                 for (const key in containerObject) {
                     if (containerObject[key] == '') {
-                        errorBox.push(`${key}`);
+                        let kName = '';
+
+                        if (key.includes('selectedState') && (billingStateRequired || shippingStateRequired)) {
+                            kName = 'selected state or county';
+                        } else {
+                            kName = key.split(/(?=[A-Z])/).join(' ').toLowerCase();
+                        }
+
+                        errorBox.push(`${kName}`);
                     }
                 }
 
                 $('<div>', {
                     id: 'shipping-notice',
                     class: 'woocommerce-error',
-                }).text(`Ensure that you have filled your ${errorBox.join(', ')}`).prependTo('#courier-section').show();
+                    style: 'font-size:16px',
+                }).text(`Ensure that you have filled your ${errorBox.join(', ')}`).appendTo('#order_review_heading').show();
             }
 
         });
@@ -113,7 +149,7 @@
                     <p id="sb-status-text">Fetching delivery prices...</p>
                 </div>
             `);
-            
+
             let newCourierList = $('<div class="container-delivery-card-list loading"></div');
 
             list.append(newCourierList);
@@ -139,16 +175,12 @@
                 if (response.hasOwnProperty('status')) {
                     if (response['status'] == 'success') {
                         let output = response['data'];
-                        // display data
-                        // console.log('token ==> ', output.request_token);
-                        // console.log('data ==> ', output);
-                        // var section = $("#courier-section");
 
                         // dynamically add each courier
                         $('#sb-status-text').html('Select a delivery option');
 
                         loaders.hide();
-                        
+
                         newCourierList.removeClass('loading');
 
                         $.each(output.couriers, function (i, value) {
@@ -187,14 +219,14 @@
 
                         const courier_radio_btn = $('input[name="delivery_option"]');
 
-                        courier_radio_btn.change(function(){ 
+                        courier_radio_btn.change(function () {
                             //first remove class from all
                             courier_radio_btn.parent().parent().removeClass('active');
-                        
+
                             if ($(this).is(':checked')) {
                                 $(this).parent().parent().addClass('active')
-                            }                                        
-                         });
+                            }
+                        });
 
 
                     } else {
@@ -207,29 +239,44 @@
 
                         if (response.hasOwnProperty('errors')) {
                             responseMessage = response['errors'][0];
+                        } else if (response.hasOwnProperty('message')) {
+                            responseMessage = response['message'];
+                        } else if (response.hasOwnProperty('data')) {
+                            responseMessage = response['data'];
                         } else {
-                            responseMessage = response['message']
+                            responseMessage = 'unable to fetch rates, contact admin';
                         }
 
                         $('<div>', {
                             id: 'shipping-notice',
                             class: 'woocommerce-info',
-                        }).text(`${responseMessage}`).prependTo('#courier-section').show();
+                            style: 'font-size:16px',
+                        }).text(`${responseMessage}`).appendTo('#order_review_heading').show();
 
                     }
                 }
 
-                var requestRatesBtn = $('#request_courier_rates');
-                requestRatesBtn.prop('disabled', false);
+                // var requestRatesBtn = $('#request_courier_rates');
+                // requestRatesBtn.prop('disabled', false);
                 // requestRatesBtn.removeClass('load');
 
             }).fail(function () {
+                let sbSlogan = $('.sb-slogan-container');
+                sbSlogan.hide();
+
+                list.empty();
+
                 $('<div>', {
                     id: 'shipping-notice',
                     class: 'woocommerce-error',
-                }).text(`Unable to display Couriers List, Please Try again later`).prependTo('#courier-section').show();
+                    style: 'font-size:16px',
+                }).text(`unable to display couriers list, please try again later`).appendTo('#order_review_heading').show();
 
             });
+
+            var requestRatesBtn = $('#request_courier_rates');
+            requestRatesBtn.prop('disabled', false);
+
         }
 
     });

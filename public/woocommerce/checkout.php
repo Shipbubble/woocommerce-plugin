@@ -64,8 +64,6 @@ function shipbubble_courier_setup_on_change()
 								const courier_id = checked_courier.attr('data-courier_id');
 								const service_code = checked_courier.attr('data-service_code');
 
-								// console.log('value is s ', checked_courier.attr('data-request_token'));
-
 								const shipment = {
 									request_token: checked_courier.attr('data-request_token'),
 									shipment_cost: total,
@@ -124,7 +122,7 @@ function shipbubble_change_rates($rates, $packages)
 			}
 		}
 
-		error_log(print_r($post_data, true));
+		// error_log(print_r($post_data, true));
 	}
 
 	if (count($post_data) > 0 && isset($post_data['shipbubble_reset_cost'])) {

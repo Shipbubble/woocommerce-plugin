@@ -215,17 +215,7 @@ function shipbubble_get_shipping_rates(string $addressCode, array $products, $se
     if (count($serviceCodes)) {
         $serviceCodesFormat = implode(',', $serviceCodes);
         $url = SHIPBUBBLE_BASE_URL . '/fetch_rates/' . $serviceCodesFormat;
-    } 
-    // else {
-    //     if ($key = array_search('all', $courier_list) && count($courier_list) > 1) {
-    //         unset($courier_list[$key]);
-    //     }
-
-    //     if (count($courier_list) && !in_array('all', $courier_list)) {
-    //         $serviceCodesFormat = implode(',', $courier_list);
-    //         $url = SHIPBUBBLE_BASE_URL . '/fetch_rates/' . $serviceCodesFormat;
-    //     }
-    // }
+    }
 
     $url = esc_url_raw($url);
 
@@ -283,8 +273,10 @@ function shipbubble_get_shipping_rates(string $addressCode, array $products, $se
             'height' => $setDimensions['height']
         ],
         'service_type' => 'pickup',
-        'delivery_instructions' => 'please handle carefully'
+        'delivery_instructions' => $products['comments'] ?? 'please handle carefully'
     ];
+
+    error_log(print_r($payload, true));
 
     // return json_decode(json_encode($payload));
 
@@ -313,7 +305,7 @@ function shipbubble_get_shipping_rates(string $addressCode, array $products, $se
         // throw new Exception( $error_message );
     }
 
-    error_log(print_r($body, true));
+    // error_log(print_r($body, true));
 
     // output data
     return json_decode($body);
