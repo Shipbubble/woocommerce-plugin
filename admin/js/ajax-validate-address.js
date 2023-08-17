@@ -1,10 +1,10 @@
 // JavaScript for Admin Area
 
-(function($) {
-	
-	$(document).ready(function() {
+(function ($) {
 
-		var mainform = $('form#mainform'); 
+    $(document).ready(function () {
+
+        var mainform = $('form#mainform');
         var formBtn = mainform.find('button[type="submit"]');
         var senderName = mainform.find('#woocommerce_shipbubble_shipping_services_sender_name');
         var senderPhone = mainform.find('#woocommerce_shipbubble_shipping_services_sender_phone');
@@ -16,57 +16,49 @@
 
         const addressCodeInitValue = addressCodeField.val();
 
-        if (senderName.val() == '' && senderPhone.val() == '' && senderEmail.val() == '' && 
+        if (senderName.val() == '' && senderPhone.val() == '' && senderEmail.val() == '' &&
             senderAddress.val() == '' && senderState.val() == '' && senderCountry.find('option:selected').val() == ''
-            ) {
+        ) {
             formBtn.attr('disabled', true);
         } else {
             formBtn.attr('disabled', false);
         }
-        
-        // console.log(senderCountry.find('option:selected').text());
-        
-        $('.address_form_field').change(function(e) {
-            e.preventDefault();
-            console.log('on change o');
 
-            if (senderName.val() != '' && senderPhone.val() != '' && senderEmail.val() != '' && 
-            senderAddress.val() != '' && senderState.val() != '' && senderCountry.find('option:selected').val() != ''
+        $('.address_form_field').change(function (e) {
+            e.preventDefault();
+
+            if (senderName.val() != '' && senderPhone.val() != '' && senderEmail.val() != '' &&
+                senderAddress.val() != '' && senderState.val() != '' && senderCountry.find('option:selected').val() != ''
             ) {
-                console.log('all filled');
                 var addressPayload = {
                     name: senderName.val(),
                     phone: senderPhone.val(),
                     email: senderEmail.val(),
                     address: `${senderAddress.val()} ${senderState.val()} ${senderCountry.find('option:selected').text()}`
                 };
-                
+
                 validate_sender_address(addressPayload);
             } else {
-                console.log('still empty');
-
                 formBtn.attr('disabled', true);
             }
-            
+
         });
-		
+
         function validate_sender_address(payload) {
             $.post(ajaxurl, {
-                nonce:  ajax_wc_admin.nonce,
+                nonce: ajax_wc_admin.nonce,
                 action: 'initiate_validate_sender_address',
                 // url:    url
                 data: { payload },
                 dataType: 'json'
-            }, function(data) {
-    
+            }, function (data) {
+
                 let response = JSON.parse(data);
 
-                console.log(response);
-                
                 if (response.hasOwnProperty('response_code')) {
                     if (response['response_code'] == 200) {
 
-                        addressCodeField.val( response['data'].address_code );
+                        addressCodeField.val(response['data'].address_code);
 
                         formBtn.attr('disabled', false);
 
@@ -79,11 +71,9 @@
                             timer: 4500
                         });
 
-                        addressCodeField.val( addressCodeInitValue );
+                        addressCodeField.val(addressCodeInitValue);
 
                         formBtn.attr('disabled', true);
-
-                        console.log('no');
                     }
                 } else {
                     Swal.fire({
@@ -94,14 +84,13 @@
                         timer: 4500
                     });
 
-                    addressCodeField.val( addressCodeInitValue );
+                    addressCodeField.val(addressCodeInitValue);
 
                     formBtn.attr('disabled', true);
-                    console.log('no');
                 }
-                
+
             });
         }
-	});
+    });
 
-})( jQuery );
+})(jQuery);

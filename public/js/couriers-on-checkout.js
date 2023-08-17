@@ -15,9 +15,9 @@
             //08036922
 
             let shippingStateRequired = billingStateRequired = 0;
-            
+
             let useShippingAddress = $('input#ship-to-different-address-checkbox');
-            
+
             // use shipping variables
             if (useShippingAddress.is(':checked')) {
                 firstName = $('input#shipping_first_name').val();
@@ -64,12 +64,12 @@
                     selectedState = $('input#billing_state').val();
                 }
             }
-            
+
             // check requirements are met
             if (
                 (((!billingStateRequired || !shippingStateRequired) && selectedState.length >= 0)
-                || (billingStateRequired || shippingStateRequired) && selectedState.length > 0)
-                && 
+                    || (billingStateRequired || shippingStateRequired) && selectedState.length > 0)
+                &&
                 firstName != '' && lastName != '' && email != '' && phone != '' && streetAddress != '' && city != '' && selectedCountry != '') {
                 // hide notice
                 $('#shipping-notice').remove();
@@ -145,7 +145,7 @@
                     <p id="sb-status-text">Fetching delivery prices...</p>
                 </div>
             `);
-            
+
             let newCourierList = $('<div class="container-delivery-card-list loading"></div');
 
             list.append(newCourierList);
@@ -171,16 +171,12 @@
                 if (response.hasOwnProperty('status')) {
                     if (response['status'] == 'success') {
                         let output = response['data'];
-                        // display data
-                        // console.log('token ==> ', output.request_token);
-                        // console.log('data ==> ', output);
-                        // var section = $("#courier-section");
 
                         // dynamically add each courier
                         $('#sb-status-text').html('Select a delivery option');
 
                         loaders.hide();
-                        
+
                         newCourierList.removeClass('loading');
 
                         $.each(output.couriers, function (i, value) {
@@ -219,14 +215,14 @@
 
                         const courier_radio_btn = $('input[name="delivery_option"]');
 
-                        courier_radio_btn.change(function(){ 
+                        courier_radio_btn.change(function () {
                             //first remove class from all
                             courier_radio_btn.parent().parent().removeClass('active');
-                        
+
                             if ($(this).is(':checked')) {
                                 $(this).parent().parent().addClass('active')
-                            }                                        
-                         });
+                            }
+                        });
 
 
                     } else {
@@ -263,7 +259,7 @@
             }).fail(function () {
                 let sbSlogan = $('.sb-slogan-container');
                 sbSlogan.hide();
-    
+
                 list.empty();
 
                 $('<div>', {
@@ -273,7 +269,7 @@
                 }).text(`unable to display couriers list, please try again later`).appendTo('#order_review_heading').show();
 
             });
-    
+
             var requestRatesBtn = $('#request_courier_rates');
             requestRatesBtn.prop('disabled', false);
 
