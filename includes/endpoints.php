@@ -77,7 +77,7 @@ function shipbubble_get_wallet_balance(string $apiKey = '')
 function shipbubble_get_color_code()
 {
 
-    $url = SHIPBUBBLE_BASE_URL . '/color-code';
+    $url = SHIPBUBBLE_BASE_URL . '/brand_assets';
 
     $url = esc_url_raw($url);
 
