@@ -74,6 +74,62 @@ function shipbubble_get_wallet_balance(string $apiKey = '')
  *
  * @return mixed
  */
+function shipbubble_get_color_code()
+{
+
+    $url = SHIPBUBBLE_BASE_URL . '/color-code';
+
+    $url = esc_url_raw($url);
+
+    $body = shipbubble_base_response(); // default response
+
+    // get API key from options
+    $token = shipbubble_get_token();
+
+    $args = array(
+        'headers' => array(
+            'Authorization' => 'Bearer ' . $token,
+            'x-shipbubble-platform' => 'wordpress'
+        ),
+        'timeout'     => SHIPBUBBLE_EP_REQUEST_TIMEOUT,
+        'redirection' => 5,
+        'httpversion' => '1.0',
+        'blocking'    => true,
+        'cookies'     => array(),
+        'compress'    => false,
+        'decompress'  => true,
+        'sslverify'   => true,
+        'stream'      => false,
+        'filename'    => null
+    );
+
+    $response = wp_safe_remote_get($url, $args);
+
+    if (!is_wp_error($response)) {
+        // response data
+        $data = wp_remote_retrieve_body($response);
+        // response code
+        $response_code = wp_remote_retrieve_response_code($response);
+        $data = json_decode($data, true);
+
+        // append response code
+        $data['response_code'] = $response_code;
+        $body = json_encode($data);
+    } else {
+        $error_message = $response->get_error_message();
+        error_log(print_r($error_message, true));
+        // throw new Exception( $error_message );
+    }
+
+    // output data
+    return json_decode($body);
+}
+
+/**
+ * Fetch all available couriers
+ *
+ * @return mixed
+ */
 function shipbubble_get_couriers()
 {
 

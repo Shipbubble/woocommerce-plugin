@@ -64,12 +64,12 @@
                         // $courier_options = shipbubble_courier_options();
                         $categories_options = shipbubble_get_order_categories();
 
-                        $isEnabled = '<br><div class="sb-activated-not">Not Activated for use</div>';
-                        if ($this->get_option('activate_shipbubble', 'no') == 'yes') {
-                            $isEnabled = '<br><div class="sb-activated-success">Activated for use</div>';
-                        }
+                        // $isEnabled = '<br><div class="sb-activated-not">Not Activated for use</div>';
+                        // if ($this->get_option('activate_shipbubble', 'no') == 'yes') {
+                        //     $isEnabled = '<br><div class="sb-activated-success">Activated for use</div>';
+                        // }
 
-                        $this->method_description .= $isEnabled;
+                        // $this->method_description .= $isEnabled;
 
                         $this->form_fields = array(
                             'activate_shipbubble' => array(
