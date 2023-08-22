@@ -276,7 +276,7 @@ function shipbubble_get_shipping_rates(string $addressCode, array $products, $se
         'delivery_instructions' => $products['comments'] ?? 'please handle carefully'
     ];
 
-    error_log(print_r($payload, true));
+    // error_log(print_r($payload, true));
 
     // return json_decode(json_encode($payload));
 

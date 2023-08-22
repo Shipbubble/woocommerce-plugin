@@ -3,6 +3,9 @@
     add_action( 'woocommerce_admin_order_data_after_billing_address', 'shibubble_order_data_after_billing_address', 10, 1 );
     function shibubble_order_data_after_billing_address( $order ) 
     {
+        if (in_array($order->get_status(), SHIPBUBBLE_WC_BAD_ORDER_STATUS_ARR)) {
+            return;
+        }
 
         $shippingData = $order->data['shipping'];
         $orderAddress = sb_create_address($shippingData['address_1'], $shippingData['city'], $shippingData['state'],$shippingData['country']);
@@ -17,7 +20,13 @@
         $shipbubbleDeliveryAddress = get_post_meta( $order->get_id(), 'shipbubble_delivery_address', true );
         
         $shipbubbleOrderId = get_post_meta( $order->get_id(), 'shipbubble_order_id', true );
+
+        if (!count(get_post_meta( $order->get_id(), 'shipbubble_shipment_details' ))) {
+            return;
+        }
+
         $shipment = get_post_meta( $order->get_id(), 'shipbubble_shipment_details' )[0];
+
         
         // $serviceCode = array( 'speedaf-express' ); // test
         
@@ -105,9 +114,13 @@
                     $status = get_post_meta( $post_id, 'shipbubble_tracking_status', true );
                     if (!empty($status)) {
                         echo shipbubble_shipment_status_label($status);
+                    } elseif (in_array($order->get_status(), SHIPBUBBLE_WC_BAD_ORDER_STATUS_ARR)) {
+                        echo '<mark class="order-status status-on-hold">
+                            <span>No shipment initiated</span>
+                        </mark>';
                     } else {
                         echo '<mark class="order-status status-on-hold">
-                            <span>No Shipment Yet</span>
+                            <span>No shipment yet</span>
                         </mark>';
                     }
                 } elseif (!empty($orderShippingMethodId)) {
@@ -146,6 +159,13 @@
     function hide_meta_shipbubble_delivery_address($protected, $meta_key)
     {
         return $meta_key == 'shipbubble_delivery_address' ? true : $protected;
+    }
+
+    add_filter('is_protected_meta', 'hide_meta_sb_shipment_meta', 10, 2);
+    
+    function hide_meta_sb_shipment_meta($protected, $meta_key)
+    {
+        return $meta_key == 'sb_shipment_meta' ? true : $protected;
     }
 
     // end
@@ -223,6 +243,13 @@
         // die;
 
         // $shipbubbleOrderId = get_post_meta( $order->get_id(), 'shipping_total', true );
+
+        if (in_array($order->get_status(), SHIPBUBBLE_WC_BAD_ORDER_STATUS_ARR))
+            return;
+
+        if (!count(get_post_meta( $order->get_id(), 'shipbubble_shipment_details' ))) {
+            return;
+        }
 
         $orderShippingMethodId = reset($order->get_items( 'shipping' ))->get_method_id();
 
