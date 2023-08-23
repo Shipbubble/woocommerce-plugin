@@ -206,7 +206,8 @@
 		}
 		
 		$shipmentMeta = [];
-		if (isset($_POST['shipbubble_shipment_details'])) {
+		if (isset($_POST['shipbubble_shipment_details'], $_POST['shipping_method']) && $_POST['shipping_method'][0] == SHIPBUBBLE_ID) {
+		
 			$address = sb_create_address($streetAddress, $city, $stateTag, $countryTag);
 	
 			if (strtolower($userCanShip) == 'yes') {
@@ -248,7 +249,7 @@
 
 		// Allow code execution only once 
 		if( ! get_post_meta( $order_id, '_thankyou_action_done', true ) ) {
-
+			
 			// Get an instance of the WC_Order object
 			$order = wc_get_order( $order_id );
 
