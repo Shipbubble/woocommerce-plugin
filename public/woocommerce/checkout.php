@@ -9,35 +9,50 @@ function shipbubble_courier_list_container()
 
 	$container = '';
 
+	$btnColor = '';
+	$showLabel = true;
+	$response = shipbubble_get_color_code();
+	if (isset($response->response_code) && $response->response_code == SHIPBUBBLE_RESPONSE_IS_OK) {
+		$btnColor = strlen($response->data->brand_color) > 1 ? $response->data->brand_color . ' !important' : '' ;
+		$showLabel = (bool) $response->data->powered_by_label;
+	}
+
 	if ($isShipbubbleActive == 'yes') {
 		$container .= '
-				<div id="courier-section">
-					<input type="hidden" id="shipbubble_shipment_details" name="shipbubble_shipment_details" value="">
-					<input type="hidden" id="shipbubble_selected_courier" name="shipbubble_selected_courier" value="">
-					<input type="hidden" id="shipbubble_cost" name="shipbubble_cost" value="">
-	
-					<input type="hidden" id="request_token" name="request_token" value="">
-					<input type="hidden" id="shipbubble_service_code" name="shipbubble_service_code" value="">
-					<input type="hidden" id="shipbubble_courier_id" name="shipbubble_courier_id" value="">
-					<input type="hidden" id="shipbubble_reset_cost" name="shipbubble_reset_cost" value="no">
+			<div id="courier-section">
+				<input type="hidden" id="shipbubble_shipment_details" name="shipbubble_shipment_details" value="">
+				<input type="hidden" id="shipbubble_selected_courier" name="shipbubble_selected_courier" value="">
+				<input type="hidden" id="shipbubble_cost" name="shipbubble_cost" value="">
 
-					<div class="container-card">
-						<button id="request_courier_rates">
-							<p>Get Delivery Prices</p>
-						</button>
-
-						<div id="courier-list" class="container-delivery-card"></div>
-					</div>
-					<div class="sb-slogan-container" style="display:none; !important">
-						<div class="sb-slogan">
-							<span>Powered by</span>
-							<img
-								src="https://res.cloudinary.com/delivry/image/upload/v1684423516/app_assets/shipbubble-logo-black_t0gonq.svg" />
-						</div>
-					</div>
-
+				<input type="hidden" id="request_token" name="request_token" value="">
+				<input type="hidden" id="shipbubble_service_code" name="shipbubble_service_code" value="">
+				<input type="hidden" id="shipbubble_courier_id" name="shipbubble_courier_id" value="">
+				<input type="hidden" id="shipbubble_reset_cost" name="shipbubble_reset_cost" value="no">
+				
+				<div class="container-card">
+					<button id="request_courier_rates" style="background: ' . $btnColor . ';">
+						<p>Get Delivery Prices</p>
+					</button> 
+					<div id="courier-list" class="container-delivery-card"></div>
 				</div>
 			';
+
+		if ($showLabel) {
+			$container .= '
+				<div class="sb-slogan-container" style="display:none; !important">
+					<div class="sb-slogan">
+						<span>Powered by</span>
+						<img
+							src="https://res.cloudinary.com/delivry/image/upload/v1684423516/app_assets/shipbubble-logo-black_t0gonq.svg" />
+					</div>
+				</div>
+			';
+		} else {
+			$container .= '<div style="margin: 8px 0;"></div>';
+		}
+
+		$container .= '</div>';
+		
 	}
 
 	echo $container;
@@ -144,7 +159,7 @@ function shipbubble_change_rates($rates, $packages)
 			if (SHIPBUBBLE_ID === $rate->method_id) {
 				// set rate cost
 				if (!empty($selectedCourier) && strlen($selectedCourier)) {
-					$rates[$rate_key]->label = $selectedCourier . ' (via Shipbubble)';
+					$rates[$rate_key]->label = $selectedCourier;
 				}
 				$rates[$rate_key]->cost = $cost;
 			} else {

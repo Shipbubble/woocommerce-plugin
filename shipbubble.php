@@ -4,13 +4,11 @@
  * Plugin Name:  Shipbubble
  * Description:  Shipbubble is a platform that enables retailers to conveniently delight their customers with multiple shipping options, thereby increasing conversion rates
  * Contributors: Shipbubble, Mavi Onogomuho
- * Plugin Name: Shipbubble
  * Donate link: https://www.shipbubble.com/
  * Tags: logistics, deliveries, shipping rates, multiple couriers, post purchase experience
  * Requires at least: 4.0
  * Tested up to: 6.1
  * Stable tag: 1.0
- * Version: 1.0
  * Requires PHP: 5.6
  * Text Domain:  shipbubble
  * Domain Path:  /languages
@@ -121,7 +119,7 @@ function shipbubble_keep_shipping_methods_on_checkout($rates, $package)
 {
 	$options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
 	$disableOtherShippingMethods = isset($options['disable_other_shipping_methods']) ? sanitize_text_field($options['disable_other_shipping_methods']) : 'no';
-	
+
 	if (!is_checkout()) {
 		// Loop through shipping methods rates
 		foreach ($rates as $rate_key => $rate) {
@@ -174,7 +172,10 @@ function shipbubble_disable_place_order_button_html($button)
 add_action('woocommerce_checkout_update_order_meta', 'shipbubble_update_order_meta_on_checkout', 10, 1);
 function shipbubble_update_order_meta_on_checkout($order_id)
 {
-	$options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
+	if (!$order_id)
+		return;
+
+	// $options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
 
 	$userCanShip = 'yes';
 
@@ -204,31 +205,61 @@ function shipbubble_update_order_meta_on_checkout($order_id)
 		$countryTag = sanitize_text_field($_POST['billing_country']);
 	}
 
-	$address = sb_create_address($streetAddress, $city, $stateTag, $countryTag);
+	$shipmentMeta = [];
+	if (isset($_POST['shipbubble_shipment_details'], $_POST['shipping_method']) && $_POST['shipping_method'][0] == SHIPBUBBLE_ID) {
 
-	// error_log(print_r($address, true));
-	// error_log(print_r(json_decode(json_decode($_POST['shipbubble_shipment_details'])), true));
-	// die;
-
-	if (isset($_POST['shipbubble_shipment_details'])) {
+		$address = sb_create_address($streetAddress, $city, $stateTag, $countryTag);
 
 		if (strtolower($userCanShip) == 'yes') {
-
-			// error_log(print_r($requestToken, true));
-			// error_log(print_r($serviceCode, true));
-			// error_log(print_r($courierId, true));
-
-			// die;
+			$shipmentMeta['user_can_ship'] = true;
 
 			if (isset($requestToken, $serviceCode, $courierId) && !empty($requestToken) && !empty($serviceCode) && !empty($courierId)) {
-				$shipmentPayload = array(
+				$shipmentMeta['shipment_payload'] = array(
 					'request_token' => $requestToken,
 					'service_code' => $serviceCode,
 					'courier_id' => $courierId,
 				);
 
-				$response = shipbubble_create_shipment($shipmentPayload);
+				// set shipbubble shipment details json
+				update_post_meta($order_id, 'shipbubble_shipment_details', sanitize_text_field($_POST['shipbubble_shipment_details']));
 
+				// set payload to create shipbubble shipment
+				update_post_meta($order_id, 'sb_shipment_meta', json_encode($shipmentMeta));
+
+				// setting the delivery address
+				update_post_meta($order_id, 'shipbubble_delivery_address', $address);
+			}
+		}
+	}
+}
+
+add_action('woocommerce_thankyou', 'shipbubble_create_shipment_after_order_created', 10, 1);
+function shipbubble_create_shipment_after_order_created($order_id)
+{
+	if (!$order_id)
+		return;
+
+	// error_log(print_r(get_post_meta( $order_id ), true));
+	// error_log(print_r(wc_get_order( $order_id ), true));
+	// error_log(print_r('check two', true));
+	// error_log(print_r(json_decode(get_post_meta( $order_id, 'sb_shipment_meta' )[0], true)['shipment_payload']['request_token'], true));
+
+	if (!get_post_meta($order_id, 'shipbubble_shipment_details', true))
+		return;
+
+	// Allow code execution only once 
+	if (!get_post_meta($order_id, '_thankyou_action_done', true)) {
+
+		// Get an instance of the WC_Order object
+		$order = wc_get_order($order_id);
+
+		$shipmentMeta = json_decode(get_post_meta($order_id, 'sb_shipment_meta')[0], true);
+
+		if (count($shipmentMeta)) {
+			if ($shipmentMeta['user_can_ship']) {
+				$shipmentPayload = $shipmentMeta['shipment_payload'];
+
+				$response = shipbubble_create_shipment($shipmentPayload);
 				if (isset($response->response_code) && $response->response_code == SHIPBUBBLE_RESPONSE_IS_OK) {
 					// set shipbubble order id
 					update_post_meta($order_id, 'shipbubble_order_id', $response->data->order_id);
@@ -237,28 +268,26 @@ function shipbubble_update_order_meta_on_checkout($order_id)
 					update_post_meta($order_id, 'shipbubble_tracking_status', 'pending');
 				}
 			}
+		} else {
+			// set empty shipbubble service code
+			update_post_meta($order_id, 'shipbubble_shipment_details', json_encode(['service_code' => '']));
+
+			// set empty shipbubble order id 
+			update_post_meta($order_id, 'shipbubble_order_id', '');
+
+			// set empty shipping status
+			update_post_meta($order_id, 'shipbubble_tracking_status', '');
 		}
 
-		// set shipbubble shipment details json
-		update_post_meta($order_id, 'shipbubble_shipment_details', sanitize_text_field($_POST['shipbubble_shipment_details']));
-	} else {
-		$code = $serviceCode ?? 'speedaf-express';
-		update_post_meta($order_id, 'shipbubble_shipment_details', json_encode(['service_code' => $code]));
-
-		// set shipbubble order id
-		update_post_meta($order_id, 'shipbubble_order_id', '');
-
-		// set shipping status
-		update_post_meta($order_id, 'shipbubble_tracking_status', '');
+		// Flag the action as done (to avoid repetitions on reload for example)
+		$order->update_meta_data('_thankyou_action_done', true);
+		$order->save();
 	}
-
-	// setting the delivery address
-	update_post_meta($order_id, 'shipbubble_delivery_address', $address);
 }
 
 function shipbubble_append_enqueue_script()
 {
-	wp_enqueue_script('sweetalert2', plugins_url( 'public/js/sweetalert2.min.js', __FILE__ ), array());
+	wp_enqueue_script('sweetalert2', plugins_url('public/js/sweetalert2.min.js', __FILE__), array());
 	// here you can enqueue more js / css files 
 }
 
