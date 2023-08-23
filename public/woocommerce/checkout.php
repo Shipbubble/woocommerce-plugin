@@ -48,7 +48,7 @@ function shipbubble_courier_list_container()
 				</div>
 			';
 		} else {
-			$container .= '<br>';
+			$container .= '<div style="margin: 8px 0;"></div>';
 		}
 
 		$container .= '</div>';

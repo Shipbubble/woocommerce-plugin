@@ -243,6 +243,9 @@
 		// error_log(print_r('check two', true));
 		// error_log(print_r(json_decode(get_post_meta( $order_id, 'sb_shipment_meta' )[0], true)['shipment_payload']['request_token'], true));
 
+		if( ! get_post_meta( $order_id, 'shipbubble_shipment_details', true ) )
+			return;
+
 		// Allow code execution only once 
 		if( ! get_post_meta( $order_id, '_thankyou_action_done', true ) ) {
 
