@@ -97,6 +97,10 @@ function shipbubble_courier_setup_on_change()
 
 								$('#shipbubble_reset_cost').val('no');
 
+								$('html, body').animate({
+									scrollTop: $("ul#shipping_method").offset().top
+								}, 1000);
+
 								jQuery('body').trigger('update_checkout');
 
 							}
@@ -155,6 +159,9 @@ function shipbubble_change_rates($rates, $packages)
 		$selectedCourier = sanitize_text_field($post_data['shipbubble_selected_courier']);
 		$cost = (float) sanitize_text_field($post_data['shipbubble_cost']);
 
+		// Check if the desired shipping method exists among the rates
+		$found_desired_shipping = false;
+
 		foreach ($rates as $rate_key => $rate) {
 			if (SHIPBUBBLE_ID === $rate->method_id) {
 				// set rate cost
@@ -162,11 +169,18 @@ function shipbubble_change_rates($rates, $packages)
 					$rates[$rate_key]->label = $selectedCourier;
 				}
 				$rates[$rate_key]->cost = $cost;
+
+				$found_desired_shipping = true;
 			} else {
 				if (strtolower($disableOtherShippingMethods) == 'yes') {
 					unset($rates[$rate_key]); // Remove other shipping methods
 				}
 			}
+		}
+
+		if ($found_desired_shipping) 
+		{
+			$rates = place_shipbubble_first_at_checkout($rates);
 		}
 	} else {
 		foreach ($rates as $rate_key => $rate) {
@@ -180,6 +194,15 @@ function shipbubble_change_rates($rates, $packages)
 		}
 	}
 	return $rates;
+}
+
+function place_shipbubble_first_at_checkout($initialArray)
+{
+	$desiredKey = SHIPBUBBLE_ID;
+	if (array_key_exists($desiredKey, $initialArray)) {
+		return [$desiredKey => $initialArray[$desiredKey]] + $initialArray;
+	}
+	return $initialArray;
 }
 
 // update the order review 
