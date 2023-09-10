@@ -154,7 +154,7 @@
                         $rate = array(
                             'id'     => $this->id,
                             'label' => $this->title,
-                            'cost' => '5000',
+                            'cost' => '50000',
                             // 'calc_tax' => 'per_item'
                         );
                         // This will add custom cost to shipping method 
