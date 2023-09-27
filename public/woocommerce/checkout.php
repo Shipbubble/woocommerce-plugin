@@ -97,7 +97,7 @@ function shipbubble_courier_setup_on_change()
 								$('#shipbubble_reset_cost').val('no');
 
 								$('html, body').animate({
-									scrollTop: $("ul#shipping_method").offset().top
+									scrollTop: $("tfoot tr.woocommerce-shipping-totals.shipping").offset().top
 								}, 1000);
 
 								jQuery('body').trigger('update_checkout');
