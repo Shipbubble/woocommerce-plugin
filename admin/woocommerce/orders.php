@@ -89,7 +89,7 @@
             $reorderedColumns[$key] = $col;
             if ($key == 'order_status') {
                 // Inserting after STATUS Column
-                $reorderedColumns['shipping_status'] = __( 'Shipping Status', 'theme_domain');
+                $reorderedColumns['sb_shipping_status'] = esc_html('Shipbubble Status');
             }
         }
 
@@ -105,7 +105,7 @@
         $orderShippingMethodId = '';
 
         switch ($column) {
-            case 'shipping_status':
+            case 'sb_shipping_status':
                 if (is_array($orderShippingMethod)) {
                     $orderShippingMethodId = reset($orderShippingMethod)->get_method_id();
                 }
