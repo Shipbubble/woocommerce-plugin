@@ -80,7 +80,7 @@
     }
 
 
-    add_filter('manage_edit-shop_order_columns', 'shipbubble_custom_order_column', 20);
+    add_filter('manage_edit-shop_order_columns', 'shipbubble_custom_order_column', 10);
     function shipbubble_custom_order_column($columns)
     {
         $reorderedColumns = array();
@@ -89,7 +89,7 @@
             $reorderedColumns[$key] = $col;
             if ($key == 'order_status') {
                 // Inserting after STATUS Column
-                $reorderedColumns['shipping_status'] = __( 'Shipping Status', 'theme_domain');
+                $reorderedColumns['sb_shipping_status'] = esc_html('Shipbubble Status');
             }
         }
 
@@ -97,7 +97,7 @@
     }
 
     // Adding custom fields meta data for each new Column
-    add_action('manage_shop_order_posts_custom_column', 'custom_orders_list_column_content', 20, 2);
+    add_action('manage_shop_order_posts_custom_column', 'custom_orders_list_column_content', 10, 2);
     function custom_orders_list_column_content( $column, $post_id)
     {
         $order = wc_get_order( $post_id );
@@ -105,7 +105,7 @@
         $orderShippingMethodId = '';
 
         switch ($column) {
-            case 'shipping_status':
+            case 'sb_shipping_status':
                 if (is_array($orderShippingMethod)) {
                     $orderShippingMethodId = reset($orderShippingMethod)->get_method_id();
                 }

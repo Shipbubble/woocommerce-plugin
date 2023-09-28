@@ -13,7 +13,7 @@ function shipbubble_courier_list_container()
 	$showLabel = true;
 	$response = shipbubble_get_color_code();
 	if (isset($response->response_code) && $response->response_code == SHIPBUBBLE_RESPONSE_IS_OK) {
-		$btnColor = strlen($response->data->brand_color) > 1 ? $response->data->brand_color . ' !important' : '' ;
+		$btnColor = strlen($response->data->brand_color) > 1 ? $response->data->brand_color . ' !important' : '';
 		$showLabel = (bool) $response->data->powered_by_label;
 	}
 
@@ -43,7 +43,7 @@ function shipbubble_courier_list_container()
 					<div class="sb-slogan">
 						<span>Powered by</span>
 						<img
-							src="https://res.cloudinary.com/delivry/image/upload/v1684423516/app_assets/shipbubble-logo-black_t0gonq.svg" />
+							src="https://res.cloudinary.com/delivry/image/upload/v1693997143/app_assets/white-shipbubble-logo_ox2w53.svg" />
 					</div>
 				</div>
 			';
@@ -52,7 +52,6 @@ function shipbubble_courier_list_container()
 		}
 
 		$container .= '</div>';
-		
 	}
 
 	echo $container;
@@ -98,7 +97,7 @@ function shipbubble_courier_setup_on_change()
 								$('#shipbubble_reset_cost').val('no');
 
 								$('html, body').animate({
-									scrollTop: $("ul#shipping_method").offset().top
+									scrollTop: $("tfoot tr.woocommerce-shipping-totals.shipping").offset().top
 								}, 1000);
 
 								jQuery('body').trigger('update_checkout');
@@ -178,8 +177,7 @@ function shipbubble_change_rates($rates, $packages)
 			}
 		}
 
-		if ($found_desired_shipping) 
-		{
+		if ($found_desired_shipping) {
 			$rates = place_shipbubble_first_at_checkout($rates);
 		}
 	} else {
