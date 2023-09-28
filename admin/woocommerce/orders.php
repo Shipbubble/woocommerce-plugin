@@ -89,7 +89,7 @@
             $reorderedColumns[$key] = $col;
             if ($key == 'order_status') {
                 // Inserting after STATUS Column
-                $reorderedColumns['sb_shipping_status'] = esc_html('Shipbubble Status');
+                $reorderedColumns['sb_shipping_status'] = esc_html('Logistics Status');
             }
         }
 
