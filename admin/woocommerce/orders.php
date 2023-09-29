@@ -7,6 +7,19 @@
             return;
         }
 
+        // Verify Shipbubble Order
+        if( !$order->has_shipping_method(SHIPBUBBLE_ID) ) 
+        {
+            return;
+        }
+
+        $shipmentDetailsArray = get_post_meta( $order->get_id(), 'shipbubble_shipment_details' );
+        // error_log(print_r($shipmentDetailsArray, true));
+        if (!count($shipmentDetailsArray)) {
+            return;
+        }
+
+        // Get Shipping Data
         $shippingData = $order->data['shipping'];
         $orderAddress = sb_create_address($shippingData['address_1'], $shippingData['city'], $shippingData['state'],$shippingData['country']);
 
@@ -17,16 +30,13 @@
         // echo '<pre> ' . var_export(json_decode($shipment)->service_code, true) . '</pre>';
         // die;
         
+        // Get Delivery Address
         $shipbubbleDeliveryAddress = get_post_meta( $order->get_id(), 'shipbubble_delivery_address', true );
         
+        // Get Shipbubble Order ID
         $shipbubbleOrderId = get_post_meta( $order->get_id(), 'shipbubble_order_id', true );
 
-        if (!count(get_post_meta( $order->get_id(), 'shipbubble_shipment_details' ))) {
-            return;
-        }
-
-        $shipment = get_post_meta( $order->get_id(), 'shipbubble_shipment_details' )[0];
-
+        $shipment = $shipmentDetailsArray[0]; // [0 => 'request token ...']
         
         // $serviceCode = array( 'speedaf-express' ); // test
         
@@ -43,7 +53,8 @@
         $hrsInterval = $interval->h + ($interval->days * 24);
 
         // check token has lasted longer than 48hrs before regenerating new request token
-        if( strlen($shipbubbleOrderId) < 1 && $hrsInterval > SHIPBUBBLE_REQUEST_TOKEN_EXPIRY && !is_null($shipment)) {
+        if( strlen($shipbubbleOrderId) < 1 && $hrsInterval > SHIPBUBBLE_REQUEST_TOKEN_EXPIRY && !is_null($shipment)) 
+        {
             $rates = shipbubble_regenerate_rate_token($order, $serviceCode);
             if (count($rates)) {
                 $shipment = json_encode($rates);
@@ -53,7 +64,8 @@
         }
 
         // Check address has changed under 48hrs before before regenerating new request token
-        if ( strlen($shipbubbleOrderId) < 1 && !sb_compare_addresses($shipbubbleDeliveryAddress, $orderAddress) && $hrsInterval < SHIPBUBBLE_REQUEST_TOKEN_EXPIRY && !is_null($shipment)) {
+        if ( strlen($shipbubbleOrderId) < 1 && !sb_compare_addresses($shipbubbleDeliveryAddress, $orderAddress) && $hrsInterval < SHIPBUBBLE_REQUEST_TOKEN_EXPIRY && !is_null($shipment)) 
+        {
             // regenerate
             $rates = shipbubble_regenerate_rate_token($order, $serviceCode);
             if (count($rates)) {
@@ -63,10 +75,8 @@
             }
         }
 
-        $orderShippingMethodId = reset($order->get_items( 'shipping' ))->get_method_id();
-
         ?>
-            <?php if (strlen($shipbubbleOrderId) < 1 && !is_null($shipment) && (strtolower($orderShippingMethodId) === strtolower(SHIPBUBBLE_ID))): ?>
+            <?php if (strlen($shipbubbleOrderId) < 1 && !is_null($shipment)): ?>
                 <input type="hidden" id="wc_order_id" name="wc_order_id" value='<?php echo esc_html($order->get_id()); ?>' />
 
                 <input type="hidden" id="shipment_details" name="shipment_details" value='<?php echo esc_html($shipment); ?>' />
@@ -96,41 +106,48 @@
         return $reorderedColumns;
     }
 
-    // Adding custom fields meta data for each new Column
-    add_action('manage_shop_order_posts_custom_column', 'custom_orders_list_column_content', 10, 2);
-    function custom_orders_list_column_content( $column, $post_id)
+    add_action('manage_shop_order_posts_custom_column', 'shipbubble_shipping_status_column_content');
+    function shipbubble_shipping_status_column_content( $column )
     {
-        $order = wc_get_order( $post_id );
-        $orderShippingMethod = $order->get_items( 'shipping' );
-        $orderShippingMethodId = '';
+        global $post;
 
-        switch ($column) {
-            case 'sb_shipping_status':
-                if (is_array($orderShippingMethod)) {
-                    $orderShippingMethodId = reset($orderShippingMethod)->get_method_id();
+        // Verify Column ID
+        if ( 'sb_shipping_status' === $column ) 
+        {
+            // Get Order
+            $order = new WC_Order($post->ID);
+            
+            // Conditional function based on the Order shipping method 
+            if( $order->has_shipping_method(SHIPBUBBLE_ID) ) 
+            {
+                // Check Shipping Status
+                $status = get_post_meta( $post->ID, 'shipbubble_tracking_status', true );
+                if (!empty($status)) 
+                {
+                    echo shipbubble_shipment_status_label($status);
+                } 
+                elseif (in_array($order->get_status(), SHIPBUBBLE_WC_BAD_ORDER_STATUS_ARR)) {
+                    echo '<mark class="order-status status-on-hold">
+                        <span>No shipment initiated</span>
+                    </mark>';
+                } 
+                else 
+                {
+                    echo '<mark class="order-status status-on-hold">
+                        <span>No shipment yet</span>
+                    </mark>';
                 }
-
-                if (!empty($orderShippingMethodId) && strtolower($orderShippingMethodId) === strtolower(SHIPBUBBLE_ID)) {
-                    $status = get_post_meta( $post_id, 'shipbubble_tracking_status', true );
-                    if (!empty($status)) {
-                        echo shipbubble_shipment_status_label($status);
-                    } elseif (in_array($order->get_status(), SHIPBUBBLE_WC_BAD_ORDER_STATUS_ARR)) {
-                        echo '<mark class="order-status status-on-hold">
-                            <span>No shipment initiated</span>
-                        </mark>';
-                    } else {
-                        echo '<mark class="order-status status-on-hold">
-                            <span>No shipment yet</span>
-                        </mark>';
-                    }
-                } elseif (!empty($orderShippingMethodId)) {
-                    echo esc_html($order->get_shipping_method());
-                } else {
-                    echo esc_html('Not Specified');
-                }
-
-            break;
+            }
+            elseif( !$order->has_shipping_method(SHIPBUBBLE_ID) )
+            {
+                echo 'Not Shipbubble\'s';
+            }
+            else
+            {
+                echo esc_html('Not specified');
+            }
         }
+        
     }
 
 
@@ -245,34 +262,37 @@
         // $shipbubbleOrderId = get_post_meta( $order->get_id(), 'shipping_total', true );
 
         if (in_array($order->get_status(), SHIPBUBBLE_WC_BAD_ORDER_STATUS_ARR))
+        {
             return;
+        }
+
+        // Verify Shipbubble Order
+        if( !$order->has_shipping_method(SHIPBUBBLE_ID) ) 
+        {
+            return;
+        }
 
         if (!count(get_post_meta( $order->get_id(), 'shipbubble_shipment_details' ))) {
             return;
         }
-
-        $orderShippingMethodId = reset($order->get_items( 'shipping' ))->get_method_id();
-
-        if (strtolower($orderShippingMethodId) === strtolower(SHIPBUBBLE_ID)) {
-            $shipbubbleOrderId = get_post_meta( $order->get_id(), 'shipbubble_order_id', true );
-    
-            if( strlen($shipbubbleOrderId) < 1 ) {
-                $response = shipbubble_get_wallet_balance(shipbubble_get_token());
         
-                if (isset($response->response_code) && $response->response_code == SHIPBUBBLE_RESPONSE_IS_OK) {
-                    $balance = $response->data->balance;
-                }
+        $shipbubbleOrderId = get_post_meta( $order->get_id(), 'shipbubble_order_id', true );
+        if( strlen($shipbubbleOrderId) < 1 ) 
+        {
+            $response = shipbubble_get_wallet_balance(shipbubble_get_token());
     
-                echo '<input type="hidden" id="shipbubble_shipping_cost" name="shipbubble_shipping_cost" value="' . esc_html( (float) $order->shipping_total ) . '"/>';
-    
-                echo'<input type="hidden" id="shipbubble_wallet_balance" name="shipbubble_wallet_balance" value="' . esc_html( (float) $balance ) . '"/>';
-    
-                echo '<p><strong>' . __( 'Shipbubble Wallet Balance:' ) . '</strong><br> <strong>' . esc_html( $currency ) . esc_html( number_format( $balance, 2 ) ) . '</strong></p>';
-                
-            } else {
-                echo '<p><strong>' . __( 'Shipbubble Order ID:' ) . '</strong><br> ' . esc_html($shipbubbleOrderId) . '</p>';
+            if (isset($response->response_code) && $response->response_code == SHIPBUBBLE_RESPONSE_IS_OK) {
+                $balance = $response->data->balance;
             }
 
+            echo '<input type="hidden" id="shipbubble_shipping_cost" name="shipbubble_shipping_cost" value="' . esc_html( (float) $order->shipping_total ) . '"/>';
+
+            echo'<input type="hidden" id="shipbubble_wallet_balance" name="shipbubble_wallet_balance" value="' . esc_html( (float) $balance ) . '"/>';
+
+            echo '<p><strong>' . __( 'Shipbubble Wallet Balance:' ) . '</strong><br> <strong>' . esc_html( $currency ) . esc_html( number_format( $balance, 2 ) ) . '</strong></p>';
+            
+        } else {
+            echo '<p><strong>' . __( 'Shipbubble Order ID:' ) . '</strong><br> ' . esc_html($shipbubbleOrderId) . '</p>';
         }
 
     }
