@@ -1,13 +1,17 @@
-.container-card>button {
+.container-card > button {
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 20px;
+    color: #FFFFFF;
     background: #D83854;
-    outline: none;
     border-radius: 8px;
     border: none;
     box-shadow: none;
-    cursor: pointer;
     padding: 10px 16px;
-
     margin-bottom: 24px;
+    height: 40px;
+    outline: none;
+    cursor: pointer;
 }
 
 .container-delivery-card-list-item:last-of-type {
@@ -71,21 +75,6 @@
 
 .sb-slogan>img {
     max-height: 16px;
-}
-
-.container-card>button {
-    font-weight: 400;
-    font-size: 16px;
-    line-height: 20px;
-    color: #FFFFFF;
-    background: #D83854;
-    border-radius: 8px;
-    border: none;
-    box-shadow: none;
-    padding: 10px 16px;
-    margin-bottom: 24px;
-    width: 170px;
-    height: 40px;
 }
 
 .container-card>button>span {
