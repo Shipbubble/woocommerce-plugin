@@ -140,7 +140,7 @@
             }
             elseif( !$order->has_shipping_method(SHIPBUBBLE_ID) )
             {
-                echo 'Not Shipbubble\'s';
+                echo '<span class="dashicons dashicons-minus"></span>';
             }
             else
             {
