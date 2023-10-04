@@ -129,7 +129,7 @@ function shipbubble_shipping_status_column_content($column)
                     </mark>';
             }
         } elseif (!$order->has_shipping_method(SHIPBUBBLE_ID)) {
-            echo 'N/A';
+            echo '<span class="dashicons dashicons-minus"></span>';
         } else {
             echo esc_html('Not specified');
         }
