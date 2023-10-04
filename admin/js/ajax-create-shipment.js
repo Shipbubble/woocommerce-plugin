@@ -38,6 +38,8 @@
                 dataType: 'json'
             }, function (data) {
 
+                $('#message').remove();
+
                 let response = JSON.parse(data);
 
                 if (response.hasOwnProperty('response_code')) {
@@ -56,27 +58,37 @@
                         setTimeout(() => location.reload(), 5000);
                     } else {
                         $(`<div id="message" class="notice notice-warning is-dismissible">
-                            <p>${response['errors'][0]}.</p>
+                            <p>${setShipmentError(response)}.</p>
                             
                             <button type="button" class="notice-dismiss">
                                 <span class="screen-reader-text">Dismiss this notice.</span>
                             </button>
                         </div>`).insertAfter($('.wp-header-end'));
-                        btn.attr('disabled', 'false').html('Create shipment via shipbubble');
+                        btn.removeAttr('disabled').html('Create shipment via shipbubble');
                     }
                 } else {
                     $(`<div id="message" class="notice notice-error is-dismissible">
-                        <p>${response['message']}.</p>
+                        <p>${setShipmentError(response)}.</p>
                         
                         <button type="button" class="notice-dismiss">
                             <span class="screen-reader-text">Dismiss this notice.</span>
                         </button>
                     </div>`).insertAfter($('.wp-header-end'));
 
-                    btn.attr('disabled', 'false').html('Create shipment via shipbubble');
+                    btn.removeAttr('disabled').html('Create shipment via shipbubble');
                 }
 
             });
+        }
+
+        function setShipmentError(response) {
+            let error = 'Unable to create shipment, contact admin';
+            if (response.hasOwnProperty('error')) {
+                error = response['error'][0];
+            } else if (response.hasOwnProperty('message')) {
+                error = response['message'];
+            }
+            return error;
         }
     });
 

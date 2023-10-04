@@ -197,10 +197,10 @@ function shipbubble_process_shipping_rates($addressCode, $products, $serviceCode
         $rates['rate'] = 'default';
         $rates['couriers'] = $data->couriers;
     } else {
-        if (isset($response['error'][0])) {
-            $rates['error'] = $response['error'][0];
-        } elseif (isset($response['message'])) {
-            $rates['error'] = $response['message'];
+        if (isset($response->error)) {
+            $rates['error'] = $response->error[0];
+        } elseif (isset($response->message)) {
+            $rates['error'] = $response->message;
         } else {
             $rates['error'] = 'unable to fetch rates';
         }
