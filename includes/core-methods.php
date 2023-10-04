@@ -84,22 +84,17 @@ function shipbubble_set_package_dimensions($package_weight)
     $shipbubble_dimensions = shipbubble_package_dimensions();
     $dimensions = array();
     $default = array(
-        'box_size_id'           => 130045,
-        'name'                  => 'Default',
-        'description_image_url' => 'https://res.cloudinary.com/dgsdnlhve/image/upload/v1643297027/courier_images/2cd8e3362ae7590d04adbd862eba9efe_k8dugp.png',
         'length'                => 56,
         'width'                 => 50,
         'height'                => 45,
         'max_weight'            => 40
     );
 
-    $filtered_sizes = array_filter($shipbubble_dimensions, function($sizeArray) use($package_weight)
-    {
+    $filtered_sizes = array_filter($shipbubble_dimensions, function ($sizeArray) use ($package_weight) {
         return $package_weight <= $sizeArray['max_weight'];
     });
 
-    if (count($filtered_sizes)) 
-    {
+    if (count($filtered_sizes)) {
         $dimensions = array_shift($filtered_sizes);
     } else {
         $dimensions = $default;
@@ -112,63 +107,42 @@ function shipbubble_package_dimensions(): array
 {
     return array(
         array(
-            'box_size_id'           => 8496812,
-            'name'                  => 'Box 1',
-            'description_image_url' => 'https://res.cloudinary.com/dgsdnlhve/image/upload/v1643275910/courier_images/a3547411470f900882e6bbf674bc6605_hhnvte.png',
             'length'                => 25,
             'width'                 => 35,
             'height'                => 2,
             'max_weight'            => 0.5
         ),
         array(
-            'box_size_id'           => 2006649,
-            'name'                  => 'Box 2',
-            'description_image_url' => 'https://res.cloudinary.com/dgsdnlhve/image/upload/v1643295101/courier_images/9e9794dc90c2d96691331fc3d5d306c4_qs80hg.png',
             'length'                => 35,
             'width'                 => 18,
             'height'                => 10,
             'max_weight'            => 1.5
         ),
         array(
-            'box_size_id'           => 7983229,
-            'name'                  => 'Box 3',
-            'description_image_url' => 'https://res.cloudinary.com/dgsdnlhve/image/upload/v1643295449/courier_images/4200802cb1b88100daf434110a4c4398_pgeamk.png',
             'length'                => 34,
             'width'                 => 32,
             'height'                => 10,
             'max_weight'            => 3
         ),
         array(
-            'box_size_id'           => 8739199,
-            'name'                  => 'Box 4',
-            'description_image_url' => 'https://res.cloudinary.com/dgsdnlhve/image/upload/v1643296105/courier_images/a89f031837c033c88fea155c05dd9b09_fyrnwh.png',
             'length'                => 34,
             'width'                 => 32,
             'height'                => 18,
             'max_weight'            => 7
         ),
         array(
-            'box_size_id'           => 3657652,
-            'name'                  => 'Box 5',
-            'description_image_url' => 'https://res.cloudinary.com/dgsdnlhve/image/upload/v1643296404/courier_images/ef8a9000b294ee22113f53d487a50e46_da9xxz.png',
             'length'                => 34,
             'width'                 => 32,
             'height'                => 34,
             'max_weight'            => 12
         ),
         array(
-            'box_size_id'           => 214835,
-            'name'                  => 'Box 6',
-            'description_image_url' => 'https://res.cloudinary.com/dgsdnlhve/image/upload/v1643296680/courier_images/82597ddb0125abbff73f8a8a5c717514_bmnodi.png',
             'length'                => 42,
             'width'                 => 36,
             'height'                => 37,
             'max_weight'            => 18
         ),
         array(
-            'box_size_id'           => 120880,
-            'name'                  => 'Box 7',
-            'description_image_url' => 'https://res.cloudinary.com/dgsdnlhve/image/upload/v1643297027/courier_images/2cd8e3362ae7590d04adbd862eba9efe_k8dugp.png',
             'length'                => 48,
             'width'                 => 40,
             'height'                => 39,

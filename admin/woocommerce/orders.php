@@ -127,19 +127,14 @@ function shipbubble_shipping_status_column_content($column)
                 echo '<mark class="order-status status-on-hold">
                         <span>No shipment yet</span>
                     </mark>';
-                }
             }
-            elseif( !$order->has_shipping_method(SHIPBUBBLE_ID) )
-            {
-                echo '<span class="dashicons dashicons-minus"></span>';
-            }
-            else
-            {
-                echo esc_html('Not specified');
-            }
+        } elseif (!$order->has_shipping_method(SHIPBUBBLE_ID)) {
+            echo '<span class="dashicons dashicons-minus"></span>';
+        } else {
+            echo esc_html('Not specified');
         }
-        
     }
+}
 
 
 /**
