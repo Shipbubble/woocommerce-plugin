@@ -173,17 +173,43 @@ add_action('woocommerce_checkout_update_order_meta', 'shipbubble_update_order_me
 function shipbubble_update_order_meta_on_checkout($order_id)
 {
 	if (!$order_id)
+	{
 		return;
+	}
+
+	if (!isset($_POST['shipping_method']) && $_POST['shipping_method'] != SHIPBUBBLE_ID)
+	{
+		return;
+	}
+
+	if (!isset($_POST['shipbubble_shipment_details']))
+	{
+		return;
+	}
+
+	// error_log(print_r('here', true));
+	// error_log(print_r(sea($_POST['shipbubble_shipment_details']), true));
+	// die;
 
 	// $options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
 
 	$userCanShip = 'yes';
+	$isValid = false;
 
-	$requestToken = sanitize_text_field($_POST['request_token']);
-	$serviceCode = sanitize_text_field($_POST['shipbubble_service_code']);
-	$courierId = sanitize_text_field($_POST['shipbubble_courier_id']);
+	if (isset($_POST['request_token'], $_POST['shipbubble_service_code'], $_POST['shipbubble_courier_id'])) 
+	{
+		$requestToken = sanitize_text_field($_POST['request_token']);
+		$serviceCode = sanitize_text_field($_POST['shipbubble_service_code']);
+		$courierId = sanitize_text_field($_POST['shipbubble_courier_id']);
+		$isValid = true;
+	}
 
+	if (!$isValid) {
+		return;
+	}
+	
 	// initialize address
+	// TODO: use js address
 	$streetAddress = sanitize_text_field($_POST['shipping_address_1']);
 	$city = sanitize_text_field($_POST['shipping_city']);
 	$stateTag = sanitize_text_field($_POST['shipping_state']);
@@ -206,29 +232,38 @@ function shipbubble_update_order_meta_on_checkout($order_id)
 	}
 
 	$shipmentMeta = [];
-	if (isset($_POST['shipbubble_shipment_details'], $_POST['shipping_method']) && $_POST['shipping_method'][0] == SHIPBUBBLE_ID) {
+	$address = sb_create_address($streetAddress, $city, $stateTag, $countryTag);
 
-		$address = sb_create_address($streetAddress, $city, $stateTag, $countryTag);
+	if (strtolower($userCanShip) == 'yes') {
+		$shipmentMeta['user_can_ship'] = true;
 
-		if (strtolower($userCanShip) == 'yes') {
-			$shipmentMeta['user_can_ship'] = true;
+		if (!empty($requestToken) && !empty($serviceCode) && !empty($courierId)) {
+			$shipmentMeta['shipment_payload'] = array(
+				'request_token' => $requestToken,
+				'service_code' => $serviceCode,
+				'courier_id' => $courierId,
+			);
 
-			if (isset($requestToken, $serviceCode, $courierId) && !empty($requestToken) && !empty($serviceCode) && !empty($courierId)) {
-				$shipmentMeta['shipment_payload'] = array(
-					'request_token' => $requestToken,
-					'service_code' => $serviceCode,
-					'courier_id' => $courierId,
-				);
+			// set shipbubble shipment details json
+			update_post_meta($order_id, 'shipbubble_shipment_details', sanitize_text_field($_POST['shipbubble_shipment_details']));
 
-				// set shipbubble shipment details json
-				update_post_meta($order_id, 'shipbubble_shipment_details', sanitize_text_field($_POST['shipbubble_shipment_details']));
-
-				// set payload to create shipbubble shipment
-				update_post_meta($order_id, 'sb_shipment_meta', json_encode($shipmentMeta));
-
-				// setting the delivery address
-				update_post_meta($order_id, 'shipbubble_delivery_address', $address);
+			$shipmentDetailsArray = get_post_meta($order_id, 'shipbubble_shipment_details');
+			if (count($shipmentDetailsArray)) 
+			{
+				$shipment = json_decode($shipmentDetailsArray[0], true); 
+				$shipment['order_request_time'] = date('Y-m-d H:i:s');
+				update_post_meta($order_id, 'shipbubble_shipment_details', sanitize_text_field(json_encode($shipment)));
 			}
+
+			// error_log(print_r($shipment, true));
+			// die;
+
+
+			// set payload to create shipbubble shipment
+			update_post_meta($order_id, 'sb_shipment_meta', json_encode($shipmentMeta));
+
+			// setting the delivery address
+			update_post_meta($order_id, 'shipbubble_delivery_address', $address);
 		}
 	}
 }
@@ -238,11 +273,6 @@ function shipbubble_create_shipment_after_order_created($order_id)
 {
 	if (!$order_id)
 		return;
-
-	// error_log(print_r(get_post_meta( $order_id ), true));
-	// error_log(print_r(wc_get_order( $order_id ), true));
-	// error_log(print_r('check two', true));
-	// error_log(print_r(json_decode(get_post_meta( $order_id, 'sb_shipment_meta' )[0], true)['shipment_payload']['request_token'], true));
 
 	if (!get_post_meta($order_id, 'shipbubble_shipment_details', true))
 		return;
@@ -266,6 +296,14 @@ function shipbubble_create_shipment_after_order_created($order_id)
 
 					// set shipping status
 					update_post_meta($order_id, 'shipbubble_tracking_status', 'pending');
+
+					$shipmentDetailsArray = get_post_meta($order_id, 'shipbubble_shipment_details');
+					if (count($shipmentDetailsArray)) 
+					{
+						$shipment = json_decode($shipmentDetailsArray[0], true); 
+						$shipment['create_shipment_time'] = date('Y-m-d H:i:s');
+						update_post_meta($order_id, 'shipbubble_shipment_details', sanitize_text_field(json_encode($shipment)));
+					}
 				}
 			}
 		} else {
@@ -278,11 +316,11 @@ function shipbubble_create_shipment_after_order_created($order_id)
 			// set empty shipping status
 			update_post_meta($order_id, 'shipbubble_tracking_status', '');
 		}
-
-		// Flag the action as done (to avoid repetitions on reload for example)
-		$order->update_meta_data('_thankyou_action_done', true);
-		$order->save();
 	}
+	
+	// Flag the action as done (to avoid repetitions on reload for example)
+	$order->update_meta_data('_thankyou_action_done', true);
+	$order->save();
 }
 
 function shipbubble_append_enqueue_script()
