@@ -179,6 +179,10 @@
                         // dynamically add each courier
                         $('#sb-status-text').html('Select a delivery option');
 
+                        // log time of data fetch
+                        var request_fetch_date = new Date().toJSON();
+                        $('input[name="shipbubble_rate_datetime"]').val(request_fetch_date);
+
                         loaders.hide();
 
                         newCourierList.removeClass('loading');

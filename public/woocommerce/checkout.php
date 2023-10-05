@@ -20,6 +20,8 @@ function shipbubble_courier_list_container()
 	if ($isShipbubbleActive == 'yes') {
 		$container .= '
 			<div id="courier-section">
+				<input type="hidden" id="shipbubble_rate_datetime" name="shipbubble_rate_datetime" value="">
+
 				<input type="hidden" id="shipbubble_shipment_details" name="shipbubble_shipment_details" value="">
 				<input type="hidden" id="shipbubble_selected_courier" name="shipbubble_selected_courier" value="">
 				<input type="hidden" id="shipbubble_cost" name="shipbubble_cost" value="">
@@ -78,12 +80,17 @@ function shipbubble_courier_setup_on_change()
 								const courier_id = checked_courier.attr('data-courier_id');
 								const service_code = checked_courier.attr('data-service_code');
 
+								const request_datetime = $('#shipbubble_rate_datetime').val();
+
+								console.log(request_datetime);
+
 								const shipment = {
 									request_token: checked_courier.attr('data-request_token'),
 									shipment_cost: total,
 									courier_id,
 									courier_name,
 									service_code,
+									request_datetime,
 								};
 
 								$('#shipbubble_shipment_details').val(JSON.stringify(shipment));
