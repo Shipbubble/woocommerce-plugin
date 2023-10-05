@@ -241,11 +241,6 @@ function shipbubble_display_wallet_balance($order)
     $balance = '0';
     $currency = '₦';
 
-    // echo '<pre>' .  var_export($order->shipping_total, true) . '</pre>';
-    // die;
-
-    // $shipbubbleOrderId = get_post_meta( $order->get_id(), 'shipping_total', true );
-
     if (in_array($order->get_status(), SHIPBUBBLE_WC_BAD_ORDER_STATUS_ARR)) {
         return;
     }

@@ -43,11 +43,27 @@
         
         $orderId = sanitize_text_field($shipmentPayload['order_id']);
 
+        $shipmentDetailsArray = get_post_meta($orderId, 'shipbubble_shipment_details');
+        if (count($shipmentDetailsArray)) 
+        {
+            $shipment = json_decode($shipmentDetailsArray[0], true); 
+            $shipment['admin_initiate_shipment_time'] = date('Y-m-d H:i:s');
+            update_post_meta($orderId, 'shipbubble_shipment_details', sanitize_text_field(json_encode($shipment)));
+        }
+
         $response = shipbubble_create_shipment($shipmentPayload); 
         
         if (isset($response->response_code) && $response->response_code == SHIPBUBBLE_RESPONSE_IS_OK) {
             // set shipbubble order id
             update_post_meta( $orderId, 'shipbubble_order_id', $response->data->order_id );
+
+            $shipmentDetailsArray = get_post_meta($orderId, 'shipbubble_shipment_details');
+            if (count($shipmentDetailsArray)) 
+            {
+                $shipment = json_decode($shipmentDetailsArray[0], true); 
+                $shipment['admin_create_shipment_time'] = date('Y-m-d H:i:s');
+                update_post_meta($orderId, 'shipbubble_shipment_details', sanitize_text_field(json_encode($shipment)));
+            }
 
             // set shipping status
             update_post_meta( $orderId, 'shipbubble_tracking_status', 'pending' );
