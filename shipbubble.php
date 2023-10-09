@@ -177,7 +177,12 @@ function shipbubble_update_order_meta_on_checkout($order_id)
 		return;
 	}
 
-	if (!isset($_POST['shipping_method']) && $_POST['shipping_method'] != SHIPBUBBLE_ID)
+	if (!isset($_POST['shipping_method']))
+	{
+		return;
+	}
+
+	if (!in_array(SHIPBUBBLE_ID, $_POST['shipping_method']))
 	{
 		return;
 	}
@@ -187,8 +192,7 @@ function shipbubble_update_order_meta_on_checkout($order_id)
 		return;
 	}
 
-	// error_log(print_r('here', true));
-	// error_log(print_r(sea($_POST['shipbubble_shipment_details']), true));
+	// error_log(print_r($_POST['shipbubble_shipment_details']), true));
 	// die;
 
 	// $options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
