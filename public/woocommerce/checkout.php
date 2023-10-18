@@ -29,7 +29,7 @@ function shipbubble_courier_list_container()
 				<input type="hidden" id="request_token" name="request_token" value="">
 				<input type="hidden" id="shipbubble_service_code" name="shipbubble_service_code" value="">
 				<input type="hidden" id="shipbubble_courier_id" name="shipbubble_courier_id" value="">
-				<input type="hidden" id="shipbubble_reset_cost" name="shipbubble_reset_cost" value="no">
+				<!--<input type="hidden" id="shipbubble_reset_cost" name="shipbubble_reset_cost" value="no">-->
 				
 				<div class="container-card">
 					<button id="request_courier_rates" style="background: ' . $btnColor . ';">
@@ -101,7 +101,7 @@ function shipbubble_courier_setup_on_change()
 								$('#shipbubble_service_code').val(service_code);
 								$('#shipbubble_courier_id').val(courier_id);
 
-								$('#shipbubble_reset_cost').val('no');
+								// $('#shipbubble_reset_cost').val('no');
 
 								$('html, body').animate({
 									scrollTop: $("tfoot tr.woocommerce-shipping-totals.shipping").offset().top
@@ -112,12 +112,12 @@ function shipbubble_courier_setup_on_change()
 							}
 						});
 
-						const request_rates_btn = $('button#request_courier_rates');
-						request_rates_btn.click(function() {
-							$('#shipbubble_reset_cost').val('yes');
+						// const request_rates_btn = $('button#request_courier_rates');
+						// request_rates_btn.click(function() {
+						// 	$('#shipbubble_reset_cost').val('yes');
 
-							jQuery('body').trigger('update_checkout');
-						});
+						// 	jQuery('body').trigger('update_checkout');
+						// });
 					});
 
 				}
@@ -150,16 +150,16 @@ function shipbubble_change_rates($rates, $packages)
 		// error_log(print_r($post_data, true));
 	}
 
-	if (count($post_data) > 0 && isset($post_data['shipbubble_reset_cost'])) {
-		$reset_shipbubble_cost = sanitize_text_field($post_data['shipbubble_reset_cost']);
-		if (strtolower($reset_shipbubble_cost) == 'yes') {
-			foreach ($rates as $rate_key => $rate) {
-				if (SHIPBUBBLE_ID === $rate->method_id) {
-					unset($rates[$rate_key]);
-				}
-			}
-		}
-	}
+	// if (count($post_data) > 0 && isset($post_data['shipbubble_reset_cost'])) {
+	// 	$reset_shipbubble_cost = sanitize_text_field($post_data['shipbubble_reset_cost']);
+	// 	if (strtolower($reset_shipbubble_cost) == 'yes') {
+	// 		foreach ($rates as $rate_key => $rate) {
+	// 			if (SHIPBUBBLE_ID === $rate->method_id) {
+	// 				unset($rates[$rate_key]);
+	// 			}
+	// 		}
+	// 	}
+	// }
 
 	if (count($post_data) > 0 && isset($post_data['delivery_option'])) {
 		$selectedCourier = sanitize_text_field($post_data['shipbubble_selected_courier']);
