@@ -258,11 +258,7 @@ function shipbubble_update_order_meta_on_checkout($order_id)
 				$shipment['order_request_time'] = date('Y-m-d H:i:s');
 				update_post_meta($order_id, 'shipbubble_shipment_details', sanitize_text_field(json_encode($shipment)));
 			}
-
-			// error_log(print_r($shipment, true));
-			// die;
-
-
+			
 			// set payload to create shipbubble shipment
 			update_post_meta($order_id, 'sb_shipment_meta', json_encode($shipmentMeta));
 
@@ -286,10 +282,13 @@ function shipbubble_create_shipment_after_order_created($order_id)
 
 		// Get an instance of the WC_Order object
 		$order = wc_get_order($order_id);
+		$order_shipping_data = $order->get_items( 'shipping' );
+		$shipping_line_count = reset($order_shipping_data) ? count(reset($order_shipping_data)->get_data()) : false;
 
 		$shipmentMeta = json_decode(get_post_meta($order_id, 'sb_shipment_meta')[0], true);
 
-		if (count($shipmentMeta)) {
+		if (count($shipmentMeta) && $order->has_shipping_method(SHIPBUBBLE_ID) && $shipping_line_count) {
+			error_log(print_r('something wrong happened', true));
 			if ($shipmentMeta['user_can_ship']) {
 				$shipmentPayload = $shipmentMeta['shipment_payload'];
 
@@ -311,6 +310,10 @@ function shipbubble_create_shipment_after_order_created($order_id)
 				}
 			}
 		} else {
+			$message = 'Order Id: ' . $order_id . ' ';
+			$message .= $shipping_line_count ? '' : ' has shipping lines issues';
+
+			error_log(print_r($message, true));
 			// set empty shipbubble service code
 			update_post_meta($order_id, 'shipbubble_shipment_details', json_encode(['service_code' => '']));
 
