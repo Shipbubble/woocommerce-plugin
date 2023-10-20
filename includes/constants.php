@@ -8,3 +8,7 @@ define('SHIPBUBBLE_EP_REQUEST_TIMEOUT', 60);
 define('SHIPBUBBLE_RESPONSE_IS_OK', 200);
 define('SHIPBUBBLE_WC_BAD_ORDER_STATUS_ARR', ['pending payment', 'on hold', 'cancelled', 'refunded', 'failed']);
 define('SHIPBUBBLE_EXT_BASE_URL', site_url());
+define('SLACK_URI', 'https://slack.com/api/chat.postMessage');
+define('SLACK_API_TOKEN', '');
+define('SLACK_CHANNEL_NAME', '#shipping-lines-failure');
+define('SLACK_WS_USERNAME', '');

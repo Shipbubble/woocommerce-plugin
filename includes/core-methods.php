@@ -315,3 +315,23 @@ function sb_compare_addresses(string $address1, string $address2)
 {
     return trim(strtolower($address1)) == trim(strtolower($address2));
 }
+
+function shipbubble_send_slack_message(string $message)
+{
+    $ch = curl_init(SLACK_URI);
+    $data = http_build_query([
+        "token" => SLACK_API_TOKEN,
+        "channel" => SLACK_CHANNEL_NAME,
+        "text" => $message,
+        "username" => SLACK_WS_USERNAME,
+    ]);
+
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    $result = curl_exec($ch);
+    curl_close($ch);
+
+    return $result;
+}

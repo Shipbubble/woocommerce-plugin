@@ -258,7 +258,7 @@ function shipbubble_update_order_meta_on_checkout($order_id)
 				$shipment['order_request_time'] = date('Y-m-d H:i:s');
 				update_post_meta($order_id, 'shipbubble_shipment_details', sanitize_text_field(json_encode($shipment)));
 			}
-			
+
 			// set payload to create shipbubble shipment
 			update_post_meta($order_id, 'sb_shipment_meta', json_encode($shipmentMeta));
 
@@ -311,7 +311,12 @@ function shipbubble_create_shipment_after_order_created($order_id)
 			}
 		} else {
 			$message = 'Order Id: ' . $order_id . ' ';
-			$message .= $shipping_line_count ? '' : ' has shipping lines issues';
+			
+			// send slack notification
+			if (!$shipping_line_count) {
+				$message .= 'has shipping lines issues';
+				shipbubble_send_slack_message($message);
+			}
 
 			error_log(print_r($message, true));
 			// set empty shipbubble service code
