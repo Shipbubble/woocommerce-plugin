@@ -272,6 +272,20 @@ function shipbubble_update_order_meta_on_checkout($order_id)
 	}
 }
 
+add_action( 'woocommerce_checkout_order_processed', 'handle_processed', 10, 1 );
+function handle_processed($order_id) 
+{
+	$order = new WC_Order( $order_id );
+	$shipping_items = $order->get_items('shipping');
+	$shipping_total = $order->get_shipping_total();
+	
+    if (empty($shipping_items) || "0" == $shipping_total)
+	{
+		$order->delete();
+        wp_send_json_error();
+    }
+}
+
 add_action('woocommerce_thankyou', 'shipbubble_create_shipment_after_order_created', 10, 1);
 function shipbubble_create_shipment_after_order_created($order_id)
 {
