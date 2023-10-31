@@ -23,6 +23,7 @@
 
             // use shipping variables
             if (useShippingAddress.is(':checked')) {
+
                 firstName = $('input#shipping_first_name').val();
                 lastName = $('input#shipping_last_name').val();
                 selectedCountry = $('select#shipping_country option:selected').text();
@@ -50,6 +51,7 @@
                 }
 
             } else {
+
                 // use billing variables
                 firstName = $('input#billing_first_name').val();
                 lastName = $('input#billing_last_name').val();
