@@ -36,34 +36,27 @@
         // check user
         if ( ! current_user_can( 'manage_options' ) ) return;
 
-        // $shipmentPayload = $_POST['data'];
         $payload = array_map( 'sanitize_text_field', $_POST['data']['shipment'] );
 
         $shipmentPayload = isset( $payload ) ? (array) $payload : array();
         
         $orderId = sanitize_text_field($shipmentPayload['order_id']);
 
-        $shipmentDetailsArray = get_post_meta($orderId, 'shipbubble_shipment_details');
-        if (count($shipmentDetailsArray)) 
-        {
-            $shipment = json_decode($shipmentDetailsArray[0], true); 
-            $shipment['admin_initiate_shipment_time'] = date('Y-m-d H:i:s');
-            update_post_meta($orderId, 'shipbubble_shipment_details', sanitize_text_field(json_encode($shipment)));
-        }
+        // set time meta to initiate the request
+        $shipmentPayload['admin_initiate_shipment_time'] = date('Y-m-d H:i:s');
+        update_post_meta($orderId, 'shipbubble_shipment_details', sanitize_text_field(json_encode($shipmentPayload)));
 
+        // initiate request
         $response = shipbubble_create_shipment($shipmentPayload); 
-        
-        if (isset($response->response_code) && $response->response_code == SHIPBUBBLE_RESPONSE_IS_OK) {
+
+        if (isset($response->response_code) && $response->response_code == SHIPBUBBLE_RESPONSE_IS_OK) 
+        {
             // set shipbubble order id
             update_post_meta( $orderId, 'shipbubble_order_id', $response->data->order_id );
 
-            $shipmentDetailsArray = get_post_meta($orderId, 'shipbubble_shipment_details');
-            if (count($shipmentDetailsArray)) 
-            {
-                $shipment = json_decode($shipmentDetailsArray[0], true); 
-                $shipment['admin_create_shipment_time'] = date('Y-m-d H:i:s');
-                update_post_meta($orderId, 'shipbubble_shipment_details', sanitize_text_field(json_encode($shipment)));
-            }
+            // set time meta
+            $shipmentPayload['admin_create_shipment_time'] = date('Y-m-d H:i:s');
+            update_post_meta($orderId, 'shipbubble_shipment_details', sanitize_text_field(json_encode($shipmentPayload)));
 
             // set shipping status
             update_post_meta( $orderId, 'shipbubble_tracking_status', 'pending' );

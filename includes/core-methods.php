@@ -183,7 +183,7 @@ function shipbubble_process_shipping_rates($addressCode, $products, $serviceCode
     return $rates;
 }
 
-function shipbubble_regenerate_rate_token($order, $serviceCodes)
+function shipbubble_regenerate_rate_token($order, $shipment)
 {
     $countryObject = WC()->countries;
 
@@ -199,6 +199,7 @@ function shipbubble_regenerate_rate_token($order, $serviceCodes)
     );
 
     // Generate Address Code
+    
     $addressResponse = shipbubble_validate_address(
         $shipping['name'],
         $shipping['email'],
@@ -239,20 +240,55 @@ function shipbubble_regenerate_rate_token($order, $serviceCodes)
         }
 
         // Fetch Shipping rate for service code
-        $response = shipbubble_process_shipping_rates($addressCode, $items, $serviceCodes);
+        $response = shipbubble_process_shipping_rates($addressCode, $items, [$shipment->service_code]);
 
-        if (count($response) > 0) {
+        if (count($response) && isset($response['couriers']) && count($response['couriers'])) 
+        {
             $rates['request_token'] = $response['request_token'];
-            $rates['service_code'] = $response['couriers'][0]->service_code;
-            $rates['courier_id'] = $response['couriers'][0]->courier_id;
-            $rates['courier_name'] = $response['couriers'][0]->courier_name;
-            $rates['shipment_cost'] = $response['couriers'][0]->total;
+
+            // filter request
+            $filtered_courier = array_filter($response['couriers'], function($courier) use($shipment)
+            {
+                return $shipment->service_code == $courier->service_code && $shipment->courier_id == $courier->courier_id;
+            });
+
+            if (count($filtered_courier)) 
+            {
+                $rates['service_code'] = $filtered_courier[0]->service_code;
+                $rates['courier_id'] = $filtered_courier[0]->courier_id;
+                $rates['courier_name'] = $filtered_courier[0]->courier_name;
+                $rates['shipment_cost'] = (string) $filtered_courier[0]->total;
+            }
+            else
+            {
+                $rates['service_code'] = $response['couriers'][0]->service_code;
+                $rates['courier_id'] = $response['couriers'][0]->courier_id;
+                $rates['courier_name'] = $response['couriers'][0]->courier_name;
+                $rates['shipment_cost'] = (string) $response['couriers'][0]->total;
+            }
+
+            // first data
+            $rates['request_datetime'] = $shipment->request_datetime;
+            $rates['order_request_time'] = $shipment->order_request_time;
+
+            // new data
+            $rates['regenerated_token_time'] = date('Y-m-d H:i:s');
+        }
+        else 
+        {
+            if (isset($response['error']))
+            {
+                $rates['errors'] = $response['error'];
+            }
         }
     }
-
-    // echo '<pre>' . var_export($rates, true) . '</pre>';
-    // die;
-
+    else 
+    {
+        if (isset($addressResponse->status) && $addressResponse->status == 'failed')
+        {
+            $rates['errors'] = isset($addressResponse->message) ? $addressResponse->message : '';
+        }
+    }
     return $rates;
 }
 
@@ -314,4 +350,35 @@ function sb_create_address(string $address, string $city, string $stateLabel, st
 function sb_compare_addresses(string $address1, string $address2)
 {
     return trim(strtolower($address1)) == trim(strtolower($address2));
+}
+
+function shipbubble_convert_special_strings_to_array($subject)
+{
+    $string = str_replace('\n', '', $subject);
+    $string = str_replace('{', '', $string);
+    $string = str_replace('}', '', $string);
+    $string = rtrim($string, ',');
+    $string = str_replace('"', '', $string);
+
+    $converted = [];
+    foreach (explode(',', $string) as $item){
+        $parts = explode(':', $item);
+        $count = count($parts);
+        if ($count > 2) {
+            $join = '';
+            for($i=1;$i<$count;$i++)
+            {
+                if ($count-$i == 1) {
+                    $join .= $parts[$i];
+                } else {
+                    $join .= $parts[$i] . ':';
+                }
+            }
+            $converted[trim($parts[0])] = $join;
+        } else {
+            $converted[trim($parts[0])] = $parts[1];
+        }
+    }
+
+    return $converted;
 }
