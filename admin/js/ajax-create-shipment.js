@@ -19,8 +19,13 @@
             btn.attr('disabled', 'true').html('processing...');
 
             if (details.val() != '') {
+                let payload;
+                if (typeof JSON.parse(details.val()) == 'object') {
+                    payload = JSON.parse(details.val());
+                } else {
+                    payload = JSON.parse(JSON.parse(details.val()));
+                }
 
-                const payload = JSON.parse(details.val());
                 payload['order_id'] = wc_order_id.val();
 
                 // initiate shipment

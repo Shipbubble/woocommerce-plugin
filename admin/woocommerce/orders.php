@@ -22,12 +22,6 @@ function shibubble_order_data_after_billing_address($order)
     $shippingData = $order->data['shipping'];
     $orderAddress = sb_create_address($shippingData['address_1'], $shippingData['city'], $shippingData['state'], $shippingData['country']);
 
-    // echo '<pre> ' . var_export(reset($order->get_items( 'shipping' ))->get_method_id(), true) . '</pre>';
-    // echo '<pre> ' . var_export($shippingData, true) . '</pre>';
-    // echo '<pre> ' . var_export($order->data['shipping'], true) . '</pre>';
-    // echo '<pre>' . var_export(wc_get_product( $order->get_items()[9]['product_id'] ), true) . '</pre>';
-    // echo '<pre> ' . var_export(json_decode($shipment)->service_code, true) . '</pre>';
-    // die;
 
     // Get Delivery Address
     $shipbubbleDeliveryAddress = get_post_meta($order->get_id(), 'shipbubble_delivery_address', true);
@@ -35,14 +29,19 @@ function shibubble_order_data_after_billing_address($order)
     // Get Shipbubble Order ID
     $shipbubbleOrderId = get_post_meta($order->get_id(), 'shipbubble_order_id', true);
 
-    $shipment = $shipmentDetailsArray[0]; // [0 => 'request token ...']
+    // $shipment = $shipmentDetailsArray[0]; // [0 => 'request token ...']
 
+    // var_dump($shipmentDetailsArray[0]);
+    // die;
+    
+    $convertedArray = shipbubble_convert_special_strings_to_array($shipmentDetailsArray[0]); // [0 => 'request token ...']
+    $shipment = json_decode(json_encode($convertedArray));
+    $serviceCode = ''; // prod
     // $serviceCode = array( 'speedaf-express' ); // test
 
-    if (empty($shipment)) {
-        $serviceCode = array(); // prod
-    } else {
-        $serviceCode = array(json_decode($shipment)->service_code); // prod
+    if (!empty($shipment)) 
+    {
+        $serviceCode = $shipment->service_code; // prod
     }
 
     // Check date meets 48hr mark
@@ -51,32 +50,41 @@ function shibubble_order_data_after_billing_address($order)
     $interval = $orderDate->diff($today);
     $hrsInterval = $interval->h + ($interval->days * 24);
 
-    // check token has lasted longer than 48hrs before regenerating new request token
-    if (strlen($shipbubbleOrderId) < 1 && $hrsInterval > SHIPBUBBLE_REQUEST_TOKEN_EXPIRY && !is_null($shipment)) {
-        $rates = shipbubble_regenerate_rate_token($order, $serviceCode);
-        if (count($rates)) {
-            $shipment = json_encode($rates);
-            update_post_meta($order->get_id(), 'shipbubble_shipment_details', $shipment);
-            update_post_meta($order->get_id(), 'shipbubble_delivery_address', $orderAddress);
-        }
+    //if (strlen($shipbubbleOrderId) < 1 && !sb_compare_addresses($shipbubbleDeliveryAddress, $orderAddress) && $hrsInterval < SHIPBUBBLE_REQUEST_TOKEN_EXPIRY && !is_null($shipment)) {
+
+    // set flag to regenerate token
+    $regenerateToken = false;
+
+    // Check token has expired and shipbubble id doesn't exist to enable flag
+    if (strlen($shipbubbleOrderId) < 1 && $hrsInterval > SHIPBUBBLE_REQUEST_TOKEN_EXPIRY) 
+    {
+        $regenerateToken = true;
     }
 
-    // Check address has changed under 48hrs before before regenerating new request token
-    if (strlen($shipbubbleOrderId) < 1 && !sb_compare_addresses($shipbubbleDeliveryAddress, $orderAddress) && $hrsInterval < SHIPBUBBLE_REQUEST_TOKEN_EXPIRY && !is_null($shipment)) {
-        // regenerate
-        $rates = shipbubble_regenerate_rate_token($order, $serviceCode);
-        if (count($rates)) {
-            $shipment = json_encode($rates);
+    // Check address has changed under 48hrs to enable flag
+    if (!sb_compare_addresses($shipbubbleDeliveryAddress, $orderAddress)) 
+    {
+        $regenerateToken = true;
+    }
+
+    if ($regenerateToken && !is_null($shipment)) 
+    {
+        // regenerate token
+        $regeneratedMeta = shipbubble_regenerate_rate_token($order, $shipment);
+
+        // update db
+        if (count($regeneratedMeta)) {
+            $shipment = json_encode($regeneratedMeta);
             update_post_meta($order->get_id(), 'shipbubble_shipment_details', $shipment);
             update_post_meta($order->get_id(), 'shipbubble_delivery_address', $orderAddress);
         }
     }
 
 ?>
-    <?php if (strlen($shipbubbleOrderId) < 1 && !is_null($shipment)) : ?>
+    <?php if (strlen($shipbubbleOrderId) < 1 && !is_null($shipment)): ?>
         <input type="hidden" id="wc_order_id" name="wc_order_id" value='<?php echo esc_html($order->get_id()); ?>' />
 
-        <input type="hidden" id="shipment_details" name="shipment_details" value='<?php echo esc_html($shipment); ?>' />
+        <input type="hidden" id="shipment_details" name="shipment_details" value='<?php echo esc_html(json_encode($shipment)); ?>' />
 
         <button id="create-shipment" style="background-color: #FF5170; color: #FFF; padding: 4px 16px; border: 1px solid #FF5170; border-radius: 3px; cursor: pointer;">
             Create Shipment via Shipbubble
