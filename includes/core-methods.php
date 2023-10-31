@@ -199,6 +199,7 @@ function shipbubble_regenerate_rate_token($order, $shipment)
     );
 
     // Generate Address Code
+    
     $addressResponse = shipbubble_validate_address(
         $shipping['name'],
         $shipping['email'],
@@ -272,6 +273,20 @@ function shipbubble_regenerate_rate_token($order, $shipment)
 
             // new data
             $rates['regenerated_token_time'] = date('Y-m-d H:i:s');
+        }
+        else 
+        {
+            if (isset($response['error']))
+            {
+                $rates['errors'] = $response['error'];
+            }
+        }
+    }
+    else 
+    {
+        if (isset($addressResponse->status) && $addressResponse->status == 'failed')
+        {
+            $rates['errors'] = isset($addressResponse->message) ? $addressResponse->message : '';
         }
     }
     return $rates;

@@ -3,6 +3,7 @@
 add_action('woocommerce_admin_order_data_after_billing_address', 'shibubble_order_data_after_billing_address', 10, 1);
 function shibubble_order_data_after_billing_address($order)
 {
+
     if (in_array($order->get_status(), SHIPBUBBLE_WC_BAD_ORDER_STATUS_ARR)) {
         return;
     }
@@ -21,7 +22,6 @@ function shibubble_order_data_after_billing_address($order)
     // Get Shipping Data
     $shippingData = $order->data['shipping'];
     $orderAddress = sb_create_address($shippingData['address_1'], $shippingData['city'], $shippingData['state'], $shippingData['country']);
-
 
     // Get Delivery Address
     $shipbubbleDeliveryAddress = get_post_meta($order->get_id(), 'shipbubble_delivery_address', true);
@@ -73,10 +73,23 @@ function shibubble_order_data_after_billing_address($order)
         $regeneratedMeta = shipbubble_regenerate_rate_token($order, $shipment);
 
         // update db
-        if (count($regeneratedMeta)) {
+        if (count($regeneratedMeta) && isset($regeneratedMeta['request_token'])) {
             $shipment = json_encode($regeneratedMeta);
             update_post_meta($order->get_id(), 'shipbubble_shipment_details', $shipment);
             update_post_meta($order->get_id(), 'shipbubble_delivery_address', $orderAddress);
+        } else {
+            if (isset($regeneratedMeta['errors'])) {
+                $message = $regeneratedMeta["errors"] . ' when regenerating shipbubble token';
+                $output = '<div id="message" class="notice notice-warning is-dismissible">
+                    <p>'. $message . '</p>
+                    
+                    <button type="button" class="notice-dismiss">
+                        <span class="screen-reader-text">Dismiss this notice.</span>
+                    </button>
+                </div>';
+
+                echo $output;
+            }
         }
     }
 
