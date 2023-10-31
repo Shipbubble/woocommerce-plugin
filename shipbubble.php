@@ -279,7 +279,7 @@ function handle_processed($order_id)
 	$shipping_items = $order->get_items('shipping');
 	$shipping_total = $order->get_shipping_total();
 	
-    if (empty($shipping_items) || "0" == $shipping_total)
+    if ($order->has_shipping_method(SHIPBUBBLE_ID) && (empty($shipping_items) || "0" == $shipping_total))
 	{
 		$order->delete();
         wp_send_json_error();
