@@ -182,20 +182,13 @@ function shipbubble_update_order_meta_on_checkout($order_id)
 		return;
 	}
 
-	if (!in_array(SHIPBUBBLE_ID, $_POST['shipping_method']))
+	// Get an instance of the WC_Order object
+	$order = wc_get_order($order_id);
+
+	if (!$order->has_shipping_method(SHIPBUBBLE_ID))
 	{
 		return;
 	}
-
-	if (!isset($_POST['shipbubble_shipment_details']))
-	{
-		return;
-	}
-
-	// error_log(print_r($_POST['shipbubble_shipment_details']), true));
-	// die;
-
-	// $options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
 
 	$userCanShip = 'yes';
 	$isValid = false;
@@ -248,22 +241,23 @@ function shipbubble_update_order_meta_on_checkout($order_id)
 				'courier_id' => $courierId,
 			);
 
-			// set shipbubble shipment details json
-			update_post_meta($order_id, 'shipbubble_shipment_details', sanitize_text_field($_POST['shipbubble_shipment_details']));
+			// new shipment details meta
+			$shipbubbleShipmentDetails = [
+				'request_token' => $_POST['request_token'],
+				'courier_id' => $_POST['shipbubble_courier_id'],
+				'courier_name' => $_POST['shipbubble_selected_courier'],
+				'service_code' => $_POST['shipbubble_service_code'],
+				'shipment_cost' => $_POST['shipbubble_cost'],
+				'request_datetime' => $_POST['shipbubble_rate_datetime']
+			];
 
-			$shipmentDetailsArray = get_post_meta($order_id, 'shipbubble_shipment_details');
-			if (count($shipmentDetailsArray)) 
-			{
-				$shipment = json_decode($shipmentDetailsArray[0], true); 
-				$shipment['order_request_time'] = date('Y-m-d H:i:s');
-				update_post_meta($order_id, 'shipbubble_shipment_details', sanitize_text_field(json_encode($shipment)));
-			}
+			// set order request time
+			$shipbubbleShipmentDetails['order_request_time'] = date('Y-m-d H:i:s');
 
-			// error_log(print_r($shipment, true));
-			// die;
+			// set shipbubble_shipment_details data to db (for admin create)
+			update_post_meta($order_id, 'shipbubble_shipment_details', json_encode($shipbubbleShipmentDetails));
 
-
-			// set payload to create shipbubble shipment
+			// set payload to create shipbubble shipment (for checkout create)
 			update_post_meta($order_id, 'sb_shipment_meta', json_encode($shipmentMeta));
 
 			// setting the delivery address

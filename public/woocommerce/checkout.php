@@ -82,18 +82,9 @@ function shipbubble_courier_setup_on_change()
 
 								const request_datetime = $('#shipbubble_rate_datetime').val();
 
-								console.log(request_datetime);
+								// console.log(request_datetime);
 
-								const shipment = {
-									request_token: checked_courier.attr('data-request_token'),
-									shipment_cost: total,
-									courier_id,
-									courier_name,
-									service_code,
-									request_datetime,
-								};
-
-								$('#shipbubble_shipment_details').val(JSON.stringify(shipment));
+								// $('#shipbubble_shipment_details').val(JSON.stringify(shipment));
 								$('#shipbubble_selected_courier').val(courier_name);
 								$('#shipbubble_cost').val(total);
 
