@@ -19,27 +19,20 @@
             btn.attr('disabled', 'true').html('processing...');
 
             if (details.val() != '') {
-                let payload;
-                if (typeof JSON.parse(details.val()) == 'object') {
-                    payload = JSON.parse(details.val());
-                } else {
-                    payload = JSON.parse(JSON.parse(details.val()));
-                }
-
-                payload['order_id'] = wc_order_id.val();
+                const order_id = wc_order_id.val();
 
                 // initiate shipment
-                initiate_shipment(payload);
+                initiate_shipment(order_id);
             }
 
         });
 
-        function initiate_shipment(shipment) {
+        function initiate_shipment(order_id) {
             $.post(ajaxurl, {
                 nonce: ajax_wc_admin.nonce,
                 action: 'initiate_order_shipment',
                 // url:    url
-                data: { shipment },
+                data: { order_id },
                 dataType: 'json'
             }, function (data) {
 

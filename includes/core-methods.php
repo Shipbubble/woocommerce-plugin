@@ -183,7 +183,7 @@ function shipbubble_process_shipping_rates($addressCode, $products, $serviceCode
     return $rates;
 }
 
-function shipbubble_regenerate_rate_token($order, $shipment)
+function shipbubble_regenerate_rate_token($order, $shipment, $reason = '')
 {
     $countryObject = WC()->countries;
 
@@ -273,6 +273,7 @@ function shipbubble_regenerate_rate_token($order, $shipment)
 
             // new data
             $rates['regenerated_token_time'] = date('Y-m-d H:i:s');
+            $rates['token_regenerate_reason'] = $reason;
         }
         else 
         {
@@ -350,35 +351,4 @@ function sb_create_address(string $address, string $city, string $stateLabel, st
 function sb_compare_addresses(string $address1, string $address2)
 {
     return trim(strtolower($address1)) == trim(strtolower($address2));
-}
-
-function shipbubble_convert_special_strings_to_array($subject)
-{
-    $string = str_replace('\n', '', $subject);
-    $string = str_replace('{', '', $string);
-    $string = str_replace('}', '', $string);
-    $string = rtrim($string, ',');
-    $string = str_replace('"', '', $string);
-
-    $converted = [];
-    foreach (explode(',', $string) as $item){
-        $parts = explode(':', $item);
-        $count = count($parts);
-        if ($count > 2) {
-            $join = '';
-            for($i=1;$i<$count;$i++)
-            {
-                if ($count-$i == 1) {
-                    $join .= $parts[$i];
-                } else {
-                    $join .= $parts[$i] . ':';
-                }
-            }
-            $converted[trim($parts[0])] = $join;
-        } else {
-            $converted[trim($parts[0])] = $parts[1];
-        }
-    }
-
-    return $converted;
 }

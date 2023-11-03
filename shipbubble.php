@@ -255,10 +255,10 @@ function shipbubble_update_order_meta_on_checkout($order_id)
 			$shipbubbleShipmentDetails['order_request_time'] = date('Y-m-d H:i:s');
 
 			// set shipbubble_shipment_details data to db (for admin create)
-			update_post_meta($order_id, 'shipbubble_shipment_details', json_encode($shipbubbleShipmentDetails));
+			update_post_meta($order_id, 'shipbubble_shipment_details', serialize($shipbubbleShipmentDetails));
 
 			// set payload to create shipbubble shipment (for checkout create)
-			update_post_meta($order_id, 'sb_shipment_meta', json_encode($shipmentMeta));
+			update_post_meta($order_id, 'sb_shipment_meta', serialize($shipmentMeta));
 
 			// setting the delivery address
 			update_post_meta($order_id, 'shipbubble_delivery_address', $address);
@@ -295,7 +295,7 @@ function shipbubble_create_shipment_after_order_created($order_id)
 		// Get an instance of the WC_Order object
 		$order = wc_get_order($order_id);
 
-		$shipmentMeta = json_decode(get_post_meta($order_id, 'sb_shipment_meta')[0], true);
+		$shipmentMeta = unserialize(get_post_meta($order_id, 'sb_shipment_meta')[0]);
 
 		if (count($shipmentMeta)) {
 			if ($shipmentMeta['user_can_ship']) {
@@ -309,18 +309,18 @@ function shipbubble_create_shipment_after_order_created($order_id)
 					// set shipping status
 					update_post_meta($order_id, 'shipbubble_tracking_status', 'pending');
 
-					$shipmentDetailsArray = get_post_meta($order_id, 'shipbubble_shipment_details');
+					$shipmentDetailsArray = unserialize(get_post_meta($order_id, 'shipbubble_shipment_details')[0]);
+
 					if (count($shipmentDetailsArray)) 
 					{
-						$shipment = json_decode($shipmentDetailsArray[0], true); 
-						$shipment['create_shipment_time'] = date('Y-m-d H:i:s');
-						update_post_meta($order_id, 'shipbubble_shipment_details', sanitize_text_field(json_encode($shipment)));
+						$shipmentDetailsArray['create_shipment_time'] = date('Y-m-d H:i:s');
+						update_post_meta($order_id, 'shipbubble_shipment_details', serialize($shipmentDetailsArray));
 					}
 				}
 			}
 		} else {
 			// set empty shipbubble service code
-			update_post_meta($order_id, 'shipbubble_shipment_details', json_encode(['service_code' => '']));
+			update_post_meta($order_id, 'shipbubble_shipment_details', serialize(['service_code' => '']));
 
 			// set empty shipbubble order id 
 			update_post_meta($order_id, 'shipbubble_order_id', '');
