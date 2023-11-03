@@ -14,6 +14,27 @@ function shibubble_order_data_after_billing_address($order)
 
     $order_id = $order->get_id();
 
+    // Get Shipbubble Order ID
+    $shipbubbleOrderId = get_post_meta($order_id, 'shipbubble_order_id', true);
+
+    if (strlen($shipbubbleOrderId) < 1 && !is_serialized(get_post_meta($order_id, 'shipbubble_shipment_details')[0])) 
+    {
+        $msg = "Cant process this order for shipment";
+        $output = '<div id="message" class="notice notice-warning is-dismissible">
+            <p>' . $msg . '</p>
+            
+            <button type="button" class="notice-dismiss">
+                <span class="screen-reader-text">Dismiss this notice.</span>
+            </button>
+        </div>';
+        echo $output;
+
+        echo '<button type="button" onclick="alert(\''. $msg . '\')" title="' . $msg . '" style="background-color: #FF5170; color: #FFF; padding: 4px 16px; border: 1px solid #FF5170; border-radius: 3px; cursor: pointer;">
+            Create Shipment via Shipbubble
+        </button>';
+        return;
+    }
+
     $shipmentDetailsArray = unserialize(get_post_meta($order_id, 'shipbubble_shipment_details')[0]);
 
     // error_log(print_r($shipmentDetailsArray, true));
@@ -30,9 +51,6 @@ function shibubble_order_data_after_billing_address($order)
 
     // Get Delivery Address
     $shipbubbleDeliveryAddress = get_post_meta($order_id, 'shipbubble_delivery_address', true);
-
-    // Get Shipbubble Order ID
-    $shipbubbleOrderId = get_post_meta($order_id, 'shipbubble_order_id', true);
     
     // serialize shipment
     $serializedShipment = serialize($shipmentDetailsArray);
@@ -98,9 +116,7 @@ function shibubble_order_data_after_billing_address($order)
     <?php if (strlen($shipbubbleOrderId) < 1 && !is_null($shipment)): ?>
         <input type="hidden" id="wc_order_id" name="wc_order_id" value='<?php echo esc_html($order->get_id()); ?>' />
 
-        <input type="hidden" id="shipment_details" name="shipment_details" value='<?php echo esc_html($serializedShipment); ?>' />
-
-        <button id="create-shipment" style="background-color: #FF5170; color: #FFF; padding: 4px 16px; border: 1px solid #FF5170; border-radius: 3px; cursor: pointer;">
+        <button id="create-shipment" <?php echo $disabled; ?> style="background-color: #FF5170; color: #FFF; padding: 4px 16px; border: 1px solid #FF5170; border-radius: 3px; cursor: pointer;">
             Create Shipment via Shipbubble
         </button>
     <?php endif; ?>
