@@ -37,6 +37,11 @@ function shibubble_order_data_after_billing_address($order)
 
     $shipmentDetailsArray = unserialize(get_post_meta($order_id, 'shipbubble_shipment_details')[0]);
 
+    if ($shipmentDetailsArray === false)
+    {
+        return;
+    }
+    
     // error_log(print_r($shipmentDetailsArray, true));
     if (!count($shipmentDetailsArray)) {
         return;
