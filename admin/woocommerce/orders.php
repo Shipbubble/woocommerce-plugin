@@ -116,7 +116,7 @@ function shibubble_order_data_after_billing_address($order)
     <?php if (strlen($shipbubbleOrderId) < 1 && !is_null($shipment)): ?>
         <input type="hidden" id="wc_order_id" name="wc_order_id" value='<?php echo esc_html($order->get_id()); ?>' />
 
-        <button id="create-shipment" <?php echo $disabled; ?> style="background-color: #FF5170; color: #FFF; padding: 4px 16px; border: 1px solid #FF5170; border-radius: 3px; cursor: pointer;">
+        <button id="create-shipment" style="background-color: #FF5170; color: #FFF; padding: 4px 16px; border: 1px solid #FF5170; border-radius: 3px; cursor: pointer;">
             Create Shipment via Shipbubble
         </button>
     <?php endif; ?>
