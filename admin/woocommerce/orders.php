@@ -3,7 +3,6 @@
 add_action('woocommerce_admin_order_data_after_billing_address', 'shibubble_order_data_after_billing_address', 10, 1);
 function shibubble_order_data_after_billing_address($order)
 {
-
     if (in_array($order->get_status(), SHIPBUBBLE_WC_BAD_ORDER_STATUS_ARR)) {
         return;
     }
@@ -13,70 +12,95 @@ function shibubble_order_data_after_billing_address($order)
         return;
     }
 
-    $shipmentDetailsArray = get_post_meta($order->get_id(), 'shipbubble_shipment_details');
+    $order_id = $order->get_id();
+
+    // Get Shipbubble Order ID
+    $shipbubbleOrderId = get_post_meta($order_id, 'shipbubble_order_id', true);
+
+    if (strlen($shipbubbleOrderId) < 1 && !is_serialized(get_post_meta($order_id, 'shipbubble_shipment_details')[0])) 
+    {
+        $msg = "Cant process this order for shipment";
+        $output = '<div id="message" class="notice notice-warning is-dismissible">
+            <p>' . $msg . '</p>
+            
+            <button type="button" class="notice-dismiss">
+                <span class="screen-reader-text">Dismiss this notice.</span>
+            </button>
+        </div>';
+        echo $output;
+
+        echo '<button type="button" onclick="alert(\''. $msg . '\')" title="' . $msg . '" style="background-color: #FF5170; color: #FFF; padding: 4px 16px; border: 1px solid #FF5170; border-radius: 3px; cursor: pointer;">
+            Create Shipment via Shipbubble
+        </button>';
+        return;
+    }
+
+    $shipmentDetailsArray = unserialize(get_post_meta($order_id, 'shipbubble_shipment_details')[0]);
+
+    if ($shipmentDetailsArray === false)
+    {
+        return;
+    }
+    
     // error_log(print_r($shipmentDetailsArray, true));
     if (!count($shipmentDetailsArray)) {
         return;
     }
+
+    // set order id to meta
+    $shipmentDetailsArray['order_id'] = $order_id;
 
     // Get Shipping Data
     $shippingData = $order->data['shipping'];
     $orderAddress = sb_create_address($shippingData['address_1'], $shippingData['city'], $shippingData['state'], $shippingData['country']);
 
     // Get Delivery Address
-    $shipbubbleDeliveryAddress = get_post_meta($order->get_id(), 'shipbubble_delivery_address', true);
-
-    // Get Shipbubble Order ID
-    $shipbubbleOrderId = get_post_meta($order->get_id(), 'shipbubble_order_id', true);
-
-    // $shipment = $shipmentDetailsArray[0]; // [0 => 'request token ...']
-
-    // var_dump($shipmentDetailsArray[0]);
-    // die;
+    $shipbubbleDeliveryAddress = get_post_meta($order_id, 'shipbubble_delivery_address', true);
     
-    $convertedArray = shipbubble_convert_special_strings_to_array($shipmentDetailsArray[0]); // [0 => 'request token ...']
-    $shipment = json_decode(json_encode($convertedArray));
-    $serviceCode = ''; // prod
-    // $serviceCode = array( 'speedaf-express' ); // test
+    // serialize shipment
+    $serializedShipment = serialize($shipmentDetailsArray);
 
-    if (!empty($shipment)) 
-    {
-        $serviceCode = $shipment->service_code; // prod
-    }
+    // make an object
+    $shipment = json_decode(json_encode($shipmentDetailsArray), false);
 
     // Check date meets 48hr mark
-    $today = new DateTime('now');
-    $orderDate = new DateTime($order->date_created);
-    $interval = $orderDate->diff($today);
+    $today = new DateTime();
+    $interval = $order->get_date_created()->diff($today);
     $hrsInterval = $interval->h + ($interval->days * 24);
 
     //if (strlen($shipbubbleOrderId) < 1 && !sb_compare_addresses($shipbubbleDeliveryAddress, $orderAddress) && $hrsInterval < SHIPBUBBLE_REQUEST_TOKEN_EXPIRY && !is_null($shipment)) {
 
     // set flag to regenerate token
     $regenerateToken = false;
+    $reason = '';
 
     // Check token has expired and shipbubble id doesn't exist to enable flag
     if (strlen($shipbubbleOrderId) < 1 && $hrsInterval > SHIPBUBBLE_REQUEST_TOKEN_EXPIRY) 
     {
         $regenerateToken = true;
+        $reason = 'TOKEN_EXPIRED';
     }
 
     // Check address has changed under 48hrs to enable flag
     if (!sb_compare_addresses($shipbubbleDeliveryAddress, $orderAddress)) 
     {
         $regenerateToken = true;
+        $reason = 'ADDRESS_CHANGED';
     }
 
     if ($regenerateToken && !is_null($shipment)) 
     {
         // regenerate token
-        $regeneratedMeta = shipbubble_regenerate_rate_token($order, $shipment);
-
+        $regeneratedMeta = shipbubble_regenerate_rate_token($order, $shipment, $reason);
+        
         // update db
         if (count($regeneratedMeta) && isset($regeneratedMeta['request_token'])) {
-            $shipment = json_encode($regeneratedMeta);
-            update_post_meta($order->get_id(), 'shipbubble_shipment_details', $shipment);
-            update_post_meta($order->get_id(), 'shipbubble_delivery_address', $orderAddress);
+            // set order id to meta
+            $regeneratedMeta['order_id'] = $order_id;
+            $serializedShipment = serialize($regeneratedMeta);
+
+            update_post_meta($order_id, 'shipbubble_shipment_details', $serializedShipment);
+            update_post_meta($order_id, 'shipbubble_delivery_address', $orderAddress);
         } else {
             if (isset($regeneratedMeta['errors'])) {
                 $message = $regeneratedMeta["errors"] . ' when regenerating shipbubble token';
@@ -96,8 +120,6 @@ function shibubble_order_data_after_billing_address($order)
 ?>
     <?php if (strlen($shipbubbleOrderId) < 1 && !is_null($shipment)): ?>
         <input type="hidden" id="wc_order_id" name="wc_order_id" value='<?php echo esc_html($order->get_id()); ?>' />
-
-        <input type="hidden" id="shipment_details" name="shipment_details" value='<?php echo esc_html(json_encode($shipment)); ?>' />
 
         <button id="create-shipment" style="background-color: #FF5170; color: #FFF; padding: 4px 16px; border: 1px solid #FF5170; border-radius: 3px; cursor: pointer;">
             Create Shipment via Shipbubble
