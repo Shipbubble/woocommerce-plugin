@@ -42,6 +42,12 @@
                     phone = $('input#shipping_phone').val();
                 }
 
+                if ($('select#shipping_city').length) {
+                    city = $('select#shipping_city option:selected').text();
+                } else {
+                    city = $('input#shipping_city').val();
+                }
+
                 billingStateRequired = $('label[for="billing_state"]').find('abbr.required').length;
 
                 if ($('select#shipping_state').length) {
@@ -58,8 +64,13 @@
                 email = $('input#billing_email').val();
                 phone = $('input#billing_phone').val();
                 selectedCountry = $('select#billing_country option:selected').text();
-                city = $('input#billing_city').val();
                 streetAddress = $('input#billing_address_1').val();
+
+                if ($('select#billing_city').length) {
+                    city = $('select#billing_city option:selected').text();
+                } else {
+                    city = $('input#billing_city').val();
+                }
 
                 shippingStateRequired = $('label[for="shipping_state"]').find('abbr.required').length;
 
