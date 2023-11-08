@@ -352,3 +352,7 @@ function sb_compare_addresses(string $address1, string $address2)
 {
     return trim(strtolower($address1)) == trim(strtolower($address2));
 }
+
+function shipbubble_data_is_serialized($str) {
+    return is_string($str) && ($str == serialize(false) || @unserialize($str) !== false);
+}
