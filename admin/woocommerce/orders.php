@@ -84,7 +84,7 @@ function shibubble_order_data_after_billing_address($order)
     }
 
     // Check address has changed under 48hrs to enable flag
-    if (!sb_compare_addresses($shipbubbleDeliveryAddress, $orderAddress)) 
+    if (!sb_compare_addresses($shipbubbleDeliveryAddress, $orderAddress) && $hrsInterval < SHIPBUBBLE_REQUEST_TOKEN_EXPIRY) 
     {
         $regenerateToken = true;
         $reason = 'ADDRESS_CHANGED';
