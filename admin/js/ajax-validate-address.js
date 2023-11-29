@@ -34,7 +34,7 @@
                     name: senderName.val(),
                     phone: senderPhone.val(),
                     email: senderEmail.val(),
-                    address: `${senderAddress.val()} ${senderState.val()} ${senderCountry.find('option:selected').text()}`
+                    address: `${senderAddress.val()}, ${senderState.val()}, ${senderCountry.find('option:selected').text()}`
                 };
 
                 validate_sender_address(addressPayload);
