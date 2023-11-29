@@ -27,6 +27,8 @@
         $('.address_form_field').change(function (e) {
             e.preventDefault();
 
+            formBtn.attr('disabled', true);
+
             if (senderName.val() != '' && senderPhone.val() != '' && senderEmail.val() != '' &&
                 senderAddress.val() != '' && senderState.val() != '' && senderCountry.find('option:selected').val() != ''
             ) {
@@ -34,12 +36,10 @@
                     name: senderName.val(),
                     phone: senderPhone.val(),
                     email: senderEmail.val(),
-                    address: `${senderAddress.val()} ${senderState.val()} ${senderCountry.find('option:selected').text()}`
+                    address: `${senderAddress.val()}, ${senderState.val()}, ${senderCountry.find('option:selected').text()}`
                 };
 
                 validate_sender_address(addressPayload);
-            } else {
-                formBtn.attr('disabled', true);
             }
 
         });
