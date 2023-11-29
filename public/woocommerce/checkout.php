@@ -111,13 +111,18 @@ function shipbubble_courier_setup_on_change()
 
 					$('form.checkout').on('change', 'input[name^="billing"], input[name^="shipping"]', function(){
 
+						let list = $('#courier-list');
+
+						if ($('#shipbubble_courier_set').val() == 'false' && $('#shipbubble_rate_datetime').val().length !== 0) {
+							list.empty();
+						}
+
 						if ($('#shipbubble_courier_set').val() == 'true') {
 							$('#shipbubble_reset_shipping_method').val('true');
 
 							// set flag that previously set courier should be removed
 							$('#shipbubble_courier_set').val('false');
 							
-							let list = $('#courier-list');
 							list.empty();
 						}
 
