@@ -27,6 +27,8 @@
         $('.address_form_field').change(function (e) {
             e.preventDefault();
 
+            formBtn.attr('disabled', true);
+
             if (senderName.val() != '' && senderPhone.val() != '' && senderEmail.val() != '' &&
                 senderAddress.val() != '' && senderState.val() != '' && senderCountry.find('option:selected').val() != ''
             ) {
@@ -38,8 +40,6 @@
                 };
 
                 validate_sender_address(addressPayload);
-            } else {
-                formBtn.attr('disabled', true);
             }
 
         });
