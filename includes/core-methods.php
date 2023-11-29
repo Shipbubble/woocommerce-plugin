@@ -188,7 +188,7 @@ function shipbubble_regenerate_rate_token($order, $shipment, $reason = '')
     $countryObject = WC()->countries;
 
     $name = $order->data['shipping']['first_name'] . ' ' . $order->data['shipping']['last_name'];
-    $address = $order->data['shipping']['address_1'] . ' ' . $order->data['shipping']['city'] . ' ' . $countryObject->states[$order->data['shipping']['country']][$order->data['shipping']['state']] . ' ' . $countryObject->countries[$order->data['shipping']['country']];
+    $address = $order->data['shipping']['address_1'] . ', ' . $order->data['shipping']['city'] . ', ' . $countryObject->states[$order->data['shipping']['country']][$order->data['shipping']['state']] . ', ' . $countryObject->countries[$order->data['shipping']['country']];
 
     // Initialize Shipping Address Array
     $shipping = array(
