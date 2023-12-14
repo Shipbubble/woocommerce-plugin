@@ -45,8 +45,31 @@
         $shipmentPayload['admin_initiate_shipment_time'] = date('Y-m-d H:i:s');
         update_post_meta($orderId, 'shipbubble_shipment_details', serialize($shipmentPayload));
 
-        // initiate request
-        $response = shipbubble_create_shipment($shipmentPayload); 
+
+        if (isset($shipmentPayload) && !empty($shipmentPayload['request_token']) && !empty($shipmentPayload['courier_id']) && !empty($shipmentPayload['service_code'])) {
+            // initiate request
+            $response = shipbubble_create_shipment($shipmentPayload); 
+        } else {
+            $checkoutPayload = unserialize(get_post_meta($orderId, 'sb_shipment_meta')[0]);
+
+            // TODO: check token expiry
+            if (empty($shipmentPayload['request_token'])) {
+                $shipmentPayload['request_token'] = $checkoutPayload['shipment_payload']['request_token'] ?? '';
+            }
+
+            if (empty($shipmentPayload['courier_id'])) {
+                $shipmentPayload['courier_id'] = $checkoutPayload['shipment_payload']['courier_id'] ?? '';
+            }
+            if (empty($shipmentPayload['service_code'])) {
+                $shipmentPayload['service_code'] = $checkoutPayload['shipment_payload']['service_code'] ?? '';
+            }
+
+            $shipmentPayload['swap_occurred'] = true;
+
+            // initiate request
+            $response = shipbubble_create_shipment($shipmentPayload); 
+        }
+
 
         if (isset($response->response_code) && $response->response_code == SHIPBUBBLE_RESPONSE_IS_OK) 
         {
