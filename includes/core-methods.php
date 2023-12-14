@@ -59,6 +59,15 @@ function shipbubble_get_checkout_orders(): array
     $products['total'] = 0;
 
     foreach ($cart as $cart_item_key => $cart_item) {
+        $product_id = $cart_item['product_id'];
+        $productItem = wc_get_product($product_id);
+
+        if ($productItem && $productItem->is_virtual()) {
+			// Your custom actions for virtual products in the cart
+            // skip
+            continue;
+        }
+
         $products['total'] += $cart_item['line_total'];
 
         $data = $cart_item['data'];

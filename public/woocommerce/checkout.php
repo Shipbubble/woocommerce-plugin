@@ -10,23 +10,25 @@ function shipbubble_courier_list_container()
 	$container = '';
 	$btnColor = '';
 	$showLabel = true;
-	$listCouriers = true;
+
+	$cartItemCount = WC()->cart->get_cart_contents_count();
+	$isPhysicalProduct = false;
+	$isVirtualProduct = false;
 
 	// Check if any product in the cart is virtual
     foreach (WC()->cart->get_cart() as $cart_item) {
 		$product_id = $cart_item['product_id'];
         $product = wc_get_product($product_id);
-		
-        // Check if the product is virtual
-        if ($product && $product->is_virtual()) {
+
+		if ($product && $product->is_virtual()) {
 			// Your custom actions for virtual products in the cart
-            // wc_add_notice('Virtual product detected in the cart. Shipping may be disabled.', 'error');
-			$listCouriers = false;
-			break;
-        }
+			$isVirtualProduct = true;
+		} else {
+			$isPhysicalProduct = true;
+		}
     }
 	
-	if ($listCouriers) {
+	if ($isPhysicalProduct) {
 		$response = shipbubble_get_color_code();
 		if (isset($response->response_code) && $response->response_code == SHIPBUBBLE_RESPONSE_IS_OK) {
 			$btnColor = strlen($response->data->brand_color) > 1 ? $response->data->brand_color . ' !important' : '';
