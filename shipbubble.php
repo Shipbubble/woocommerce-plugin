@@ -157,7 +157,7 @@ function shipbubble_disable_place_order_button_html($button)
 	$targeted_shipping_method = "flat_rate:14";
 
 	// Get the chosen shipping method (if it exist)
-	$chosen_shipping_methods = WC()->session->get('chosen_shipping_methods');
+	$chosen_shipping_methods = WC()->session->get('chosen_shipping_methods') ?? array();
 
 	// If the targeted shipping method is selected, we disable the button
 	if (in_array($targeted_shipping_method, $chosen_shipping_methods)) {
