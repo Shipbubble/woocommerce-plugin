@@ -62,7 +62,7 @@ function shipbubble_get_checkout_orders(): array
         $product_id = $cart_item['product_id'];
         $productItem = wc_get_product($product_id);
 
-        if ($productItem && $productItem->is_virtual()) {
+        if ($productItem && ($productItem->is_virtual() || in_array($productItem->get_type(), SHIPBUBBLE_VIRTUAL_PRODUCTS))) {
 			// Your custom actions for virtual products in the cart
             // skip
             continue;

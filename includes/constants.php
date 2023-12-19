@@ -8,3 +8,4 @@ define('SHIPBUBBLE_EP_REQUEST_TIMEOUT', 60);
 define('SHIPBUBBLE_RESPONSE_IS_OK', 200);
 define('SHIPBUBBLE_WC_BAD_ORDER_STATUS_ARR', ['pending payment', 'on hold', 'cancelled', 'refunded', 'failed']);
 define('SHIPBUBBLE_EXT_BASE_URL', site_url());
+define('SHIPBUBBLE_VIRTUAL_PRODUCTS', ['wgm_gift_card']); // custom merchant product type options

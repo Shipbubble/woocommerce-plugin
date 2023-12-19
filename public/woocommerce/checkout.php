@@ -20,7 +20,7 @@ function shipbubble_courier_list_container()
 		$product_id = $cart_item['product_id'];
         $product = wc_get_product($product_id);
 
-		if ($product && $product->is_virtual()) {
+		if ($product && ($product->is_virtual() || in_array($product->get_type(), SHIPBUBBLE_VIRTUAL_PRODUCTS))) {
 			// Your custom actions for virtual products in the cart
 			$isVirtualProduct = true;
 		} else {
