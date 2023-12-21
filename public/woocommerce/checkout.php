@@ -129,7 +129,7 @@ function shipbubble_courier_setup_on_change()
 						});
 					});
 
-					$('form.checkout').on('change', 'input[name^="billing"], input[name^="shipping"]', function(){
+					$('div#customer_details').on('change', 'input[name^="billing"], input[name^="shipping"]', function(){
 
 						let list = $('#courier-list');
 
