@@ -232,13 +232,17 @@ function shipbubble_change_rates($rates, $packages)
 	return $rates;
 }
 
-function place_shipbubble_first_at_checkout($initialArray)
+function place_shipbubble_first_at_checkout($rates)
 {
-	$desiredKey = SHIPBUBBLE_ID;
-	if (array_key_exists($desiredKey, $initialArray)) {
-		return [$desiredKey => $initialArray[$desiredKey]] + $initialArray;
-	}
-	return $initialArray;
+	$shippingMethodKey = SHIPBUBBLE_ID;
+	if (isset($rates[$shippingMethodKey])) {
+        $rates1[$shippingMethodKey] = $rates[$shippingMethodKey];
+        unset($rates[$shippingMethodKey]);
+    }
+	// select shipbubble on checkout
+	WC()->session->set( 'chosen_shipping_methods', [$shippingMethodKey] );
+
+    return isset($rates1) ? array_merge($rates1, $rates) : $rates;
 }
 
 // update the order review 
