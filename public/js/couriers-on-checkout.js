@@ -218,10 +218,10 @@
                                     </div>
             
                                     <div class='radio-item special-radio'>
-                                        <input type='radio' id="${value.courier_id}" name="delivery_option" 
+                                        <input type='radio' id="${value.courier_id}_${i}" name="delivery_option" 
                                         data-request_token="${output.request_token}" data-courier_name="${value.courier_name}" data-cost="${total}" data-service_code="${value.service_code}" data-courier_id="${value.courier_id}"
                                         />
-                                        <label for='${value.courier_id}'>
+                                        <label for='${value.courier_id}_${i}'>
                                             <p>
                                                 ₦ ${total.toLocaleString()}
                                             </p>
