@@ -317,7 +317,11 @@ function shipbubble_get_shipping_rates(string $addressCode, array $products, $se
     $senderAddressCode = get_option(WC_SHIPBUBBLE_ID)['address_code'];
     $categoryCode = get_option(WC_SHIPBUBBLE_ID)['store_category'];
 
+    // Get the currency code used in the cart
+    $currency_code = get_woocommerce_currency();
+
     $payload = [
+        'store_checkout_currency' => $currency_code ?? '',
         'sender_address_code' => $senderAddressCode,
         'reciever_address_code' => $addressCode,
         'pickup_date' => date('Y-m-d'),
@@ -329,7 +333,7 @@ function shipbubble_get_shipping_rates(string $addressCode, array $products, $se
             'height' => $setDimensions['height']
         ],
         'service_type' => 'pickup',
-        'delivery_instructions' => $products['comments'] ?? 'please handle carefully'
+        'delivery_instructions' => $products['comments'] ?? 'please handle carefully',
     ];
 
     // error_log(print_r($payload, true));
