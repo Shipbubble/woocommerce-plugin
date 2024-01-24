@@ -321,7 +321,6 @@ function shipbubble_get_shipping_rates(string $addressCode, array $products, $se
     $currency_code = get_woocommerce_currency();
 
     $payload = [
-        'store_checkout_currency' => $currency_code ?? 'NGN',
         'sender_address_code' => $senderAddressCode,
         'reciever_address_code' => $addressCode,
         'pickup_date' => date('Y-m-d'),
@@ -335,6 +334,10 @@ function shipbubble_get_shipping_rates(string $addressCode, array $products, $se
         'service_type' => 'pickup',
         'delivery_instructions' => $products['comments'] ?? 'please handle carefully',
     ];
+
+    if (!empty($currency_code)) {
+        $payload['store_checkout_currency'] = $currency_code;
+    }
 
     // error_log(print_r($payload, true));
 
