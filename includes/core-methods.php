@@ -181,7 +181,7 @@ function shipbubble_process_shipping_rates($addressCode, $products, $serviceCode
         $rates['couriers'] = $data->couriers;
 
         // currency code
-        $currency_code = $data->couriers[0]->currency;
+        $currency_code = $data->couriers[0]->rate_card_currency;
 
         // Get the currency symbol for the specified currency code
         $currency_symbol = get_woocommerce_currency_symbol($currency_code);
