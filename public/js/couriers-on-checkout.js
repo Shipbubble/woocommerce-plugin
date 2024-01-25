@@ -223,7 +223,7 @@
                                         />
                                         <label for='${value.courier_id}_${i}'>
                                             <p>
-                                                ₦ ${total.toLocaleString()}
+                                                ${output.currency_symbol} ${total.toLocaleString()}
                                             </p>
                                             <span class='address-span'></span>
             
