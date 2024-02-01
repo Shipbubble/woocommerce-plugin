@@ -335,6 +335,65 @@ function shipbubble_create_shipment_after_order_created($order_id)
 	$order->save();
 }
 
+add_action( 'woocommerce_before_checkout_process', 'shipbubble_validate_checkout_order' , 10, 1 );
+function shipbubble_validate_checkout_order($order_id)
+{
+	$order = new WC_Order( $order_id );
+	$shipping_items = $order->get_items('shipping');
+	$shipping_total = $order->get_shipping_total();
+	$payment_method = isset($_POST['payment_method']) ? $_POST['payment_method'] : '';
+	$enabled_gateways = [];
+	$delete_order = false;
+
+	$gateways = WC()->payment_gateways->get_available_payment_gateways();
+	if($gateways) {
+		foreach($gateways as $gateway ) {
+			if( $gateway->is_available() ) {
+				$enabled_gateways[] = $gateway->id;
+			}
+		}
+	}
+
+	// Assume all products are virtual until proven otherwise
+    $all_virtual = true;
+
+	// Loop through order items
+    foreach ($order->get_items() as $item_id => $item) {
+        $product = $item->get_product();
+
+        // Check if the product is virtual
+        if (!$product || !$product->is_virtual()) {
+            $all_virtual = false;
+            break; // Exit the loop early if a non-virtual product is found
+        }
+    }
+
+	// Get the selected shipping method from the checkout object
+	$chosen_shipping_method = WC()->checkout->get_value('shipping_method');
+
+	// check
+	if (!$all_virtual && !empty($payment_method) && !empty($enabled_gateways)) {
+		if (in_array($payment_method, $enabled_gateways)) {
+			// check shipping items is empty or shipping total is 0
+            if (empty($shipping_items) || $shipping_total == "0") {
+                $delete_order = true;
+				error_log(print_r('empty or 0', true));
+            }
+
+            // check that shipbubble is in use and shipping total is 0
+            if (!empty($chosen_shipping_method) && $chosen_shipping_method[0] == SHIPBUBBLE_ID && $shipping_total == "0") {
+                $delete_order = true;
+				error_log(print_r('selected sb & 0', true));
+            }
+		}
+	}
+
+	if ($delete_order) {
+        $order->delete();
+        wp_send_json_error();
+    }
+}
+
 function shipbubble_append_enqueue_script()
 {
 	wp_enqueue_script('sweetalert2', plugins_url('public/js/sweetalert2.min.js', __FILE__), array());
