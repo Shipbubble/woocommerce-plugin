@@ -184,8 +184,10 @@ function shipbubble_process_shipping_rates($addressCode, $products, $serviceCode
         $currency_code = $data->couriers[0]->rate_card_currency;
 
         // Get the currency symbol for the specified currency code
-        $currency_symbol = get_woocommerce_currency_symbol($currency_code);
-        $rates['currency_symbol'] = $currency_symbol;
+        // $currency_symbol = get_woocommerce_currency_symbol($currency_code);
+        // $rates['currency_symbol'] = $currency_symbol;
+        
+        $rates['currency_symbol'] = $currency_code;
     } else {
         if (isset($response->error)) {
             $rates['error'] = $response->error[0];
