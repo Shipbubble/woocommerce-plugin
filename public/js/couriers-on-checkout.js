@@ -26,7 +26,6 @@
 
                 firstName = $('input#shipping_first_name').val();
                 lastName = $('input#shipping_last_name').val();
-                selectedCountry = $('select#shipping_country option:selected').text();
                 city = $('input#shipping_city').val();
                 streetAddress = $('input#shipping_address_1').val();
 
@@ -48,6 +47,12 @@
                     city = $('input#shipping_city').val();
                 }
 
+                if ($('select#shipping_country').length) {
+                    selectedCountry = $('select#shipping_country option:selected').text();
+                } else {
+                    selectedCountry = $('input#shipping_country').val();
+                }
+
                 billingStateRequired = $('label[for="billing_state"]').find('abbr.required').length;
 
                 if ($('select#shipping_state').length) {
@@ -63,13 +68,18 @@
                 lastName = $('input#billing_last_name').val();
                 email = $('input#billing_email').val();
                 phone = $('input#billing_phone').val();
-                selectedCountry = $('select#billing_country option:selected').text();
                 streetAddress = $('input#billing_address_1').val();
 
                 if ($('select#billing_city').length) {
                     city = $('select#billing_city option:selected').text();
                 } else {
                     city = $('input#billing_city').val();
+                }
+
+                if ($('select#billing_country').length) {
+                    selectedCountry = $('select#billing_country option:selected').text();
+                } else {
+                    selectedCountry = $('input#billing_country').val();
                 }
 
                 shippingStateRequired = $('label[for="shipping_state"]').find('abbr.required').length;
