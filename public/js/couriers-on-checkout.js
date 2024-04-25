@@ -51,6 +51,7 @@
                     selectedCountry = $('select#shipping_country option:selected').text();
                 } else {
                     selectedCountry = $('input#shipping_country').val();
+                    selectedCountry = getCountryCode(selectedCountry);
                 }
 
                 billingStateRequired = $('label[for="billing_state"]').find('abbr.required').length;
@@ -80,6 +81,7 @@
                     selectedCountry = $('select#billing_country option:selected').text();
                 } else {
                     selectedCountry = $('input#billing_country').val();
+                    selectedCountry = getCountryCode(selectedCountry);
                 }
 
                 shippingStateRequired = $('label[for="shipping_state"]').find('abbr.required').length;
@@ -99,7 +101,6 @@
                 firstName != '' && lastName != '' && email != '' && phone != '' && streetAddress != '' && city != '' && selectedCountry != '') {
                 // hide notice
                 $('#shipping-notice').remove();
-                selectedCountry = checkCountryCode(selectedCountry);
 
                 // Assemble payload
                 let addressPayload = {
@@ -1520,7 +1521,7 @@
             }
         }
 
-        function checkCountryCode(country) {
+        function getCountryCode(country) {
             const countryCode = country.toUpperCase();
 
             // Check if the country code exists in the countryCodes object
@@ -1528,7 +1529,7 @@
                 // Return the country name associated with the country code
                 return countryCodes[countryCode].name;
             } else {
-                return country;
+                return 'Nigeria';
             }
         }
     });
