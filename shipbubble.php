@@ -402,3 +402,11 @@ function shipbubble_append_enqueue_script()
 
 add_action('wp_enqueue_scripts', 'shipbubble_append_enqueue_script');
 add_action('admin_enqueue_scripts', 'shipbubble_append_enqueue_script');
+
+add_action('before_woocommerce_init',  'shipbubble_checkout_block_incompatibilty');
+
+function shipbubble_checkout_block_incompatibilty() {
+	if ( class_exists( '\Automattic\WooCommerce\Utilities\FeaturesUtil' ) ) {
+		\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'cart_checkout_blocks', __FILE__, false );
+	}
+}
