@@ -55,7 +55,14 @@ function shibubble_order_data_after_billing_address($order)
 
     // Get Shipping Data
     $shippingData = $order->data['shipping'];
+    $shippingPhone = $order->data['billing']['phone'];
     $orderAddress = sb_create_address($shippingData['address_1'], $shippingData['city'], $shippingData['state'], $shippingData['country']);
+    $orderPhone = get_post_meta($order_id, 'shipbubble_delivery_phone', true);
+
+    if (empty($orderPhone)) {
+        $orderPhone = $shippingPhone;
+        update_post_meta($order_id, 'shipbubble_delivery_phone', $orderPhone);
+    }
 
     // Get Delivery Address
     $shipbubbleDeliveryAddress = get_post_meta($order_id, 'shipbubble_delivery_address', true);
@@ -73,13 +80,12 @@ function shibubble_order_data_after_billing_address($order)
 
     //if (strlen($shipbubbleOrderId) < 1 && !sb_compare_addresses($shipbubbleDeliveryAddress, $orderAddress) && $hrsInterval < SHIPBUBBLE_REQUEST_TOKEN_EXPIRY && !is_null($shipment)) {
 
-    // set flag to regenerate token
     $disable = false;
     $disabled = "";
 
 
     // Check address has changed or token has expired
-    if (!sb_compare_addresses($shipbubbleDeliveryAddress, $orderAddress) || $hrsInterval > SHIPBUBBLE_REQUEST_TOKEN_EXPIRY)
+    if (!sb_compare_addresses($shipbubbleDeliveryAddress, $orderAddress) || $hrsInterval > SHIPBUBBLE_REQUEST_TOKEN_EXPIRY || $orderPhone != $shippingPhone)
     {
         $disable = true;
 	    $disabled = "disabled='disabled'";
