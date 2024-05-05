@@ -340,6 +340,7 @@ function shipbubble_create_shipment_after_order_created($order_id)
 }
 
 add_action( 'woocommerce_before_checkout_process', 'shipbubble_validate_checkout_order' , 10, 1 );
+add_action( 'woocommerce_checkout_order_processed', 'shipbubble_validate_checkout_order', 10, 1 );
 function shipbubble_validate_checkout_order($order_id)
 {
 	$order = new WC_Order( $order_id );
