@@ -211,6 +211,7 @@ function shipbubble_update_order_meta_on_checkout($order_id)
 	$city = sanitize_text_field($_POST['shipping_city']);
 	$stateTag = sanitize_text_field($_POST['shipping_state']);
 	$countryTag = sanitize_text_field($_POST['shipping_country']);
+	$phone = sanitize_text_field($_POST['billing_phone']);
 
 	if (strlen($streetAddress) < 1) {
 		$streetAddress = sanitize_text_field($_POST['billing_address_1']);
@@ -262,12 +263,15 @@ function shipbubble_update_order_meta_on_checkout($order_id)
 
 			// setting the delivery address
 			update_post_meta($order_id, 'shipbubble_delivery_address', $address);
+
+			// setting the phone number
+			update_post_meta($order_id, 'shipbubble_delivery_phone', $phone);
 		}
 	}
 }
 
 // add_action( 'woocommerce_checkout_order_processed', 'handle_processed', 10, 1 );
-// function handle_processed($order_id) 
+// function handle_processed($order_id)
 // {
 // 	$order = new WC_Order( $order_id );
 // 	$shipping_items = $order->get_items('shipping');
@@ -336,6 +340,7 @@ function shipbubble_create_shipment_after_order_created($order_id)
 }
 
 add_action( 'woocommerce_before_checkout_process', 'shipbubble_validate_checkout_order' , 10, 1 );
+add_action( 'woocommerce_checkout_order_processed', 'shipbubble_validate_checkout_order', 10, 1 );
 function shipbubble_validate_checkout_order($order_id)
 {
 	$order = new WC_Order( $order_id );
