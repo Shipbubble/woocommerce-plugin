@@ -18,8 +18,9 @@ function shibubble_order_data_after_billing_address($order)
     $shipbubbleOrderId = get_post_meta($order_id, 'shipbubble_order_id', true);
 
     $serializedShipment = get_post_meta($order_id, 'shipbubble_shipment_details')[0];
+	$style = "background-color: #000; color: #FFF; padding: 4px 16px; border: 1px solid #000; border-radius: 3px; cursor: not-allowed;";
 
-    if (strlen($shipbubbleOrderId) < 1 && !shipbubble_data_is_serialized($serializedShipment)) 
+	if (strlen($shipbubbleOrderId) < 1 && !shipbubble_data_is_serialized($serializedShipment))
     {
         $msg = "Unable to process this order for shipment";
         $output = '<div id="message" class="notice notice-warning is-dismissible">
@@ -31,7 +32,7 @@ function shibubble_order_data_after_billing_address($order)
         </div>';
         echo $output;
 
-        echo '<button type="button" onclick="alert(\''. $msg . '\')" title="' . $msg . '" style="background-color: #000; color: #FFF; padding: 4px 16px; border: 1px solid #000; border-radius: 3px; cursor: not-allowed;">
+        echo '<button type="button" onclick="alert(\''. $msg . '\')" title="' . $msg . '" style="'.$style.'">
             Create Shipment via Shipbubble
         </button>';
         return;
@@ -54,7 +55,14 @@ function shibubble_order_data_after_billing_address($order)
 
     // Get Shipping Data
     $shippingData = $order->data['shipping'];
+    $shippingPhone = $order->data['billing']['phone'];
     $orderAddress = sb_create_address($shippingData['address_1'], $shippingData['city'], $shippingData['state'], $shippingData['country']);
+    $orderPhone = get_post_meta($order_id, 'shipbubble_delivery_phone', true);
+
+    if (empty($orderPhone)) {
+        $orderPhone = $shippingPhone;
+        update_post_meta($order_id, 'shipbubble_delivery_phone', $orderPhone);
+    }
 
     // Get Delivery Address
     $shipbubbleDeliveryAddress = get_post_meta($order_id, 'shipbubble_delivery_address', true);
@@ -72,58 +80,27 @@ function shibubble_order_data_after_billing_address($order)
 
     //if (strlen($shipbubbleOrderId) < 1 && !sb_compare_addresses($shipbubbleDeliveryAddress, $orderAddress) && $hrsInterval < SHIPBUBBLE_REQUEST_TOKEN_EXPIRY && !is_null($shipment)) {
 
-    // set flag to regenerate token
-    $regenerateToken = false;
-    $reason = '';
+    $disable = false;
+    $disabled = "";
 
-    // Check token has expired and shipbubble id doesn't exist to enable flag
-    if (strlen($shipbubbleOrderId) < 1 && $hrsInterval > SHIPBUBBLE_REQUEST_TOKEN_EXPIRY) 
+
+    // Check address has changed or token has expired
+    if (!sb_compare_addresses($shipbubbleDeliveryAddress, $orderAddress) || $hrsInterval > SHIPBUBBLE_REQUEST_TOKEN_EXPIRY || $orderPhone != $shippingPhone)
     {
-        $regenerateToken = true;
-        $reason = 'TOKEN_EXPIRED';
+        $disable = true;
+	    $disabled = "disabled='disabled'";
     }
 
-    // Check address has changed under 48hrs to enable flag
-    if (!sb_compare_addresses($shipbubbleDeliveryAddress, $orderAddress) && $hrsInterval < SHIPBUBBLE_REQUEST_TOKEN_EXPIRY) 
-    {
-        $regenerateToken = true;
-        $reason = 'ADDRESS_CHANGED';
-    }
 
-    if ($regenerateToken && !is_null($shipment)) 
-    {
-        // regenerate token
-        $regeneratedMeta = shipbubble_regenerate_rate_token($order, $shipment, $reason);
-        
-        // update db
-        if (count($regeneratedMeta) && isset($regeneratedMeta['request_token'])) {
-            // set order id to meta
-            $regeneratedMeta['order_id'] = $order_id;
-            $serializedShipment = serialize($regeneratedMeta);
-
-            update_post_meta($order_id, 'shipbubble_shipment_details', $serializedShipment);
-            update_post_meta($order_id, 'shipbubble_delivery_address', $orderAddress);
-        } else {
-            if (isset($regeneratedMeta['errors'])) {
-                $message = $regeneratedMeta["errors"] . ' when regenerating shipbubble token';
-                $output = '<div id="message" class="notice notice-warning is-dismissible">
-                    <p>'. $message . '</p>
-                    
-                    <button type="button" class="notice-dismiss">
-                        <span class="screen-reader-text">Dismiss this notice.</span>
-                    </button>
-                </div>';
-
-                echo $output;
-            }
-        }
+    if (!$disable) {
+	    $style = "background-color: #FF5170; color: #FFF; padding: 4px 16px; border: 1px solid #FF5170; border-radius: 3px; cursor: pointer;";
     }
 
 ?>
     <?php if (strlen($shipbubbleOrderId) < 1 && !is_null($shipment)): ?>
         <input type="hidden" id="wc_order_id" name="wc_order_id" value='<?php echo esc_html($order->get_id()); ?>' />
 
-        <button id="create-shipment" style="background-color: #FF5170; color: #FFF; padding: 4px 16px; border: 1px solid #FF5170; border-radius: 3px; cursor: pointer;">
+        <button id="create-shipment" style="<?php echo $style?>" <?php echo $disabled ?>>
             Create Shipment via Shipbubble
         </button>
     <?php endif; ?>

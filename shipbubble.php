@@ -211,6 +211,7 @@ function shipbubble_update_order_meta_on_checkout($order_id)
 	$city = sanitize_text_field($_POST['shipping_city']);
 	$stateTag = sanitize_text_field($_POST['shipping_state']);
 	$countryTag = sanitize_text_field($_POST['shipping_country']);
+	$phone = sanitize_text_field($_POST['billing_phone']);
 
 	if (strlen($streetAddress) < 1) {
 		$streetAddress = sanitize_text_field($_POST['billing_address_1']);
@@ -262,12 +263,15 @@ function shipbubble_update_order_meta_on_checkout($order_id)
 
 			// setting the delivery address
 			update_post_meta($order_id, 'shipbubble_delivery_address', $address);
+
+			// setting the phone number
+			update_post_meta($order_id, 'shipbubble_delivery_phone', $phone);
 		}
 	}
 }
 
 // add_action( 'woocommerce_checkout_order_processed', 'handle_processed', 10, 1 );
-// function handle_processed($order_id) 
+// function handle_processed($order_id)
 // {
 // 	$order = new WC_Order( $order_id );
 // 	$shipping_items = $order->get_items('shipping');
@@ -333,6 +337,66 @@ function shipbubble_create_shipment_after_order_created($order_id)
 	// Flag the action as done (to avoid repetitions on reload for example)
 	$order->update_meta_data('_thankyou_action_done', true);
 	$order->save();
+}
+
+add_action( 'woocommerce_before_checkout_process', 'shipbubble_validate_checkout_order' , 10, 1 );
+add_action( 'woocommerce_checkout_order_processed', 'shipbubble_validate_checkout_order', 10, 1 );
+function shipbubble_validate_checkout_order($order_id)
+{
+	$order = new WC_Order( $order_id );
+	$shipping_items = $order->get_items('shipping');
+	$shipping_total = $order->get_shipping_total();
+	$payment_method = isset($_POST['payment_method']) ? $_POST['payment_method'] : '';
+	$enabled_gateways = [];
+	$delete_order = false;
+
+	$gateways = WC()->payment_gateways->get_available_payment_gateways();
+	if($gateways) {
+		foreach($gateways as $gateway ) {
+			if( $gateway->is_available() ) {
+				$enabled_gateways[] = $gateway->id;
+			}
+		}
+	}
+
+	// Assume all products are virtual until proven otherwise
+    $all_virtual = true;
+
+	// Loop through order items
+    foreach ($order->get_items() as $item_id => $item) {
+        $product = $item->get_product();
+
+        // Check if the product is virtual
+        if (!$product || !$product->is_virtual()) {
+            $all_virtual = false;
+            break; // Exit the loop early if a non-virtual product is found
+        }
+    }
+
+	// Get the selected shipping method from the checkout object
+	$chosen_shipping_method = WC()->checkout->get_value('shipping_method');
+
+	// check
+	if (!$all_virtual && !empty($payment_method) && !empty($enabled_gateways)) {
+		if (in_array($payment_method, $enabled_gateways)) {
+			// check shipping items is empty or shipping total is 0
+            if (empty($shipping_items) || $shipping_total == "0") {
+                $delete_order = true;
+				error_log(print_r('empty or 0', true));
+            }
+
+            // check that shipbubble is in use and shipping total is 0
+            if (!empty($chosen_shipping_method) && $chosen_shipping_method[0] == SHIPBUBBLE_ID && $shipping_total == "0") {
+                $delete_order = true;
+				error_log(print_r('selected sb & 0', true));
+            }
+		}
+	}
+
+	if ($delete_order) {
+        $order->delete();
+        wp_send_json_error();
+    }
 }
 
 function shipbubble_append_enqueue_script()
