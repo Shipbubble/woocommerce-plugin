@@ -51,13 +51,14 @@ function shipbubble_on_activation()
 {
 	if (!current_user_can('activate_plugins')) return;
 
+	$data = array('initialized' => true, 'account_status' => false);
 	if (get_option('shipbubble_init')) {
-		$data = array('initialized' => true, 'account_status' => false);
 		update_option('shipbubble_init', $data);
 	} else {
-		$data = array('initialized' => true, 'account_status' => false);
 		add_option('shipbubble_init', $data);
 	}
+
+	add_option('shipbubble_first_time_redirection', true);
 }
 
 register_activation_hook(__FILE__, 'shipbubble_on_activation');
@@ -111,6 +112,17 @@ function shipbubble_wc_api_init()
 	require_once plugin_dir_path(__FILE__) . 'public/woocommerce/enqueue-styles.php';
 	// }
 }
+
+function shipbubble_settings_redirect() {
+
+	if( !in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ) ) ) return;
+
+	if (get_option('shipbubble_first_time_redirection', false)) {
+		delete_option('shipbubble_first_time_redirection');
+		exit(wp_redirect(SHIPBUBBLE_EXT_BASE_URL  . '/wp-admin/admin.php?page=wc-settings&tab=shipping&section=shipbubble_shipping_services'));
+	}
+}
+add_action('admin_init', 'shipbubble_settings_redirect');
 
 
 // Disable Shipping methods if not in checkout page
