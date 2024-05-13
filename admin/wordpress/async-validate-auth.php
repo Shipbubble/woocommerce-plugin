@@ -4,7 +4,7 @@
     function ajax_admin_enqueue_scripts( $hook ) 
     {
         // check if our page
-        if ( 'toplevel_page_shipbubble' !== $hook ) return;
+//        if ( 'toplevel_page_shipbubble' !== $hook ) return;
         
         // define script url
         $script_url = plugins_url( '/js/ajax-validate-auth.js', plugin_dir_path( __FILE__ ) );

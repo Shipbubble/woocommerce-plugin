@@ -4,15 +4,14 @@
 
     $(document).ready(function () {
 
-        var api_key_input = $('#shipbubble_options_form #shipbubble_options_shipbubble_api_key');
-        var api_key_note = $('.form_note_shipbubble_api_key');
-        var btn = $('form#shipbubble_options_form input#submit');
+        var mainform = $('form#mainform');
+        var btn = mainform.find('button[type="submit"]');
+        var api_key_input =  mainform.find('#woocommerce_shipbubble_shipping_services_api_key');
+        var api_key_note = $('<p class="form_note_shipbubble_api_key"></p>').insertAfter(api_key_input);
 
         btn.attr('disabled', true);
 
-        let link = $('#shipbubble_link_directive');
 
-        // when user submits the form
         api_key_input.on('change', function (event) {
 
             // prevent form submission
@@ -21,18 +20,15 @@
             // define url
             var api_key = $(this).val();
 
-            if (api_key.length > 10 && api_key.startsWith('sb_prod')) {
+            if (api_key.length > 10) {
                 api_key_note.text('Validating your API Key...');
 
-                link.remove();
                 validate_shipbubble_api_key(api_key);
             } else {
                 api_key_note.text('Please Provide your shipbubble production API Key');
                 api_key_note.css('color', 'red');
 
-                link.remove();
             }
-
         });
 
         function validate_shipbubble_api_key(api_key) {
@@ -65,8 +61,6 @@
                         api_key_input.css('border', '1px solid red');
                         api_key_note.css('color', 'red');
                         api_key_note.text('API Key is invalid, try again');
-
-                        link.remove();
                     }
                 } else {
                     btn.attr('disabled', true);

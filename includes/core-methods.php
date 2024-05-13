@@ -3,9 +3,9 @@
 
 function shipbubble_get_token(): string
 {
-    $options = get_option('shipbubble_options', shipbubble_options_default());
+    $options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
 
-    return isset($options['shipbubble_api_key']) ? sanitize_text_field($options['shipbubble_api_key']) : '';
+    return isset($options['api_key']) ? sanitize_text_field($options['api_key']) : '';
 }
 
 function shipbubble_base_response($status = null, $message = null, $data = null)

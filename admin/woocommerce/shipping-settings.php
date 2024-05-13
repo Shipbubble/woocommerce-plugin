@@ -41,12 +41,7 @@
 
                         $this->display_errors();
 
-                        $response = shipbubble_get_wallet_balance(shipbubble_get_token());
-    
-                        // Load the settings API
-                        if (isset($response->response_code) && $response->response_code == SHIPBUBBLE_RESPONSE_IS_OK) {
-                            $this->init_form_fields(); // This is part of the settings API. Override the method to add your own settings
-                        }
+						$this->init_form_fields(); // This is part of the settings API. Override the method to add your own settings
 
                         $this->init_settings(); // This is part of the settings API. Loads settings you previously init.
 
@@ -57,87 +52,102 @@
 
                     public function init_form_fields()
                     {
-                        $countries_obj   = new WC_Countries();
-                        $countries   = $countries_obj->__get('countries');
-                        $default_country = $countries_obj->get_base_country();
-                        
-                        // $courier_options = shipbubble_courier_options();
-                        $categories_options = shipbubble_get_order_categories();
+	                    $response = shipbubble_get_wallet_balance(shipbubble_get_token());
 
-                        // $isEnabled = '<br><div class="sb-activated-not">Not Activated for use</div>';
-                        // if ($this->get_option('activate_shipbubble', 'no') == 'yes') {
-                        //     $isEnabled = '<br><div class="sb-activated-success">Activated for use</div>';
-                        // }
 
-                        // $this->method_description .= $isEnabled;
+	                    // Load the settings API
+	                    if (isset($response->response_code) && $response->response_code == SHIPBUBBLE_RESPONSE_IS_OK) {
+		                    $countries_obj = new WC_Countries();
+		                    $countries = $countries_obj->__get('countries');
+		                    $default_country = $countries_obj->get_base_country();
 
-                        $this->form_fields = array(
-                            'activate_shipbubble' => array(
-                                'title'         => __( 'Activate to use', 'woocommerce' ),
-                                'type'             => 'checkbox',
-                                'description'     => __( 'Activate Shipubble on Checkout.', 'woocommerce' ),
-                                'default'        => __( 'no', 'woocommerce' ),
-                            ),
-                            'sender_name' => array(
-                                'title'         => __( 'Sender\'s Name', 'woocommerce' ),
-                                'type'             => 'text',
-                                'class' => 'address_form_field',
-                                'description'     => __( 'This is the first and last name of the sender sender.', 'woocommerce' ),
-                                'placeholder'        => __( 'Store Sender Name', 'woocommerce' ),
-                            ),
-                            'sender_phone' => array(
-                                'title'         => __( 'Sender\'s Phone Number', 'woocommerce' ),
-                                'type'             => 'text',
-                                'class' => 'address_form_field',
-                                'description'     => __( 'This is the phone number of the sender.', 'woocommerce' ),
-                            ),
-                            'sender_email' => array(
-                                'title'         => __( 'Sender\'s Email Address', 'woocommerce' ),
-                                'type'             => 'text',
-                                'class' => 'address_form_field',
-                                'description'     => __( 'This is the email of the sender.', 'woocommerce' ),
-                            ),
-                            'pickup_address' => array(
-                                'title'         => __( 'Sender Address', 'woocommerce' ),
-                                'type'             => 'text',
-                                'class' => 'address_form_field',
-                                'description'     => __( 'This is the address setup for pickup.', 'woocommerce' ),
-                                'default'        => __( '', 'woocommerce' ),
-                                // 'custom_attributes' => array('readonly' => 'readonly')
-                            ),
-                            'pickup_state' => array(
-                                'title'         => __( 'Sender State', 'woocommerce' ),
-                                'type'             => 'text',
-                                'class' => 'address_form_field',
-                            ),
-                            'pickup_country' => array(
-                                'title'         => __( 'Sender Country', 'woocommerce' ),
-                                'type'             => 'select',
-                                'class' => 'address_form_field',
-                                'options' => $countries,
-                                'default'        => __( $default_country, 'woocommerce' ),
-                            ),
-                            'store_category' => array(
-                                'title'         => __( 'Store Category', 'woocommerce' ),
-                                'type'             => 'select',
-                                'options' => $categories_options,
-                                'custom_attributes' => array('required' => 'required')
-                                // 'default'        => __( '', 'woocommerce' ),
-                            ),
-                            'disable_other_shipping_methods' => array(
-                                'title'         => __( 'Disable Other Shipping Method', 'woocommerce' ),
-                                'type'             => 'checkbox',
-                                'description'     => __( 'Shipbubble will disable other shipping methods.', 'woocommerce' ),
-                                'default'        => __( 'no', 'woocommerce' ),
-                            ),
-                            'address_code' => array(
-                                // 'title'         => __( 'Address Code', 'woocommerce' ),
-                                'type'             => 'hidden',
-                                // 'description'     => __( 'This is the address code setup for pickup (66502255).', 'woocommerce' ),
-                                'default'        => __( '0', 'woocommerce' ),
-                                // 'custom_attributes' => array('readonly' => 'readonly')
-                            ),
-                        );
+		                    // $courier_options = shipbubble_courier_options();
+		                    $categories_options = shipbubble_get_order_categories();
+
+		                    // $isEnabled = '<br><div class="sb-activated-not">Not Activated for use</div>';
+		                    // if ($this->get_option('activate_shipbubble', 'no') == 'yes') {
+		                    //     $isEnabled = '<br><div class="sb-activated-success">Activated for use</div>';
+		                    // }
+
+		                    // $this->method_description .= $isEnabled;
+
+		                    $this->form_fields = array(
+			                    'activate_shipbubble' => array(
+				                    'title' => __('Activate to use', 'woocommerce'),
+				                    'type' => 'checkbox',
+				                    'description' => __('Activate Shipubble on Checkout.', 'woocommerce'),
+				                    'default' => __('no', 'woocommerce'),
+			                    ),
+			                    'sender_name' => array(
+				                    'title' => __('Sender\'s Name', 'woocommerce'),
+				                    'type' => 'text',
+				                    'class' => 'address_form_field',
+				                    'description' => __('This is the first and last name of the sender sender.', 'woocommerce'),
+				                    'placeholder' => __('Store Sender Name', 'woocommerce'),
+			                    ),
+			                    'sender_phone' => array(
+				                    'title' => __('Sender\'s Phone Number', 'woocommerce'),
+				                    'type' => 'text',
+				                    'class' => 'address_form_field',
+				                    'description' => __('This is the phone number of the sender.', 'woocommerce'),
+			                    ),
+			                    'sender_email' => array(
+				                    'title' => __('Sender\'s Email Address', 'woocommerce'),
+				                    'type' => 'text',
+				                    'class' => 'address_form_field',
+				                    'description' => __('This is the email of the sender.', 'woocommerce'),
+			                    ),
+			                    'pickup_address' => array(
+				                    'title' => __('Sender Address', 'woocommerce'),
+				                    'type' => 'text',
+				                    'class' => 'address_form_field',
+				                    'description' => __('This is the address setup for pickup.', 'woocommerce'),
+				                    'default' => __('', 'woocommerce'),
+				                    // 'custom_attributes' => array('readonly' => 'readonly')
+			                    ),
+			                    'pickup_state' => array(
+				                    'title' => __('Sender State', 'woocommerce'),
+				                    'type' => 'text',
+				                    'class' => 'address_form_field',
+			                    ),
+			                    'pickup_country' => array(
+				                    'title' => __('Sender Country', 'woocommerce'),
+				                    'type' => 'select',
+				                    'class' => 'address_form_field',
+				                    'options' => $countries,
+				                    'default' => __($default_country, 'woocommerce'),
+			                    ),
+			                    'store_category' => array(
+				                    'title' => __('Store Category', 'woocommerce'),
+				                    'type' => 'select',
+				                    'options' => $categories_options,
+				                    'custom_attributes' => array('required' => 'required')
+				                    // 'default'        => __( '', 'woocommerce' ),
+			                    ),
+			                    'disable_other_shipping_methods' => array(
+				                    'title' => __('Disable Other Shipping Method', 'woocommerce'),
+				                    'type' => 'checkbox',
+				                    'description' => __('Shipbubble will disable other shipping methods.', 'woocommerce'),
+				                    'default' => __('no', 'woocommerce'),
+			                    ),
+			                    'address_code' => array(
+				                    // 'title'         => __( 'Address Code', 'woocommerce' ),
+				                    'type' => 'hidden',
+				                    // 'description'     => __( 'This is the address code setup for pickup (66502255).', 'woocommerce' ),
+				                    'default' => __('0', 'woocommerce'),
+				                    // 'custom_attributes' => array('readonly' => 'readonly')
+			                    ),
+		                    );
+	                    } else {
+		                    $this->form_fields = array(
+			                    'api_key' => array(
+				                    'title' => __('Shipbubble API Key', 'woocommerce'),
+				                    'type' => 'text',
+				                    'description' => __('', 'woocommerce'),
+				                    'placeholder' => 'sb_prod_xxxxxxxxxxxxxxxxxxxxx'
+			                    ),
+		                    );
+	                    }
                         
                     }
 
