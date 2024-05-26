@@ -124,6 +124,15 @@ function shipbubble_settings_redirect() {
 }
 add_action('admin_init', 'shipbubble_settings_redirect');
 
+function shipbubble_show_plugin_settings_link($links, $file) {
+	if (plugin_basename(__FILE__) == $file) {
+		$settings_link = '<a href="admin.php?page=wc-settings&tab=shipping&section=shipbubble_shipping_services">' . __('Settings', 'all-in-one-wp-security-and-firewall') . '</a>';
+		array_unshift($links, $settings_link);
+	}
+	return $links;
+}
+add_filter('plugin_action_links', 'shipbubble_show_plugin_settings_link', 10, 2);
+
 
 // Disable Shipping methods if not in checkout page
 add_filter('woocommerce_package_rates', 'shipbubble_keep_shipping_methods_on_checkout', 100, 2);
