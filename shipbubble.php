@@ -24,10 +24,6 @@ if (!defined('ABSPATH')) {
 // if  admin area
 if (is_admin()) {
 	// include dependencies
-	require_once plugin_dir_path(__FILE__) . 'admin/wordpress/settings-menu.php';
-	require_once plugin_dir_path(__FILE__) . 'admin/wordpress/settings-page.php';
-	require_once plugin_dir_path(__FILE__) . 'admin/wordpress/settings-register.php';
-	require_once plugin_dir_path(__FILE__) . 'admin/wordpress/settings-callback.php';
 	require_once plugin_dir_path(__FILE__) . 'admin/wordpress/async-validate-auth.php';
 
 	// Woocommerce
