@@ -140,6 +140,12 @@
 		                    );
 	                    } else {
 		                    $this->form_fields = array(
+			                    'sandbox_mode' => array(
+				                    'title' => __('Use sandbox key', 'woocommerce'),
+				                    'type' => 'checkbox',
+				                    'description' => __('Please do not use sandbox mode on a live website', 'woocommerce'),
+				                    'default' => __('no', 'woocommerce'),
+			                    ),
 			                    'api_key' => array(
 				                    'title' => __('Shipbubble API Key', 'woocommerce'),
 				                    'type' => 'text',

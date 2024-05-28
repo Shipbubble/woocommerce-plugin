@@ -11,12 +11,26 @@
         if (api_key_input.length) {
             var api_key_note = $('<p class="form_note_shipbubble_api_key"></p>').insertAfter(api_key_input);
 
+            var sanbox_checkbox = mainform.find('#woocommerce_shipbubble_shipping_services_sandbox_mode')
+
+            sanbox_checkbox.on('change', function (){
+                if (sanbox_checkbox.is(':checked')) {
+                    api_key_input.attr('placeholder', 'sb_sandbox_xxxxxxxxxxxxxxxxxxxxx');
+                } else {
+                    api_key_input.attr('placeholder', 'sb_prod_xxxxxxxxxxxxxxxxxxxxx');
+                }
+            })
+
 
             api_key_input.change(function (e) {
                 var api_key = $(this).val();
 
                 if (api_key.length < 10) {
-                    api_key_note.text('Please Provide your shipbubble production API Key');
+                    if (sanbox_checkbox.is(':checked')) {
+                        api_key_note.text('Please Provide your shipbubble sandbox API Key');
+                    } else {
+                        api_key_note.text('Please Provide your shipbubble production API Key');
+                    }
                     api_key_note.css('color', 'red');
                 } else  {
                     api_key_note.text('')
