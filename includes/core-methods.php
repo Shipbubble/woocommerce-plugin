@@ -5,12 +5,6 @@ function shipbubble_get_token(): string
 {
     $options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
 
-	if(empty($options['api_key'])) {
-		$old_options = get_option('shipbubble_options', shipbubble_options_default());
-		$options['api_key'] = isset($old_options['shipbubble_api_key']) ? sanitize_text_field($old_options['shipbubble_api_key']) : '';
-		update_option(WC_SHIPBUBBLE_ID, $options);
-	}
-
     return isset($options['api_key']) ? sanitize_text_field($options['api_key']) : '';
 }
 

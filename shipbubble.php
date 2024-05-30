@@ -47,7 +47,7 @@ function shipbubble_on_activation()
 {
 	if (!current_user_can('activate_plugins')) return;
 
-	$data = array('initialized' => true, 'account_status' => false);
+	$data = array('initialized' => true, 'account_status' => false, 'address_validated' => false);
 	if (get_option('shipbubble_init')) {
 		update_option('shipbubble_init', $data);
 	} else {
@@ -65,7 +65,7 @@ function shipbubble_on_deactivation()
 {
 	if (!current_user_can('activate_plugins')) return;
 
-	$data = array('initialized' => false, 'account_status' => false);
+	$data = array('initialized' => false, 'account_status' => false, 'address_validated' => false);
 	update_option('shipbubble_init', $data);
 }
 
@@ -89,6 +89,8 @@ function shipbubble_wc_options_default(): array
 		'user_can_ship' => 'yes',
 		'activate_shipbubble' => 'no',
 		'disable_other_shipping_methods' => 'no',
+		'api_key' => '',
+		'sandbox_mode' => 'no'
 	);
 }
 
@@ -107,6 +109,31 @@ function shipbubble_wc_api_init()
 	require_once plugin_dir_path(__FILE__) . 'public/woocommerce/checkout.php';
 	require_once plugin_dir_path(__FILE__) . 'public/woocommerce/enqueue-styles.php';
 	// }
+
+	$version = '2.5';
+	$shipbubble_version = get_option(SHIPBUBBLE_PLUGIN_VERSION, '');
+
+	// Check if the shipbubble_version is empty or less than the specified version
+	if (empty($shipbubble_version) || version_compare($shipbubble_version, $version, '<')) {
+		// Get the current options
+		$options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
+
+		// If the API key is not set, try to get it from the old options
+		if (empty($options['api_key'])) {
+			$old_options = get_option('shipbubble_options', shipbubble_options_default());
+			$options['api_key'] = isset($old_options['shipbubble_api_key']) ? sanitize_text_field($old_options['shipbubble_api_key']) : '';
+			update_option(WC_SHIPBUBBLE_ID, $options);
+		}
+
+		if (!empty($options['api_key'])) {
+			$data = array('initialized' => true, 'account_status' => true, 'address_validated' => false);
+			update_option('shipbubble_init', $data);
+		}
+
+		// Update the shipbubble version in the database
+		update_option(SHIPBUBBLE_PLUGIN_VERSION, $version);
+	}
+
 }
 
 function shipbubble_settings_redirect() {

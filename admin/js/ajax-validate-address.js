@@ -42,15 +42,28 @@
                 // prevent form submission
                 event.preventDefault();
 
-                // define url
                 var api_key = api_key_input.val();
+                var sandbox_mode = sanbox_checkbox.is(":checked");
 
-                if (api_key.length > 10) { // todo check for production and test keys
+                if (api_key.length > 10) {
+                    if (sandbox_mode) {
+                        if (!api_key.startsWith('sb_sandbox')) {
+                            api_key_note.text('Please Provide your shipbubble sandbox API Key');
+                            api_key_note.css('color', 'red');
+                            return;
+                        }
+                    } else {
+                        if (!api_key.startsWith('sb_prod')) {
+                            api_key_note.text('Please Provide your shipbubble production API Key');
+                            api_key_note.css('color', 'red');
+                            return;
+                        }
+                    }
                     api_key_note.text('Validating your API Key...');
                     api_key_note.css('color', 'black');
                     api_key_input.css('border', '1px solid black');
 
-                    validate_shipbubble_api_key(api_key);
+                    validate_shipbubble_api_key(api_key, sandbox_mode);
                 } else {
                     api_key_note.text('Please Provide your shipbubble API Key');
                     api_key_note.css('color', 'red');
@@ -58,13 +71,14 @@
                 }
             });
 
-            function validate_shipbubble_api_key(api_key) {
+            function validate_shipbubble_api_key(api_key, sandbox_mode) {
+                disableForm('#mainform')
                 formBtn.attr('disabled', true);
                 $.post(ajaxurl, {
                     nonce: ajax_wc_admin.nonce,
                     action: 'validate_api_key',
                     // url:    url
-                    data: { api_key },
+                    data: { api_key, sandbox_mode },
                     dataType: 'json'
                 }, function (data) {
 
@@ -88,10 +102,8 @@
                             });
 
                             setTimeout(function () {
-                                mainform.submit()
+                                window.location.reload();
                             }, 3000);
-
-
                         } else {
 
                             formBtn.attr('disabled', false);
@@ -108,6 +120,7 @@
                                 showConfirmButton: false,
                                 timer: 4500
                             });
+                            enableForm('#mainform')
                         }
                     } else {
                         formBtn.attr('disabled', false);
@@ -123,6 +136,7 @@
                             showConfirmButton: false,
                             timer: 4500
                         });
+                        enableForm('#mainform')
                     }
 
                 }).fail(function (){
@@ -139,6 +153,7 @@
                         showConfirmButton: false,
                         timer: 4500
                     });
+                    enableForm('#mainform')
                 });
             }
         } else {
@@ -230,5 +245,13 @@
         }
 
     });
+
+    function disableForm(formID){
+        $(formID + ' input').prop('disabled', true);
+    }
+
+    function enableForm(formID){
+        $(formID + ' input').prop('disabled', false);
+    }
 
 })(jQuery);

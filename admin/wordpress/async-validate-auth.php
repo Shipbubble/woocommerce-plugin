@@ -9,8 +9,23 @@
         if ( ! current_user_can( 'manage_options' ) ) return;
 
         $apiKey = sanitize_text_field($_POST['data']['api_key']);
+		$sandboxMode = sanitize_text_field($_POST['data']['sandbox_mode']) ?? false;
 
-        echo json_encode(shipbubble_get_wallet_balance($apiKey)); 
+		$result = shipbubble_get_wallet_balance($apiKey);
+
+		if (isset($result->response_code) && '200' == $result->response_code) {
+			$shipbubble_init = get_option('shipbubble_init');
+			$shipbubble_init['account_status'] = true;
+
+			$options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
+			$options['api_key'] = $apiKey;
+			$options['sandbox_mode'] = $sandboxMode ? 'yes' : 'no';
+
+			update_option(WC_SHIPBUBBLE_ID, $options);
+			update_option('shipbubble_init', $shipbubble_init);
+		}
+
+        echo json_encode($result);
 
         // end processing
         wp_die();
