@@ -18,11 +18,11 @@
 			$shipbubble_init['account_status'] = true;
 			$shipbubble_init['address_validated'] = false;
 
-//			$options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
-//			$options['api_key'] = $apiKey;
-//			$options['sandbox_mode'] = $sandboxMode ? 'yes' : 'no';
+			$options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
+			$options['api_key'] = $apiKey;
+			$options['sandbox_mode'] = $sandboxMode ? 'yes' : 'no';
 
-//			update_option(WC_SHIPBUBBLE_ID, $options);
+			update_option(WC_SHIPBUBBLE_ID, $options);
 			update_option( SHIPBUBBLE_INIT, $shipbubble_init);
 		}
 

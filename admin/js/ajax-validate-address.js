@@ -68,7 +68,7 @@
             });
 
             function validate_shipbubble_api_key(api_key, sandbox_mode) {
-                disableForm('#mainform')
+                disableForm()
                 formBtn.attr('disabled', true);
                 $.post(ajaxurl, {
                     nonce: ajax_wc_admin.nonce,
@@ -98,6 +98,7 @@
                             });
 
                             jQuery("#mainform").off('submit').submit();
+                            jQuery("#mainform").submit();
                         } else {
 
                             formBtn.attr('disabled', false);
@@ -114,7 +115,7 @@
                                 showConfirmButton: false,
                                 timer: 4500
                             });
-                            enableForm('#mainform')
+                            enableForm()
                         }
                     } else {
                         formBtn.attr('disabled', false);
@@ -130,7 +131,7 @@
                             showConfirmButton: false,
                             timer: 4500
                         });
-                        enableForm('#mainform')
+                        enableForm()
                     }
 
                 }).fail(function (){
@@ -147,7 +148,7 @@
                         showConfirmButton: false,
                         timer: 4500
                     });
-                    enableForm('#mainform')
+                    enableForm()
                 });
             }
         } else {
@@ -158,33 +159,64 @@
             var addressCodeField = mainform.find('#woocommerce_shipbubble_shipping_services_address_code');
             var senderState = mainform.find('#woocommerce_shipbubble_shipping_services_pickup_state');
             var senderCountry = mainform.find('#woocommerce_shipbubble_shipping_services_pickup_country');
+            var activateShipbubble = mainform.find('#woocommerce_shipbubble_shipping_services_activate_shipbubble');
+            var disableOthers = mainform.find('#woocommerce_shipbubble_shipping_services_disable_other_shipping_methods');
+            var storeCategory = mainform.find('#woocommerce_shipbubble_shipping_services_disable_other_shipping_methods');
 
             const addressCodeInitValue = addressCodeField.val();
 
-            if (senderName.val() == '' && senderPhone.val() == '' && senderEmail.val() == '' &&
-                senderAddress.val() == '' && senderState.val() == '' && senderCountry.find('option:selected').val() == ''
-            ) {
-                formBtn.attr('disabled', true);
-            } else {
-                formBtn.attr('disabled', false);
-            }
+           mainform.submit(function (e) {
 
-            $('.address_form_field').change(function (e) {
-                e.preventDefault();
-
+               e.preventDefault();
                 formBtn.attr('disabled', true);
+                disableForm()
 
                 if (senderName.val() != '' && senderPhone.val() != '' && senderEmail.val() != '' &&
                     senderAddress.val() != '' && senderState.val() != '' && senderCountry.find('option:selected').val() != ''
                 ) {
-                    var addressPayload = {
+                    let addressPayload = {
                         name: senderName.val(),
                         phone: senderPhone.val(),
                         email: senderEmail.val(),
-                        address: `${senderAddress.val()}, ${senderState.val()}, ${senderCountry.find('option:selected').text()}`
+                        address: `${senderAddress.val()}, ${senderState.val()}, ${senderCountry.find('option:selected').text()}`,
+                        store_category: storeCategory.val(),
+                        pickup_country: senderCountry.val(),
+                        activate_shipbubble: activateShipbubble.is(':checked') ? 'yes' : 'no',
+                        disable_other_shipping_methods: disableOthers.is(':checked') ? 'yes' : 'no'
                     };
 
-                    validate_sender_address(addressPayload);
+                  validate_sender_address(addressPayload)
+                } else {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Address Validation Failed',
+                        text: 'Required fields are empty',
+                        showConfirmButton: false,
+                        timer: 4500
+                    })
+
+                    if (!senderName.val()) {
+                        senderName.addClass('input-error')
+                    }
+
+                    if (!senderPhone.val()) {
+                        senderPhone.addClass('input-error')
+                    }
+
+                    if (!senderEmail.val()) {
+                        senderEmail.addClass('input-error')
+                    }
+
+                    if (!senderState.val()) {
+                        senderState.addClass('input-error')
+                    }
+
+                    if (!senderCountry.val()) {
+                        senderCountry.addClass('input-error')
+                    }
+
+                    formBtn.attr('disabled', false);
+                    enableForm();
                 }
 
             });
@@ -207,6 +239,14 @@
 
                             formBtn.attr('disabled', false);
 
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Address Validation success',
+                                text: `${response['message']}`,
+                                showConfirmButton: false,
+                                timer: 4500
+                            });
+                            enableForm()
                         } else {
                             Swal.fire({
                                 icon: 'warning',
@@ -219,6 +259,7 @@
                             addressCodeField.val(addressCodeInitValue);
 
                             formBtn.attr('disabled', true);
+                            enableForm()
                         }
                     } else {
                         Swal.fire({
@@ -232,20 +273,31 @@
                         addressCodeField.val(addressCodeInitValue);
 
                         formBtn.attr('disabled', true);
+                        enableForm()
                     }
 
+                }).fail(function (){
+                    formBtn.attr('disabled', false);
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Address Validation Failed',
+                        text: 'Something went wrong please try again later',
+                        showConfirmButton: false,
+                        timer: 4500
+                    });
+                    enableForm()
                 });
             }
         }
 
     });
 
-    function disableForm(formID){
-        $(formID + ' input').prop('disabled', true);
+    function disableForm(){
+        $('#mainform input, select').prop('disabled', true).removeClass('input-error');
     }
 
-    function enableForm(formID){
-        $(formID + ' input').prop('disabled', false);
+    function enableForm(){
+        $('#mainform input, select').prop('disabled', false);
     }
 
 })(jQuery);

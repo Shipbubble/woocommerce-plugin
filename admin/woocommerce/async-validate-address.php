@@ -38,7 +38,7 @@
 
         $payload = array_map( 'sanitize_text_field', $_POST['data']['payload'] );
 
-        $data = isset( $payload ) ? (array) $payload : array();
+        $data = $payload;
 
         // Any of the WordPress data sanitization functions can be used here
 
@@ -57,6 +57,28 @@
                 sanitize_text_field($data['phone']), 
                 sanitize_text_field($data['address'])
             );
+
+	        if ('200' == $response->response_code) {
+		        $shipbubble_init = get_option(SHIPBUBBLE_INIT);
+		        $shipbubble_init['address_validated'] = true;
+		        $options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
+		        $options["activate_shipbubble"] = $data['activate_shipbubble'];
+				$options['sender_name'] = sanitize_text_field($data['name']);
+		        $options['sender_email'] = sanitize_email($data['email']);
+				$options['sender_phone'] =  sanitize_text_field($data['phone']);
+		        $options['store_category'] = sanitize_text_field($data['store_category']);
+				$options['address_code'] = $response->data->address_code;
+				$options['disable_other_shipping_methods'] = sanitize_text_field($data['disable_other_shipping_methods']);
+				$address = sanitize_text_field($data['address']);
+				$address = explode(',', $address);
+		        $options['pickup_address'] = isset($address[0]) ? trim($address[0]) : '';
+		        $options['pickup_state'] = isset($address[1]) ? trim($address[1]) : '';
+		        $options['pickup_country'] = sanitize_text_field($data['pickup_country']);
+
+
+		        update_option( SHIPBUBBLE_INIT, $shipbubble_init);
+		        update_option( WC_SHIPBUBBLE_ID, $options);
+	        }
 
             // echo json_encode('heere');
             echo json_encode($response);
