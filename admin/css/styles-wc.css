@@ -28,3 +28,31 @@
     border-radius: 20px; 
     font-weight: bold;
 }
+
+.form_note_shipbubble_api_key {
+    margin-top: 10px;
+}
+
+.form_note_shipbubble_api_key.error {
+    color: red;
+}
+
+.form_note_shipbubble_api_key.success {
+    color: green;
+}
+
+.form_note_shipbubble_api_key.validating {
+    color: black;
+}
+
+.input-error {
+    border: 1px solid red;
+}
+
+.input-valid {
+    border: 2px solid green;
+}
+
+.input-validating {
+    border: 1px solid black;
+}

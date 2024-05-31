@@ -2,6 +2,7 @@
 
 define('SHIPBUBBLE_BASE_URL', 'https://staging-api.shipbubble.com/v1/shipping');
 define('SHIPBUBBLE_ID', 'shipbubble_shipping_services');
+define('SHIPBUBBLE_INIT', 'shipbubble_init');
 define('WC_SHIPBUBBLE_ID', 'woocommerce_' . SHIPBUBBLE_ID . '_settings');
 define('SHIPBUBBLE_REQUEST_TOKEN_EXPIRY', 120); // hours
 define('SHIPBUBBLE_EP_REQUEST_TIMEOUT', 60);

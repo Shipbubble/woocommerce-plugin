@@ -14,6 +14,7 @@
  * Domain Path:  /languages
  * License: GPLv3 or later
  * License URI: https://www.gnu.org/licenses/gpl-3.0.html
+ * Requires Plugins: woocommerce
  */
 
 // exit if file is called directly
@@ -48,10 +49,10 @@ function shipbubble_on_activation()
 	if (!current_user_can('activate_plugins')) return;
 
 	$data = array('initialized' => true, 'account_status' => false, 'address_validated' => false);
-	if (get_option('shipbubble_init')) {
-		update_option('shipbubble_init', $data);
+	if (get_option(SHIPBUBBLE_INIT)) {
+		update_option(SHIPBUBBLE_INIT, $data);
 	} else {
-		add_option('shipbubble_init', $data);
+		var_dump(add_option(SHIPBUBBLE_INIT, $data));
 	}
 
 	add_option('shipbubble_first_time_redirection', true);
@@ -66,7 +67,7 @@ function shipbubble_on_deactivation()
 	if (!current_user_can('activate_plugins')) return;
 
 	$data = array('initialized' => false, 'account_status' => false, 'address_validated' => false);
-	update_option('shipbubble_init', $data);
+	update_option(SHIPBUBBLE_INIT, $data);
 }
 
 register_deactivation_hook(__FILE__, 'shipbubble_on_deactivation');
@@ -127,7 +128,7 @@ function shipbubble_wc_api_init()
 
 		if (!empty($options['api_key'])) {
 			$data = array('initialized' => true, 'account_status' => true, 'address_validated' => false);
-			update_option('shipbubble_init', $data);
+			update_option(SHIPBUBBLE_INIT, $data);
 		}
 
 		// Update the shipbubble version in the database
@@ -149,7 +150,7 @@ add_action('admin_init', 'shipbubble_settings_redirect');
 
 function shipbubble_show_plugin_settings_link($links, $file) {
 	if (plugin_basename(__FILE__) == $file) {
-		$settings_link = '<a href="admin.php?page=wc-settings&tab=shipping&section=shipbubble_shipping_services">' . __('Settings', 'all-in-one-wp-security-and-firewall') . '</a>';
+		$settings_link = '<a href="admin.php?page=wc-settings&tab=shipping&section=shipbubble_shipping_services">' . __('Settings', 'shipbubble') . '</a>';
 		array_unshift($links, $settings_link);
 	}
 	return $links;
@@ -459,3 +460,54 @@ function shipbubble_checkout_block_incompatibilty() {
 		\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'cart_checkout_blocks', __FILE__, false );
 	}
 }
+
+add_action('admin_init', 'hook_shipbubble_admin_notices');
+
+function hook_shipbubble_admin_notices() {
+	if (!current_user_can('update_plugins')) {
+		return;
+	}
+
+	global $pagenow;
+
+	// If it's not the admin dashboard page and not the Shipbubble shipping services page, then bail
+	if ('index.php' != $pagenow && !('admin.php' == $pagenow && isset($_GET['page']) && $_GET['page'] == 'wc-settings' && isset($_GET['tab']) && $_GET['tab'] == 'shipping' && isset($_GET['section']) && $_GET['section'] == 'shipbubble_shipping_services')) {
+		return;
+	}
+
+	add_action('all_admin_notices', 'render_shipbubble_admin_notices');
+}
+
+function render_shipbubble_admin_notices() {
+	$shipbubble_init = get_option(SHIPBUBBLE_INIT);
+	$shipbubble_options = get_option(WC_SHIPBUBBLE_ID);
+	$message = '';
+
+	$link = '<a href="admin.php?page=wc-settings&tab=shipping&section=shipbubble_shipping_services" style="text-decoration: underline; font-weight: bold;">%s</a>';
+
+	if (false == $shipbubble_init['account_status']) {
+		$message = sprintf(
+			__('Please %s your Shipbubble API Key to start shipping.', 'shipbubble'),
+			sprintf($link, __('setup', 'shipbubble'))
+		);
+	} elseif (false == $shipbubble_init['address_validated']) {
+		$message = sprintf(
+			__('Please complete your Shipbubble %s.', 'shipbubble'),
+			sprintf($link, __('setup', 'shipbubble'))
+		);
+	} elseif (isset($shipbubble_options['sandbox_mode']) && 'yes' == $shipbubble_options['sandbox_mode']) {
+		$message = __('Shipbubble sandbox mode is active, please do not use for a live site', 'shipbubble');
+	}
+
+	if (!empty($message)) {
+		?>
+		<div class="notice notice-info is-dismissible" style="padding: 15px; border-left: 4px solid #007cba; background-color: #f1f1f1;">
+			<p style="font-size: 14px; color: #333;">
+				<span style="font-weight: bold; display: inline-block; margin-bottom: 5px;"><?php _e('Shipbubble Notice:', 'shipbubble'); ?></span><br>
+				<?php echo $message; ?>
+			</p>
+		</div>
+		<?php
+	}
+}
+

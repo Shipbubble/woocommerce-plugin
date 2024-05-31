@@ -11,31 +11,31 @@
         if (api_key_input.length) {
             var api_key_note = $('<p class="form_note_shipbubble_api_key"></p>').insertAfter(api_key_input);
 
-            var sanbox_checkbox = mainform.find('#woocommerce_shipbubble_shipping_services_sandbox_mode')
+            var sandbox_checkbox = mainform.find('#woocommerce_shipbubble_shipping_services_sandbox_mode')
 
-            sanbox_checkbox.on('change', function (){
-                if (sanbox_checkbox.is(':checked')) {
+            // Set placeholder based on sandbox mode checkbox
+            sandbox_checkbox.on('change', function() {
+                if (sandbox_checkbox.is(':checked')) {
                     api_key_input.attr('placeholder', 'sb_sandbox_xxxxxxxxxxxxxxxxxxxxx');
                 } else {
                     api_key_input.attr('placeholder', 'sb_prod_xxxxxxxxxxxxxxxxxxxxx');
                 }
-            })
+            });
 
 
-            api_key_input.change(function (e) {
+            api_key_input.on('change', function() {
                 var api_key = $(this).val();
-
                 if (api_key.length < 10) {
-                    if (sanbox_checkbox.is(':checked')) {
-                        api_key_note.text('Please Provide your shipbubble sandbox API Key');
+                    if (sandbox_checkbox.is(':checked')) {
+                        api_key_note.text('Please Provide your Shipbubble sandbox API Key');
                     } else {
-                        api_key_note.text('Please Provide your shipbubble production API Key');
+                        api_key_note.text('Please Provide your Shipbubble production API Key');
                     }
-                    api_key_note.css('color', 'red');
-                } else  {
-                    api_key_note.text('')
+                    api_key_note.addClass('error');
+                } else {
+                    api_key_note.text('').removeClass('error');
                 }
-            })
+            });
 
             mainform.submit(function (event) {
 
@@ -43,32 +43,28 @@
                 event.preventDefault();
 
                 var api_key = api_key_input.val();
-                var sandbox_mode = sanbox_checkbox.is(":checked");
+                var sandbox_mode = sandbox_checkbox.is(":checked");
 
-                if (api_key.length > 10) {
-                    if (sandbox_mode) {
-                        if (!api_key.startsWith('sb_sandbox')) {
-                            api_key_note.text('Please Provide your shipbubble sandbox API Key');
-                            api_key_note.css('color', 'red');
-                            return;
-                        }
-                    } else {
-                        if (!api_key.startsWith('sb_prod')) {
-                            api_key_note.text('Please Provide your shipbubble production API Key');
-                            api_key_note.css('color', 'red');
-                            return;
-                        }
-                    }
-                    api_key_note.text('Validating your API Key...');
-                    api_key_note.css('color', 'black');
-                    api_key_input.css('border', '1px solid black');
-
-                    validate_shipbubble_api_key(api_key, sandbox_mode);
-                } else {
-                    api_key_note.text('Please Provide your shipbubble API Key');
-                    api_key_note.css('color', 'red');
-                    api_key_input.css('border', '1px solid red');
+                if (api_key.length <= 10) {
+                    api_key_note.text('Please Provide your Shipbubble API Key').addClass('error');
+                    api_key_input.addClass('input-error');
+                    return;
                 }
+
+                if (sandbox_mode && !api_key.startsWith('sb_sandbox')) {
+                    api_key_note.text('Please Provide your Shipbubble sandbox API Key').addClass('error');
+                    api_key_input.addClass('input-error');
+                    return;
+                } else if (!sandbox_mode && !api_key.startsWith('sb_prod')) {
+                    api_key_note.text('Please Provide your Shipbubble production API Key').addClass('error');
+                    api_key_input.addClass('input-error');
+                    return;
+                }
+
+                api_key_note.text('Validating your API Key...').removeClass('error').addClass('validating');
+                api_key_input.removeClass('input-error').addClass('input-validating');
+
+                validate_shipbubble_api_key(api_key, sandbox_mode);
             });
 
             function validate_shipbubble_api_key(api_key, sandbox_mode) {
@@ -101,9 +97,7 @@
                                 timer: 4500
                             });
 
-                            setTimeout(function () {
-                                window.location.reload();
-                            }, 3000);
+                            jQuery("#mainform").off('submit').submit();
                         } else {
 
                             formBtn.attr('disabled', false);

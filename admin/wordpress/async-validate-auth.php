@@ -13,16 +13,17 @@
 
 		$result = shipbubble_get_wallet_balance($apiKey);
 
-		if (isset($result->response_code) && '200' == $result->response_code) {
-			$shipbubble_init = get_option('shipbubble_init');
+		if ('200' == $result->response_code) {
+			$shipbubble_init = get_option(SHIPBUBBLE_INIT);
 			$shipbubble_init['account_status'] = true;
+			$shipbubble_init['address_validated'] = false;
 
-			$options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
-			$options['api_key'] = $apiKey;
-			$options['sandbox_mode'] = $sandboxMode ? 'yes' : 'no';
+//			$options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
+//			$options['api_key'] = $apiKey;
+//			$options['sandbox_mode'] = $sandboxMode ? 'yes' : 'no';
 
-			update_option(WC_SHIPBUBBLE_ID, $options);
-			update_option('shipbubble_init', $shipbubble_init);
+//			update_option(WC_SHIPBUBBLE_ID, $options);
+			update_option( SHIPBUBBLE_INIT, $shipbubble_init);
 		}
 
         echo json_encode($result);
