@@ -470,10 +470,10 @@ function hook_shipbubble_admin_notices() {
 
 	global $pagenow;
 
-	// If it's not the admin dashboard page and not the Shipbubble shipping services page, then bail
-	if ('index.php' != $pagenow && !('admin.php' == $pagenow && isset($_GET['page']) && $_GET['page'] == 'wc-settings' && isset($_GET['tab']) && $_GET['tab'] == 'shipping' && isset($_GET['section']) && $_GET['section'] == 'shipbubble_shipping_services')) {
-		return;
-	}
+//	// If it's not the admin dashboard page and not the Shipbubble shipping services page, then bail
+//	if ('index.php' != $pagenow && !('admin.php' == $pagenow && isset($_GET['page']) && $_GET['page'] == 'wc-settings' && isset($_GET['tab']) && $_GET['tab'] == 'shipping' && isset($_GET['section']) && $_GET['section'] == 'shipbubble_shipping_services')) {
+//		return;
+//	}
 
 	add_action('all_admin_notices', 'render_shipbubble_admin_notices');
 }
@@ -482,6 +482,7 @@ function render_shipbubble_admin_notices() {
 	$shipbubble_init = get_option(SHIPBUBBLE_INIT);
 	$shipbubble_options = get_option(WC_SHIPBUBBLE_ID);
 	$message = '';
+	$notice_type = 'notice-error';
 
 	$link = '<a href="admin.php?page=wc-settings&tab=shipping&section=shipbubble_shipping_services" style="text-decoration: underline; font-weight: bold;">%s</a>';
 
@@ -494,19 +495,23 @@ function render_shipbubble_admin_notices() {
 		$message = sprintf(
 			__('Please complete your Shipbubble %s.', 'shipbubble'),
 			sprintf($link, __('setup', 'shipbubble'))
-		);
+		) . ' '. __('Validate your address and start shipping with ease.');
 	} elseif (isset($shipbubble_options['sandbox_mode']) && 'yes' == $shipbubble_options['sandbox_mode']) {
 		$message = __('Shipbubble sandbox mode is active, please do not use for a live site', 'shipbubble');
+		$notice_type = 'notice-info';
 	}
 
 	if (!empty($message)) {
-		?>
-		<div class="notice notice-info is-dismissible" style="padding: 15px; border-left: 4px solid #007cba; background-color: #f1f1f1;">
-			<p style="font-size: 14px; color: #333;">
-				<span style="font-weight: bold; display: inline-block; margin-bottom: 5px;"><?php _e('Shipbubble Notice:', 'shipbubble'); ?></span><br>
+		$logo_url = plugin_dir_url(__FILE__) . 'public/images/logo.svg';
+        ?>
+        <div class="notice <?php echo $notice_type; ?> is-dismissible" style="padding: 15px; background-color: #f1f1f1;">
+            <p>
+                <img src="<?php echo esc_url($logo_url); ?>" alt="<?php esc_attr_e('Shipbubble Logo', 'shipbubble'); ?>" style="max-width: 100px; height: auto;">
+            </p>
+            <p style="font-size: 14px; color: #333;">
 				<?php echo $message; ?>
-			</p>
-		</div>
+            </p>
+        </div>
 		<?php
 	}
 }

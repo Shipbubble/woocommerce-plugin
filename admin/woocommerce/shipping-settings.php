@@ -75,6 +75,7 @@
 			                    'activate_shipbubble' => array(
 				                    'title' => __('Activate to use', 'woocommerce'),
 				                    'type' => 'checkbox',
+				                    'class' => 'address_form_field',
 				                    'description' => __('Activate Shipubble on Checkout.', 'woocommerce'),
 				                    'default' => __('no', 'woocommerce'),
 			                    ),
@@ -121,12 +122,14 @@
 				                    'title' => __('Store Category', 'woocommerce'),
 				                    'type' => 'select',
 				                    'options' => $categories_options,
+				                    'class' => 'address_form_field',
 				                    'custom_attributes' => array('required' => 'required')
 				                    // 'default'        => __( '', 'woocommerce' ),
 			                    ),
 			                    'disable_other_shipping_methods' => array(
 				                    'title' => __('Disable Other Shipping Method', 'woocommerce'),
 				                    'type' => 'checkbox',
+				                    'class' => 'address_form_field',
 				                    'description' => __('Shipbubble will disable other shipping methods.', 'woocommerce'),
 				                    'default' => __('no', 'woocommerce'),
 			                    ),
@@ -135,7 +138,22 @@
 				                    'type' => 'hidden',
 				                    // 'description'     => __( 'This is the address code setup for pickup (66502255).', 'woocommerce' ),
 				                    'default' => __('0', 'woocommerce'),
+				                    'class' => 'address_form_field',
 				                    // 'custom_attributes' => array('readonly' => 'readonly')
+			                    ),
+			                    'sandbox_mode' => array(
+				                    'title' => __('Use sandbox key', 'woocommerce'),
+				                    'type' => 'checkbox',
+				                    'class' => 'api_form_field',
+				                    'description' => __('Please do not use sandbox mode on a live website', 'woocommerce'),
+				                    'default' => __('no', 'woocommerce'),
+			                    ),
+			                    'api_key' => array(
+				                    'title' => __('Shipbubble API Key', 'woocommerce'),
+				                    'type' => 'text',
+				                    'class' => 'api_form_field',
+				                    'description' => __('', 'woocommerce'),
+				                    'placeholder' => 'sb_prod_xxxxxxxxxxxxxxxxxxxxx'
 			                    ),
 		                    );
 	                    } else {

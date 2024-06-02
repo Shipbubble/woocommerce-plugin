@@ -56,3 +56,7 @@
 .input-validating {
     border: 1px solid black;
 }
+
+#cancel-edit-btn {
+    color: red;
+}

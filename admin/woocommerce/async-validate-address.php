@@ -4,7 +4,7 @@
     function ajax_enqueue_scripts_validate_address( $hook ) 
     {
         // check if our page
-        // if ( 'post.php' !== $hook ) return;
+        if ( !(isset($_GET['page']) && $_GET['page'] == 'wc-settings' && isset($_GET['tab']) && $_GET['tab'] == 'shipping' && isset($_GET['section']) && $_GET['section'] == 'shipbubble_shipping_services') ) return;
         
         // define script url
         $script_url = plugins_url( '/js/ajax-validate-address.js', plugin_dir_path( __FILE__ ) );
