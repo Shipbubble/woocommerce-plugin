@@ -127,7 +127,7 @@ function shipbubble_wc_api_init()
 		}
 
 		if (!empty($options['api_key'])) {
-			$data = array('initialized' => true, 'account_status' => true, 'address_validated' => false);
+			$data = array('initialized' => true, 'account_status' => true, 'address_validated' => !empty($options['address_code']));
 			update_option(SHIPBUBBLE_INIT, $data);
 		}
 
