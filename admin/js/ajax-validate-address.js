@@ -1,4 +1,18 @@
 (function ($) {
+    function showLoadingScreen() {
+        $.blockUI({
+            css: {
+                width: '300px',
+                border: 'none',
+                'border-radius': '10px',
+                left: 'calc(50% - 150px)',
+                top: 'calc(50% - 150px)',
+                padding: '20px'
+            },
+            message: '<div style="margin: 8px; font-size:150%;" class="shipbubble_saving_popup"><img src="'+ajax_wc_admin.logo+'" height="80" width="80" style="padding-bottom:10px;"><br>Saving...</div>'
+        })
+    }
+
     $(document).ready(function () {
         const mainform = $('form#mainform');
         const formBtn = mainform.find('button[type="submit"]');
@@ -7,7 +21,7 @@
         const editApiKeyBtn = $('<a href="#" id="edit-api-key-btn">Change API Key settings</a>');
         const cancelEditBtn = $('<a href="#" id="cancel-edit-btn">Cancel</a>');
         const api_key_note = $('<p id="api_key_note" class="form_note_shipbubble_api_key"></p>');
-        const sandbox_checkbox = mainform.find('#woocommerce_shipbubble_shipping_services_sandbox_mode');
+        const live_mode_checkbox = mainform.find('#woocommerce_shipbubble_shipping_services_live_mode');
 
         function toggleFormFields(showApiKey) {
             mainform.find('.address_form_field').closest('tr').toggle(!showApiKey);
@@ -39,15 +53,15 @@
         }
 
         function setupApiKeyInputHandlers() {
-            sandbox_checkbox.on('change', function () {
-                const placeholder = sandbox_checkbox.is(':checked') ? 'sb_sandbox_xxxxxxxxxxxxxxxxxxxxx' : 'sb_prod_xxxxxxxxxxxxxxxxxxxxx';
+            live_mode_checkbox.on('change', function () {
+                const placeholder = live_mode_checkbox.is(':checked') ? 'sb_prod_xxxxxxxxxxxxxxxxxxxxx' : 'sb_sandbox_xxxxxxxxxxxxxxxxxxxxx';
                 api_key_input.attr('placeholder', placeholder);
             });
 
             api_key_input.on('change', function () {
                 const api_key = $(this).val();
                 if (api_key.length < 10) {
-                    api_key_note.text(sandbox_checkbox.is(':checked') ? 'Please Provide your Shipbubble sandbox API Key' : 'Please Provide your Shipbubble production API Key').addClass('error');
+                    api_key_note.text(live_mode_checkbox.is(':checked') ? 'Please Provide your Shipbubble production API Key' : 'Please Provide your Shipbubble sandbox API Key').addClass('error');
                 } else {
                     api_key_note.text('').removeClass('error');
                 }
@@ -58,11 +72,11 @@
 
         function handleAPIFormSubmit() {
             const api_key = api_key_input.val();
-            const sandbox_mode = sandbox_checkbox.is(":checked");
+            const live_mode = live_mode_checkbox.is(":checked");
 
             if (api_key.length <= 10 ||
-                (sandbox_mode && !api_key.startsWith('sb_sandbox')) ||
-                (!sandbox_mode && !api_key.startsWith('sb_prod'))) {
+                (!live_mode && !api_key.startsWith('sb_sandbox')) ||
+                (live_mode && !api_key.startsWith('sb_prod'))) {
                 api_key_note.text('Please Provide a valid Shipbubble API Key').addClass('error');
                 api_key_input.addClass('input-error');
                 return;
@@ -71,17 +85,17 @@
             api_key_note.text('Validating your API Key...').removeClass('error').addClass('validating');
             api_key_input.removeClass('input-error').addClass('input-validating');
 
-            validateShipbubbleApiKey(api_key, sandbox_mode);
+            validateShipbubbleApiKey(api_key, live_mode ? 'yes' : 'no');
         }
 
-        function validateShipbubbleApiKey(api_key, sandbox_mode) {
+        function validateShipbubbleApiKey(api_key, live_mode) {
             disableForm();
             formBtn.attr('disabled', true);
 
             $.post(ajaxurl, {
                 nonce: ajax_wc_admin.nonce,
                 action: 'validate_api_key',
-                data: { api_key, sandbox_mode },
+                data: { api_key, live_mode },
                 dataType: 'json'
             }).done(handleApiKeyValidationResponse)
                 .fail(handleApiKeyValidationError);
@@ -220,10 +234,12 @@
         }
 
         function disableForm() {
+            showLoadingScreen();
             $('#mainform input, select').prop('disabled', true).removeClass('input-error');
         }
 
         function enableForm() {
+            $.unblockUI()
             $('#mainform input, select').prop('disabled', false);
         }
 

@@ -9,18 +9,17 @@
         if ( ! current_user_can( 'manage_options' ) ) return;
 
         $apiKey = sanitize_text_field($_POST['data']['api_key']);
-		$sandboxMode = sanitize_text_field($_POST['data']['sandbox_mode']) ?? false;
+		$live_mode = sanitize_text_field($_POST['data']['live_mode']);
 
 		$result = shipbubble_get_wallet_balance($apiKey);
 
 		if ('200' == $result->response_code) {
 			$shipbubble_init = get_option(SHIPBUBBLE_INIT);
 			$shipbubble_init['account_status'] = true;
-			$shipbubble_init['address_validated'] = false;
 
 			$options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
 			$options['api_key'] = $apiKey;
-			$options['sandbox_mode'] = $sandboxMode ? 'yes' : 'no';
+			$options['live_mode'] = $live_mode;
 
 			update_option(WC_SHIPBUBBLE_ID, $options);
 			update_option( SHIPBUBBLE_INIT, $shipbubble_init);

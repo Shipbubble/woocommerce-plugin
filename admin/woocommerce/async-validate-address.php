@@ -16,7 +16,7 @@
         $nonce = wp_create_nonce( 'ajax_wc_admin' );
 
         // define script
-        $script = array( 'nonce' => $nonce );
+        $script = array( 'nonce' => $nonce, 'logo' => SHIPBUBBLE_LOGO_URL );
 
         // localize script
         wp_localize_script( 'ajax-wc-admin', 'ajax_wc_admin', $script );

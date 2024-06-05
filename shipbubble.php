@@ -42,6 +42,9 @@ require_once plugin_dir_path(__FILE__) . 'includes/core-methods.php';
 // public
 require_once plugin_dir_path(__FILE__) . 'public/async-checkout-couriers.php';
 
+define('SHIPBUBBLE_PLUGIN_URL', plugins_url('', __FILE__));
+define('SHIPBUBBLE_LOGO_URL', SHIPBUBBLE_PLUGIN_URL . '/public/images/logo.svg');
+
 
 // action on activation
 function shipbubble_on_activation()
@@ -91,7 +94,7 @@ function shipbubble_wc_options_default(): array
 		'activate_shipbubble' => 'no',
 		'disable_other_shipping_methods' => 'no',
 		'api_key' => '',
-		'sandbox_mode' => 'no'
+		'live_mode' => 'yes'
 	);
 }
 
@@ -447,7 +450,8 @@ function shipbubble_validate_checkout_order($order_id)
 function shipbubble_append_enqueue_script()
 {
 	wp_enqueue_script('sweetalert2', plugins_url('public/js/sweetalert2.min.js', __FILE__), array());
-	// here you can enqueue more js / css files 
+	wp_enqueue_script('blockui', plugins_url('public/js/blockui/jquery.blockUI.js', __FILE__), array());
+	// here you can enqueue more js / css files
 }
 
 add_action('wp_enqueue_scripts', 'shipbubble_append_enqueue_script');
@@ -496,13 +500,13 @@ function render_shipbubble_admin_notices() {
 			__('Please complete your Shipbubble %s.', 'shipbubble'),
 			sprintf($link, __('setup', 'shipbubble'))
 		) . ' '. __('Validate your address and start shipping with ease.');
-	} elseif (isset($shipbubble_options['sandbox_mode']) && 'yes' == $shipbubble_options['sandbox_mode']) {
-		$message = __('Shipbubble sandbox mode is active, please do not use for a live site', 'shipbubble');
+	} elseif (isset($shipbubble_options['live_mode']) && 'no' == $shipbubble_options['live_mode']) {
+		$message = __('Shipbubble test mode is active, please do not use for a live site', 'shipbubble');
 		$notice_type = 'notice-info';
 	}
 
 	if (!empty($message)) {
-		$logo_url = plugin_dir_url(__FILE__) . 'public/images/logo.svg';
+		$logo_url = SHIPBUBBLE_LOGO_URL;
         ?>
         <div class="notice <?php echo $notice_type; ?> is-dismissible" style="padding: 15px; background-color: #f1f1f1;">
             <p>

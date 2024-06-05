@@ -60,3 +60,30 @@
 #cancel-edit-btn {
     color: red;
 }
+
+.blockUI.blockOverlay.ui-widget-overlay {
+    background: #000;
+}
+
+.shipbubble_saving_popup img {
+    animation-name: aios_blink;
+    animation-duration: 610ms;
+    animation-iteration-count: infinite;
+    animation-direction: alternate;
+    animation-timing-function: ease-out;
+}
+
+
+@keyframes aios_blink {
+
+    from {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    to {
+        opacity: 0.4;
+        transform: scale(0.85);
+    }
+
+}

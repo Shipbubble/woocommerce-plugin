@@ -141,12 +141,11 @@
 				                    'class' => 'address_form_field',
 				                    // 'custom_attributes' => array('readonly' => 'readonly')
 			                    ),
-			                    'sandbox_mode' => array(
-				                    'title' => __('Use sandbox key', 'woocommerce'),
+			                    'live_mode' => array(
+				                    'title' => __('Use live key', 'woocommerce'),
 				                    'type' => 'checkbox',
 				                    'class' => 'api_form_field',
-				                    'description' => __('Please do not use sandbox mode on a live website', 'woocommerce'),
-				                    'default' => __('no', 'woocommerce'),
+				                    'default' => __('yes', 'woocommerce'),
 			                    ),
 			                    'api_key' => array(
 				                    'title' => __('Shipbubble API Key', 'woocommerce'),
@@ -158,11 +157,11 @@
 		                    );
 	                    } else {
 		                    $this->form_fields = array(
-			                    'sandbox_mode' => array(
-				                    'title' => __('Use sandbox key', 'woocommerce'),
+			                    'live_mode' => array(
+				                    'title' => __('Use live key', 'woocommerce'),
 				                    'type' => 'checkbox',
-				                    'description' => __('Please do not use sandbox mode on a live website', 'woocommerce'),
-				                    'default' => __('no', 'woocommerce'),
+				                    'description' => __('', 'woocommerce'),
+				                    'default' => __('yes', 'woocommerce'),
 			                    ),
 			                    'api_key' => array(
 				                    'title' => __('Shipbubble API Key', 'woocommerce'),
