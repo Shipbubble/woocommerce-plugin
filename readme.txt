@@ -11,7 +11,7 @@ License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
 == Description ==
 
-Shipbubble shipping platform that enables retailers to conveniently delight their customers with multiple shipping options and a branded tracking experience thereby increasing conversion rates.
+Shipbubble is a shipping platform that enables retailers to conveniently delight their customers with multiple shipping options and a branded tracking experience thereby increasing conversion rates.
 
 [youtube https://www.youtube.com/watch?v=eGxMxB0QbXc]
 
