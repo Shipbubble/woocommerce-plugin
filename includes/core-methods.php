@@ -184,10 +184,10 @@ function shipbubble_process_shipping_rates($addressCode, $products, $serviceCode
         $currency_code = $data->couriers[0]->rate_card_currency;
 
         // Get the currency symbol for the specified currency code
-        // $currency_symbol = get_woocommerce_currency_symbol($currency_code);
+         $currency_symbol = get_woocommerce_currency_symbol($currency_code);
         // $rates['currency_symbol'] = $currency_symbol;
         
-        $rates['currency_symbol'] = $currency_code;
+        $rates['currency_symbol'] = $currency_symbol;
     } else {
         if (isset($response->error)) {
             $rates['error'] = $response->error[0];
@@ -373,4 +373,14 @@ function sb_compare_addresses(string $address1, string $address2)
 
 function shipbubble_data_is_serialized($str) {
     return is_string($str) && ($str == serialize(false) || @unserialize($str) !== false);
+}
+
+function shipbubble_get_currency_code() {
+	if (class_exists('YITH_WCMCS_Currency_Handler')) {
+		$currency_code = yith_wcmcs_get_current_currency_id();
+	} else {
+		$currency_code = get_woocommerce_currency();
+	}
+
+	return empty($currency_code) ? 'NGN' : $currency_code;
 }
