@@ -7,7 +7,7 @@
  * Donate link: https://www.shipbubble.com/
  * Tags: logistics, deliveries, shipping rates, multiple couriers, post purchase experience
  * Requires at least: 4.0
- * Tested up to: 6.1
+ * Tested up to: 6.5
  * Stable tag: 1.0
  * Requires PHP: 5.6
  * Text Domain:  shipbubble
@@ -428,13 +428,7 @@ function shipbubble_validate_checkout_order($order_id)
 	if (!$all_virtual && !empty($payment_method) && !empty($enabled_gateways)) {
 		if (in_array($payment_method, $enabled_gateways)) {
 			// check shipping items is empty or shipping total is 0
-            if (empty($shipping_items) || $shipping_total == "0") {
-                $delete_order = true;
-				error_log(print_r('empty or 0', true));
-            }
-
-            // check that shipbubble is in use and shipping total is 0
-            if (!empty($chosen_shipping_method) && $chosen_shipping_method[0] == SHIPBUBBLE_ID && $shipping_total == "0") {
+            if (empty($shipping_items) || (!empty($chosen_shipping_method) && $chosen_shipping_method[0] == SHIPBUBBLE_ID && $shipping_total == "0")) {
                 $delete_order = true;
 				error_log(print_r('selected sb & 0', true));
             }
