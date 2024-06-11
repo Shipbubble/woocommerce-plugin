@@ -3,8 +3,8 @@ Contributors: Shipbubble
 Donate link: https://www.shipbubble.com/
 Tags: logistics, deliveries, shipping rates, multiple couriers, post-purchase experience
 Requires at least: 4.0
-Tested up to: 6.3
-Stable tag: 2.4
+Tested up to: 6.5
+Stable tag: 2.4.1
 Requires PHP: 5.6
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
