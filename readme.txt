@@ -50,6 +50,9 @@ Please visit our website - https://shipbubble.com
 5. Complete set up
 
 == Changelog ==
+= 2.4.1 =
+* Free shipping at checkout fix and currency converter optimizer
+
 = 2.4 =
 * Critical checkoutand backend dashboard fixes
 
@@ -117,5 +120,5 @@ Please visit our website - https://shipbubble.com
 * Initial release.
 
 == Upgrade Notice ==
-= 2.4 =
-Critical checkout and backend dashboard fixes
+= 2.4.1 =
+Free shipping at checkout fix and currency converter optimizer.
