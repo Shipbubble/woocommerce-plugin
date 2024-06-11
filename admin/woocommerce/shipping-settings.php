@@ -148,7 +148,7 @@
 				                    'default' => __('yes', 'woocommerce'),
 			                    ),
 			                    'api_key' => array(
-				                    'title' => __('Shipbubble API Key', 'woocommerce'),
+				                    'title' => __('Api Key', 'woocommerce'),
 				                    'type' => 'text',
 				                    'class' => 'api_form_field',
 				                    'description' => __('', 'woocommerce'),
@@ -164,7 +164,7 @@
 				                    'default' => __('yes', 'woocommerce'),
 			                    ),
 			                    'api_key' => array(
-				                    'title' => __('Shipbubble API Key', 'woocommerce'),
+				                    'title' => __('Api Key', 'woocommerce'),
 				                    'type' => 'text',
 				                    'description' => __('', 'woocommerce'),
 				                    'placeholder' => 'sb_prod_xxxxxxxxxxxxxxxxxxxxx'
