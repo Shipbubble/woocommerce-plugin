@@ -489,7 +489,7 @@ function render_shipbubble_admin_notices() {
 			__('Please %s your Shipbubble API Key to start shipping.', 'shipbubble'),
 			sprintf($link, __('setup', 'shipbubble'))
 		);
-	} elseif (false == $shipbubble_init['address_validated']) {
+	} elseif (isset($shipbubble_init['address_validated']) && false == $shipbubble_init['address_validated']) {
 		$message = sprintf(
 			__('Please complete your Shipbubble %s.', 'shipbubble'),
 			sprintf($link, __('setup', 'shipbubble'))
