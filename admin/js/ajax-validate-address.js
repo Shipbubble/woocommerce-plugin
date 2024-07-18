@@ -127,7 +127,6 @@
 
             if (response.hasOwnProperty('response_code') && response['response_code'] === 200) {
                 sandbox_api_key_note.text('Your API keys are valid').css('color', 'green');
-                live_api_key_note.text('Your API keys are valid').css('color', 'green');
                 sandbox_api_key_input.css('border', '2px solid green');
                 live_api_key_input.css('border', '2px solid green');
 

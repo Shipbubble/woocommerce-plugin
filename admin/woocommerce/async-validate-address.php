@@ -50,6 +50,8 @@
             // echo json_encode('near');
             echo json_encode($output);
         } else {
+
+			$keys = shipbubble_get_keys();
             // validate address
             $response = shipbubble_validate_address(
                 sanitize_text_field($data['name']), 

@@ -37,12 +37,13 @@
 		if (empty($errors)) {
 			$shipbubble_init['account_status'] = true;
 			update_option( SHIPBUBBLE_INIT, $shipbubble_init);
-			$result = shipbubble_base_response('success', 'API Key validation was successful');
+			$result = array(
+				'response_code' => 200,
+				'status' => 'success',
+				'message' => 'API Key validation was successful',
+			);
+			$result = json_encode($result);
 		} else {
-			// Concatenate the errors into a single string with a separator (break or newline)
-//			$error_message = implode('<br>', $errors); // Using HTML line break as the separator
-
-			// Alternatively, you can use newline
 			$error_message = implode("\n", $errors);
 
 			$result = shipbubble_base_response('failed', $error_message);

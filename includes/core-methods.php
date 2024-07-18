@@ -12,6 +12,14 @@ function shipbubble_get_token(): string
 	return isset($options['sandbox_api_key']) ? sanitize_text_field($options['sandbox_api_key']) : '';
 }
 
+function shipbubble_get_keys() {
+	$options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
+	return array(
+		'live_api_key' => isset($options['live_api_key']) ? sanitize_text_field($options['live_api_key']) : '',
+		'sandbox_api_key' => isset($options['sandbox_api_key']) ? sanitize_text_field($options['sandbox_api_key']) : ''
+	);
+}
+
 function shipbubble_base_response($status = null, $message = null, $data = null)
 {
     return json_encode(
