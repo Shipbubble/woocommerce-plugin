@@ -93,7 +93,8 @@ function shipbubble_wc_options_default(): array
 		'user_can_ship' => 'yes',
 		'activate_shipbubble' => 'no',
 		'disable_other_shipping_methods' => 'no',
-		'api_key' => '',
+		'live_api_key' => '',
+		'sandbox_api_key' => '',
 		'live_mode' => 'yes'
 	);
 }
@@ -123,14 +124,14 @@ function shipbubble_wc_api_init()
 		$options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
 
 		// If the API key is not set, try to get it from the old options
-		if (empty($options['api_key'])) {
+		if (empty($options['live_api_key'])) {
 			$old_options = get_option('shipbubble_options', shipbubble_options_default());
-			$options['api_key'] = isset($old_options['shipbubble_api_key']) ? sanitize_text_field($old_options['shipbubble_api_key']) : '';
+			$options['live_api_key'] = isset($old_options['shipbubble_api_key']) ? sanitize_text_field($old_options['shipbubble_api_key']) : '';
 			update_option(WC_SHIPBUBBLE_ID, $options);
 		}
 
-		if (!empty($options['api_key'])) {
-			$data = array('initialized' => true, 'account_status' => true, 'address_validated' => !empty($options['address_code']));
+		if (!empty($options['live_api_key'])) {
+			$data = array('initialized' => true, 'account_status' => true, 'address_validated' => !empty($options['address_code']), 'sandbox_address_validated' => false);
 			update_option(SHIPBUBBLE_INIT, $data);
 		}
 

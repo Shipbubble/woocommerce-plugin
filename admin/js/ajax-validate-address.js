@@ -10,17 +10,19 @@
                 padding: '20px'
             },
             message: '<div style="margin: 8px; font-size:150%;" class="shipbubble_saving_popup"><img src="'+ajax_wc_admin.logo+'" height="80" width="80" style="padding-bottom:10px;"><br>Saving...</div>'
-        })
+        });
     }
 
     $(document).ready(function () {
         const mainform = $('form#mainform');
         const formBtn = mainform.find('button[type="submit"]');
-        const api_key_input = mainform.find('#woocommerce_shipbubble_shipping_services_api_key');
+        const sandbox_api_key_input = mainform.find('#woocommerce_shipbubble_shipping_services_sandbox_api_key');
+        const live_api_key_input = mainform.find('#woocommerce_shipbubble_shipping_services_live_api_key');
         const activateShipbubble = mainform.find('#woocommerce_shipbubble_shipping_services_activate_shipbubble');
         const editApiKeyBtn = $('<a href="#" id="edit-api-key-btn">Change API Key settings</a>');
         const cancelEditBtn = $('<a href="#" id="cancel-edit-btn">Cancel</a>');
-        const api_key_note = $('<p id="api_key_note" class="form_note_shipbubble_api_key"></p>');
+        const sandbox_api_key_note = $('<p id="sandbox_api_key_note" class="form_note_shipbubble_api_key"></p>');
+        const live_api_key_note = $('<p id="live_api_key_note" class="form_note_shipbubble_api_key"></p>');
         const live_mode_checkbox = mainform.find('#woocommerce_shipbubble_shipping_services_live_mode');
 
         function toggleFormFields(showApiKey) {
@@ -53,49 +55,68 @@
         }
 
         function setupApiKeyInputHandlers() {
-            live_mode_checkbox.on('change', function () {
-                const placeholder = live_mode_checkbox.is(':checked') ? 'sb_prod_xxxxxxxxxxxxxxxxxxxxx' : 'sb_sandbox_xxxxxxxxxxxxxxxxxxxxx';
-                api_key_input.attr('placeholder', placeholder);
+            sandbox_api_key_input.on('change', function () {
+                validateApiKey($(this), 'sandbox');
             });
 
-            api_key_input.on('change', function () {
-                const api_key = $(this).val();
-                if (api_key.length < 10) {
-                    api_key_note.text(live_mode_checkbox.is(':checked') ? 'Please Provide your Shipbubble production API Key' : 'Please Provide your Shipbubble sandbox API Key').addClass('error');
-                } else {
-                    api_key_note.text('').removeClass('error');
-                }
+            live_api_key_input.on('change', function () {
+                validateApiKey($(this), 'live');
             });
 
-            $(api_key_note).insertAfter(api_key_input);
+            $(sandbox_api_key_note).insertAfter(sandbox_api_key_input);
+            $(live_api_key_note).insertAfter(live_api_key_input);
+        }
+        function validateApiKey(input, type) {
+            const api_key = input.val();
+            const note = type === 'sandbox' ? sandbox_api_key_note : live_api_key_note;
+            if (api_key.length < 10 ||
+                (type === 'sandbox' && !api_key.startsWith('sb_sandbox')) ||
+                (type === 'live' && !api_key.startsWith('sb_prod'))) {
+                note.text(`Please provide a valid Shipbubble ${type} API key`).addClass('error');
+                input.addClass('input-error');
+            } else {
+                note.text('').removeClass('error');
+                input.removeClass('input-error');
+            }
         }
 
         function handleAPIFormSubmit() {
-            const api_key = api_key_input.val();
-            const live_mode = live_mode_checkbox.is(":checked");
+            const sandbox_api_key = sandbox_api_key_input.val();
+            const live_api_key = live_api_key_input.val();
+            let input_error = false;
 
-            if (api_key.length <= 10 ||
-                (!live_mode && !api_key.startsWith('sb_sandbox')) ||
-                (live_mode && !api_key.startsWith('sb_prod'))) {
-                api_key_note.text('Please Provide a valid Shipbubble API Key').addClass('error');
-                api_key_input.addClass('input-error');
+            if (sandbox_api_key.length <= 10 || !sandbox_api_key.startsWith('sb_sandbox') ) {
+                sandbox_api_key_note.text('Please provide valid Shipbubble Sanbox API key').addClass('error');
+                sandbox_api_key_input.addClass('input-error');
+                input_error = true;
+            }
+
+            if (live_api_key.length <= 10 || !live_api_key.startsWith('sb_prod')) {
+                live_api_key_note.text('Please provide valid Shipbubble API key').addClass('error');
+                live_api_key_input.addClass('input-error');
+                input_error = true;
+            }
+
+            if (input_error) {
                 return;
             }
 
-            api_key_note.text('Validating your API Key...').removeClass('error').addClass('validating');
-            api_key_input.removeClass('input-error').addClass('input-validating');
+            sandbox_api_key_note.text('Validating your API keys...').removeClass('error').addClass('validating');
+            // live_api_key_note.text('Validating your API keys...').removeClass('error').addClass('validating');
+            sandbox_api_key_input.removeClass('input-error').addClass('input-validating');
+            live_api_key_input.removeClass('input-error').addClass('input-validating');
 
-            validateShipbubbleApiKey(api_key, live_mode ? 'yes' : 'no');
+            validateShipbubbleApiKeys(sandbox_api_key, live_api_key);
         }
 
-        function validateShipbubbleApiKey(api_key, live_mode) {
+        function validateShipbubbleApiKeys(sandbox_api_key, live_api_key) {
             disableForm();
             formBtn.attr('disabled', true);
 
             $.post(ajaxurl, {
                 nonce: ajax_wc_admin.nonce,
-                action: 'validate_api_key',
-                data: { api_key, live_mode },
+                action: 'validate_api_keys',
+                data: { sandbox_api_key, live_api_key },
                 dataType: 'json'
             }).done(handleApiKeyValidationResponse)
                 .fail(handleApiKeyValidationError);
@@ -105,13 +126,15 @@
             const response = JSON.parse(data);
 
             if (response.hasOwnProperty('response_code') && response['response_code'] === 200) {
-                api_key_note.text('Your API Key is valid').css('color', 'green');
-                api_key_input.css('border', '2px solid green');
+                sandbox_api_key_note.text('Your API keys are valid').css('color', 'green');
+                live_api_key_note.text('Your API keys are valid').css('color', 'green');
+                sandbox_api_key_input.css('border', '2px solid green');
+                live_api_key_input.css('border', '2px solid green');
 
                 Swal.fire({
                     icon: 'success',
                     title: 'API Validation successful',
-                    text: 'Your API Key is valid',
+                    text: 'Your API keys are valid',
                     showConfirmButton: false,
                     timer: 4500
                 });
@@ -124,13 +147,15 @@
 
         function handleApiKeyValidationError(response = null) {
             formBtn.attr('disabled', false);
-            api_key_input.css('border', '1px solid red');
-            api_key_note.css('color', 'red').text(response ? response.message : 'API Key is invalid, try again');
+            sandbox_api_key_input.css('border', '1px solid red');
+            live_api_key_input.css('border', '1px solid red');
+            sandbox_api_key_note.css('color', 'red').text(response ? response.message : 'API keys are invalid, try again');
+            live_api_key_note.css('color', 'red').text(response ? response.message : 'API keys are invalid, try again');
 
             Swal.fire({
                 icon: 'warning',
                 title: 'API Validation Failed',
-                text: response ? response.message : 'Something went wrong please try again later',
+                text: response ? response.message : 'Something went wrong, please try again later',
                 showConfirmButton: false,
                 timer: 4500
             });
@@ -224,7 +249,7 @@
             Swal.fire({
                 icon: 'warning',
                 title: 'Address Validation Failed',
-                text: response ? response.message : 'Something went wrong please try again later',
+                text: response ? response.message : 'Something went wrong, please try again later',
                 showConfirmButton: false,
                 timer: 4500
             });
@@ -239,7 +264,7 @@
         }
 
         function enableForm() {
-            $.unblockUI()
+            $.unblockUI();
             $('#mainform input, select').prop('disabled', false);
         }
 

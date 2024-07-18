@@ -141,33 +141,54 @@
 				                    'class' => 'address_form_field',
 				                    // 'custom_attributes' => array('readonly' => 'readonly')
 			                    ),
+			                    'test_address_code' => array(
+				                    // 'title'         => __( 'Address Code', 'woocommerce' ),
+				                    'type' => 'hidden',
+				                    // 'description'     => __( 'This is the address code setup for pickup (66502255).', 'woocommerce' ),
+				                    'default' => __('0', 'woocommerce'),
+				                    'class' => 'address_form_field',
+				                    // 'custom_attributes' => array('readonly' => 'readonly')
+			                    ),
 			                    'live_mode' => array(
-				                    'title' => __('Use live key', 'woocommerce'),
+				                    'title' => __('Live Mode', 'woocommerce'),
 				                    'type' => 'checkbox',
 				                    'class' => 'api_form_field',
 				                    'default' => __('yes', 'woocommerce'),
 			                    ),
-			                    'api_key' => array(
-				                    'title' => __('Api Key', 'woocommerce'),
+			                    'live_api_key' => array(
+				                    'title' => __('Live API Key', 'woocommerce'),
 				                    'type' => 'text',
 				                    'class' => 'api_form_field',
 				                    'description' => __('', 'woocommerce'),
 				                    'placeholder' => 'sb_prod_xxxxxxxxxxxxxxxxxxxxx'
+			                    ),
+			                    'sandbox_api_key' => array(
+				                    'title' => __('Sandbox API Key', 'woocommerce'),
+				                    'type' => 'text',
+				                    'class' => 'api_form_field',
+				                    'description' => __('', 'woocommerce'),
+				                    'placeholder' => 'sb_sandbox_xxxxxxxxxxxxxxxxxxxxx'
 			                    ),
 		                    );
 	                    } else {
 		                    $this->form_fields = array(
 			                    'live_mode' => array(
-				                    'title' => __('Use live key', 'woocommerce'),
+				                    'title' => __('Live Mode', 'woocommerce'),
 				                    'type' => 'checkbox',
 				                    'description' => __('', 'woocommerce'),
 				                    'default' => __('yes', 'woocommerce'),
 			                    ),
-			                    'api_key' => array(
-				                    'title' => __('Api Key', 'woocommerce'),
+			                    'live_api_key' => array(
+				                    'title' => __('API Key', 'woocommerce'),
 				                    'type' => 'text',
 				                    'description' => __('', 'woocommerce'),
 				                    'placeholder' => 'sb_prod_xxxxxxxxxxxxxxxxxxxxx'
+			                    ),
+			                    'sandbox_api_key' => array(
+				                    'title' => __('Sandbox API Key', 'woocommerce'),
+				                    'type' => 'text',
+				                    'description' => __('', 'woocommerce'),
+				                    'placeholder' => 'sb_sandbox_xxxxxxxxxxxxxxxxxxxxx'
 			                    ),
 		                    );
 	                    }

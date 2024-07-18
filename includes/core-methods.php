@@ -5,7 +5,11 @@ function shipbubble_get_token(): string
 {
     $options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
 
-    return isset($options['api_key']) ? sanitize_text_field($options['api_key']) : '';
+	if ('yes' === $options['live_mode']) {
+		return isset($options['live_api_key']) ? sanitize_text_field($options['live_api_key']) : '';
+	}
+
+	return isset($options['sandbox_api_key']) ? sanitize_text_field($options['sandbox_api_key']) : '';
 }
 
 function shipbubble_base_response($status = null, $message = null, $data = null)
