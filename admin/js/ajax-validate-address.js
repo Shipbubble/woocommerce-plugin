@@ -129,7 +129,7 @@
                 sandbox_api_key_note.text('Your API keys are valid').css('color', 'green');
                 sandbox_api_key_input.css('border', '2px solid green');
                 live_api_key_input.css('border', '2px solid green');
-
+                $.unblockUI()
                 Swal.fire({
                     icon: 'success',
                     title: 'API Validation successful',
@@ -222,7 +222,7 @@
 
         function handleAddressValidationResponse(data) {
             const response = JSON.parse(data);
-
+            jQuery.unblockUI();
             if (response.hasOwnProperty('response_code') && response['response_code'] === 200) {
                 mainform.find('#woocommerce_shipbubble_shipping_services_address_code').val(response['data'].address_code);
 
@@ -244,7 +244,7 @@
         function handleAddressValidationError(response = null) {
             const addressCodeField = mainform.find('#woocommerce_shipbubble_shipping_services_address_code');
             addressCodeField.val(addressCodeField.data('initial-value'));
-
+            jQuery.unblockUI();
             Swal.fire({
                 icon: 'warning',
                 title: 'Address Validation Failed',

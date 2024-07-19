@@ -13,6 +13,7 @@
 		$sandboxKey = sanitize_text_field($_POST['data']['sandbox_api_key']);
 
 		$keys = array( 'live' => $liveKey, 'sandbox' => $sandboxKey );
+		$storedKeys = shipbubble_get_keys();
 
 		$errors = array();
 
@@ -36,13 +37,20 @@
 
 		if (empty($errors)) {
 			$shipbubble_init['account_status'] = true;
-			update_option( SHIPBUBBLE_INIT, $shipbubble_init);
 			$result = array(
 				'response_code' => 200,
 				'status' => 'success',
 				'message' => 'API Key validation was successful',
 			);
 			$result = json_encode($result);
+			if ($storedKeys['live_api_key'] != $liveKey) {
+				$shipbubble_init[SHIPBUBBLE_ADDRESS_VALIDATED] = false;
+			}
+			if ($storedKeys['sandbox_api_key'] != $sandboxKey) {
+				$shipbubble_init[SHIPBUBBLE_SANDBOX_ADDRESS_VALIDATED] = false;
+			}
+
+			update_option( SHIPBUBBLE_INIT, $shipbubble_init);
 		} else {
 			$error_message = implode("\n", $errors);
 

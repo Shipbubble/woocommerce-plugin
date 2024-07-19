@@ -51,11 +51,11 @@ function shipbubble_on_activation()
 {
 	if (!current_user_can('activate_plugins')) return;
 
-	$data = array('initialized' => true, 'account_status' => false, 'address_validated' => false);
+	$data = array('initialized' => true, 'account_status' => false, SHIPBUBBLE_ADDRESS_VALIDATED => false, SHIPBUBBLE_SANDBOX_ADDRESS_VALIDATED => false);
 	if (get_option(SHIPBUBBLE_INIT)) {
 		update_option(SHIPBUBBLE_INIT, $data);
 	} else {
-		var_dump(add_option(SHIPBUBBLE_INIT, $data));
+		add_option(SHIPBUBBLE_INIT, $data);
 	}
 
 	add_option('shipbubble_first_time_redirection', true);
@@ -69,8 +69,7 @@ function shipbubble_on_deactivation()
 {
 	if (!current_user_can('activate_plugins')) return;
 
-	$data = array('initialized' => false, 'account_status' => false, 'address_validated' => false);
-	update_option(SHIPBUBBLE_INIT, $data);
+    flush_rewrite_rules();
 }
 
 register_deactivation_hook(__FILE__, 'shipbubble_on_deactivation');
@@ -131,7 +130,7 @@ function shipbubble_wc_api_init()
 		}
 
 		if (!empty($options['live_api_key'])) {
-			$data = array('initialized' => true, 'account_status' => true, 'address_validated' => !empty($options['address_code']), 'sandbox_address_validated' => false);
+			$data = array('initialized' => true, 'account_status' => true, SHIPBUBBLE_ADDRESS_VALIDATED => !empty($options['address_code']), SHIPBUBBLE_SANDBOX_ADDRESS_VALIDATED => false);
 			update_option(SHIPBUBBLE_INIT, $data);
 		}
 
@@ -479,7 +478,6 @@ function hook_shipbubble_admin_notices() {
 
 function render_shipbubble_admin_notices() {
 	$shipbubble_init = get_option(SHIPBUBBLE_INIT);
-	$shipbubble_options = get_option(WC_SHIPBUBBLE_ID);
 	$message = '';
 	$notice_type = 'notice-error';
 
@@ -487,18 +485,26 @@ function render_shipbubble_admin_notices() {
 
 	if (false == $shipbubble_init['account_status']) {
 		$message = sprintf(
-			__('Please %s your Shipbubble API Key to start shipping.', 'shipbubble'),
+			__('Please %s your Shipbubble API Keys to start shipping.', 'shipbubble'),
 			sprintf($link, __('setup', 'shipbubble'))
 		);
-	} elseif (isset($shipbubble_init['address_validated']) && false == $shipbubble_init['address_validated']) {
-		$message = sprintf(
-			__('Please complete your Shipbubble %s.', 'shipbubble'),
-			sprintf($link, __('setup', 'shipbubble'))
-		) . ' '. __('Validate your address and start shipping with ease.');
-	} elseif (isset($shipbubble_options['live_mode']) && 'no' == $shipbubble_options['live_mode']) {
-		$message = __('Shipbubble test mode is active, please do not use for a live site', 'shipbubble');
-		$notice_type = 'notice-info';
 	}
+    elseif (!shipbubble_is_live_mode()) {
+        if (shipbubble_sandbox_address_validated()) {
+            $message = __('Shipbubble test mode is active, please do not use for a live site', 'shipbubble');
+            $notice_type = 'notice-info';
+        } else {
+            $message = sprintf(
+                    __('Please complete your Shipbubble %s.', 'shipbubble'),
+                    sprintf($link, __('setup', 'shipbubble'))
+                ) . ' '. __('Validate your address and start shipping with ease.');
+        }
+    } elseif (shipbubble_is_live_mode() && !shipbubble_live_address_validated()) {
+        $message = sprintf(
+				__('Please complete your Shipbubble %s.', 'shipbubble'),
+				sprintf($link, __('setup', 'shipbubble'))
+			) . ' '. __('Validate your address and start shipping with ease.');
+    }
 
 	if (!empty($message)) {
 		$logo_url = SHIPBUBBLE_LOGO_URL;

@@ -10,3 +10,5 @@ define('SHIPBUBBLE_RESPONSE_IS_OK', 200);
 define('SHIPBUBBLE_WC_BAD_ORDER_STATUS_ARR', ['pending payment', 'on hold', 'cancelled', 'refunded', 'failed']);
 define('SHIPBUBBLE_EXT_BASE_URL', site_url());
 define('SHIPBUBBLE_PLUGIN_VERSION', 'shipbubble_plugin_version');
+define('SHIPBUBBLE_ADDRESS_VALIDATED', 'address_validated');
+define('SHIPBUBBLE_SANDBOX_ADDRESS_VALIDATED', 'sandbox_address_validated');

@@ -53,23 +53,24 @@
 
 			$keys = shipbubble_get_keys();
             // validate address
-            $response = shipbubble_validate_address(
+            $live_key_response = shipbubble_validate_address(
                 sanitize_text_field($data['name']), 
                 sanitize_email($data['email']), 
                 sanitize_text_field($data['phone']), 
-                sanitize_text_field($data['address'])
+                sanitize_text_field($data['address']),
+	            $keys['live_api_key']
             );
+	        $shipbubble_init = get_option(SHIPBUBBLE_INIT);
+	        $options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
 
-	        if ('200' == $response->response_code) {
-		        $shipbubble_init = get_option(SHIPBUBBLE_INIT);
-		        $shipbubble_init['address_validated'] = true;
-		        $options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
+	        if ('200' == $live_key_response->response_code) {
+		        $shipbubble_init[SHIPBUBBLE_ADDRESS_VALIDATED] = true;
 		        $options["activate_shipbubble"] = $data['activate_shipbubble'];
 				$options['sender_name'] = sanitize_text_field($data['name']);
 		        $options['sender_email'] = sanitize_email($data['email']);
 				$options['sender_phone'] =  sanitize_text_field($data['phone']);
 		        $options['store_category'] = sanitize_text_field($data['store_category']);
-				$options['address_code'] = $response->data->address_code;
+				$options['address_code'] = $live_key_response->data->address_code;
 				$options['disable_other_shipping_methods'] = sanitize_text_field($data['disable_other_shipping_methods']);
 				$address = sanitize_text_field($data['address']);
 				$address = explode(',', $address);
@@ -77,13 +78,34 @@
 		        $options['pickup_state'] = isset($address[1]) ? trim($address[1]) : '';
 		        $options['pickup_country'] = sanitize_text_field($data['pickup_country']);
 
-
 		        update_option( SHIPBUBBLE_INIT, $shipbubble_init);
 		        update_option( WC_SHIPBUBBLE_ID, $options);
 	        }
 
-            // echo json_encode('heere');
-            echo json_encode($response);
+			if (!empty($keys['sandbox_api_key'])) {
+				$sandbox_key_response = shipbubble_validate_address(
+					sanitize_text_field($data['name']),
+					sanitize_email($data['email']),
+					sanitize_text_field($data['phone']),
+					sanitize_text_field($data['address']),
+					$keys['sandbox_api_key']
+				);
+
+				if ('200' == $sandbox_key_response->response_code) {
+					$shipbubble_init[SHIPBUBBLE_SANDBOX_ADDRESS_VALIDATED] = true;
+					$options['sandbox_address_code'] = $sandbox_key_response->data->address_code;
+					update_option( SHIPBUBBLE_INIT, $shipbubble_init);
+					update_option( WC_SHIPBUBBLE_ID, $options);
+				}
+
+				if (!shipbubble_is_live_mode()) {
+					echo json_encode($sandbox_key_response);
+					wp_die();
+				}
+			}
+
+
+            echo json_encode($live_key_response);
         }
         
         // end processing

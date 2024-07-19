@@ -20,6 +20,12 @@ function shipbubble_get_keys() {
 	);
 }
 
+function shipbubble_is_live_mode() {
+	$options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
+
+	return 'yes' === $options['live_mode'] ?? '';
+}
+
 function shipbubble_base_response($status = null, $message = null, $data = null)
 {
     return json_encode(
@@ -395,4 +401,14 @@ function shipbubble_get_currency_code() {
 	}
 
 	return empty($currency_code) ? 'NGN' : $currency_code;
+}
+
+function shipbubble_live_address_validated() {
+	$shipbubble_init = get_option(SHIPBUBBLE_INIT);
+	return true === $shipbubble_init[SHIPBUBBLE_ADDRESS_VALIDATED] ?? false;
+}
+
+function shipbubble_sandbox_address_validated() {
+	$shipbubble_init = get_option(SHIPBUBBLE_INIT);
+	return true === $shipbubble_init[SHIPBUBBLE_SANDBOX_ADDRESS_VALIDATED] ?? false;
 }
