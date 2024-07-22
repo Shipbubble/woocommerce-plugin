@@ -129,13 +129,13 @@
 		$mode = $live_mode ? 'Live' : 'Sandbox';
 
 		if ($live_mode) {
-			if (shipbubble_is_live_mode()) {
-				return;
-			}
+			if (shipbubble_is_live_mode()) return;
 			$key = $storedKeys['live_api_key'];
 		} else {
 			$key = $storedKeys['sandbox_api_key'];
 		}
+
+		if (empty($key)) return;
 
 		$response = shipbubble_get_wallet_balance($key);
 
