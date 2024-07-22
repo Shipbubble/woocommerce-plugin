@@ -425,3 +425,9 @@ function shipbubble_get_address_code() {
 		return get_option(WC_SHIPBUBBLE_ID)['sandbox_address_code'] ?? '';
 	}
 }
+
+function shipbubble_switch_mode($mode) {
+	$options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
+	$options['live_mode'] = $mode;
+	update_option(WC_SHIPBUBBLE_ID, $options);
+}

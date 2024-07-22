@@ -116,8 +116,35 @@
     // ajax hook for logged-in users: wp_ajax_{action}
     add_action( 'wp_ajax_initiate_validate_sender_address', 'shipbubble_initiate_validate_sender_address' );
 
-	function shipbubble_switch_mode() {
+	function shipbubble_switch_mode_ajax() {
+		// check nonce
+		check_ajax_referer( 'ajax_wc_admin', 'nonce' );
 
+		// check user
+		if ( ! current_user_can( 'manage_options' ) ) return;
+
+		$live_mode = $_POST['data']['live_mode'] ?? 0;
+		$storedKeys = shipbubble_get_keys();
+		$live_mode = '0' != $live_mode;
+		$mode = $live_mode ? 'Live' : 'Sandbox';
+
+		if ($live_mode) {
+			if (shipbubble_is_live_mode()) {
+				return;
+			}
+			$key = $storedKeys['live_api_key'];
+		} else {
+			$key = $storedKeys['sandbox_api_key'];
+		}
+
+		$response = shipbubble_get_wallet_balance($key);
+
+		if (isset($response->response_code) && $response->response_code == SHIPBUBBLE_RESPONSE_IS_OK) {
+			shipbubble_switch_mode($live_mode ? 'yes' : 'no');
+			$response->message = 'You have successfully switched to ' . $mode . ' mode';
+		}
+
+		echo wp_json_encode($response);
+		wp_die();
 	}
-
-add_action( 'wp_ajax_shipbubble_switch_mode', 'shipbubble_switch_mode' );
+	add_action( 'wp_ajax_shipbubble_switch_mode', 'shipbubble_switch_mode_ajax' );

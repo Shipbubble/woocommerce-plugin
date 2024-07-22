@@ -1,5 +1,8 @@
 (function ($) {
-    function showLoadingScreen() {
+    function showLoadingScreen(message = '') {
+        if (!message) {
+            message = 'Saving...';
+        }
         $.blockUI({
             css: {
                 width: '300px',
@@ -9,7 +12,7 @@
                 top: 'calc(50% - 150px)',
                 padding: '20px'
             },
-            message: '<div style="margin: 8px; font-size:150%;" class="shipbubble_saving_popup"><img src="'+ajax_wc_admin.logo+'" height="80" width="80" style="padding-bottom:10px;"><br>Saving...</div>'
+            message: '<div style="margin: 8px; font-size:150%;" class="shipbubble_saving_popup"><img src="'+ajax_wc_admin.logo+'" height="80" width="80" style="padding-bottom:10px;"><br>'+ message +'</div>'
         });
     }
 
@@ -256,16 +259,6 @@
             enableForm();
         }
 
-        function disableForm() {
-            showLoadingScreen();
-            $('#mainform input, select').prop('disabled', true).removeClass('input-error');
-        }
-
-        function enableForm() {
-            $.unblockUI();
-            $('#mainform input, select').prop('disabled', false);
-        }
-
         // Initial setup
         setupApiKeyInputHandlers();
         if (activateShipbubble.length) {
@@ -280,6 +273,16 @@
         editApiKeyBtn.on('click', showApiKeyForm);
         cancelEditBtn.on('click', hideApiKeyForm);
     });
+
+    function disableForm() {
+        showLoadingScreen();
+        $('#mainform input, select').prop('disabled', true).removeClass('input-error');
+    }
+
+    function enableForm() {
+        $.unblockUI();
+        $('#mainform input, select').prop('disabled', false);
+    }
 
     jQuery(document).ready(function($) {
         var $checkbox = $('#woocommerce_shipbubble_shipping_services_live_mode');
@@ -321,19 +324,22 @@
                     : 'Do you want to switch to Sandbox mode?';
 
                 if (confirm(confirmMessage)) {
+                    disableForm('Switching...');
                     // Perform AJAX call if the user confirms
                     $.post(ajaxurl, {
                         nonce: ajax_wc_admin.nonce,
-                        action: 'validate_api_keys',
-                        data: { isChecked },
+                        action: 'shipbubble_switch_mode',
+                        data: { 'live_mode' : isChecked ? 1 : 0 },
                         dataType: 'json'
                     }).done(function () {
+                        enableForm();
                         updateStatusText();
                     }).fail(function (response) {
                         console.error('Error switching mode: ', response.message ?? 'Something went wrong');
                         // Revert the checkbox state on error
                         $checkbox.prop('checked', !isChecked);
                         updateStatusText();
+                        enableForm();
                     });
                 } else {
                     // Revert the checkbox state if the user cancels
