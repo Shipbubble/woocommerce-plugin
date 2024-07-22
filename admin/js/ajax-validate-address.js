@@ -274,8 +274,8 @@
         cancelEditBtn.on('click', hideApiKeyForm);
     });
 
-    function disableForm() {
-        showLoadingScreen();
+    function disableForm(loading_message = '') {
+        showLoadingScreen(loading_message);
         $('#mainform input, select').prop('disabled', true).removeClass('input-error');
     }
 
