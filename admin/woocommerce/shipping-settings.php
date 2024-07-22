@@ -225,18 +225,38 @@
 
         add_filter( 'woocommerce_shipping_methods', 'shipbubble_couriers_methods' );
 
-	    add_filter('woocommerce_generate_shipbubble_switch_html', 'generate_shipbubble_switch', 10, 3);
+	    add_filter('woocommerce_generate_shipbubble_switch_html', 'generate_shipbubble_switch', 10, 4);
 
-	    function generate_shipbubble_switch() {
+	    function generate_shipbubble_switch($field_html, $key, $value, $wc_settings) {
+
+			if (empty($wc_settings->get_option('sandbox_api_key'))) return $field_html;
 		    $switch_status = shipbubble_is_live_mode() ? 'Live' : 'Sandbox';
 		    $switch_color = shipbubble_is_live_mode() ? 'blue' : 'red';
+			$class = $value['class'];
+			if (is_array($class)) {
+				$class = implode(' ', $class);
+			}
+			$title = $value['title'];
+		    $field_key = $wc_settings->get_field_key( $key );
+			$value['desc_tip'] = false;
 		    ob_start();
 		    ?>
-		    <label class="switch">
-			    <input type="checkbox" id="woocommerce_shipbubble_shipping_services_live_mode" name="woocommerce_shipbubble_shipping_services_live_mode" value="1" class="api_form_field" <?php checked(shipbubble_is_live_mode(), 'yes'); ?>>
-			    <span class="slider" style="background-color: <?php echo esc_attr($switch_color); ?>;"></span>
-		    </label>
-		    <span class="switch-status" style="color: <?php echo esc_attr($switch_color); ?>; margin-left: 20px;"><?php echo esc_html($switch_status); ?></span>
+		    <tr valign="top">
+			    <th scope="row" class="titledesc">
+				    <label for="<?php echo esc_attr( $field_key ); ?>"><?php echo wp_kses_post( $title ); ?> <?php echo $wc_settings->get_tooltip_html( $value ); // WPCS: XSS ok. ?></label>
+			    </th>
+			    <td class="forminp">
+				    <fieldset>
+					    <legend class="screen-reader-text"><span><?php echo wp_kses_post( $title ); ?></span></legend>
+					    <label class="switch">
+						    <input type="checkbox" id="woocommerce_shipbubble_shipping_services_live_mode" name="woocommerce_shipbubble_shipping_services_live_mode" value="1" class="<?php echo esc_attr($class); ?>" <?php checked(shipbubble_is_live_mode(), 'yes'); ?>>
+						    <span class="slider" style="background-color: <?php echo esc_attr($switch_color); ?>;"></span>
+					    </label>
+					    <span class="switch-status" style="color: <?php echo esc_attr($switch_color); ?>; margin-left: 20px;"><?php echo esc_html($switch_status); ?></span>
+				    </fieldset>
+			    </td>
+		    </tr>
+
 		    <?php
 		    return ob_get_clean();
 	    }
