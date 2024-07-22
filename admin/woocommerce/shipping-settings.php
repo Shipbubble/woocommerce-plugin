@@ -73,9 +73,9 @@
 
 		                    $this->form_fields = array(
 			                    'live_mode' => array(
-				                    'title' => __('Switch Mode', 'woocommerce'),
-				                    'type' => 'checkbox',
-				                    'class' => 'switch-checkbox',
+				                    'title' => __('Change Mode', 'woocommerce'),
+				                    'type' => 'shipbubble_switch',
+				                    'class' => ['switch-checkbox', 'address_form_field'],
 				                    'description' => __('', 'woocommerce'),
 				                    'default' => __('yes', 'woocommerce'),
 			                    ),
@@ -173,13 +173,6 @@
 		                    );
 	                    } else {
 		                    $this->form_fields = array(
-			                    'live_mode' => array(
-				                    'title' => __('Switch Mode', 'woocommerce'),
-				                    'type' => 'checkbox',
-									'class' => 'switch-checkbox',
-				                    'description' => __('', 'woocommerce'),
-				                    'default' => __('yes', 'woocommerce'),
-			                    ),
 			                    'live_api_key' => array(
 				                    'title' => __('API Key', 'woocommerce'),
 				                    'type' => 'text',
@@ -231,4 +224,21 @@
         }
 
         add_filter( 'woocommerce_shipping_methods', 'shipbubble_couriers_methods' );
+
+	    add_filter('woocommerce_generate_shipbubble_switch_html', 'generate_shipbubble_switch', 10, 3);
+
+	    function generate_shipbubble_switch() {
+		    $switch_status = shipbubble_is_live_mode() ? 'Live' : 'Sandbox';
+		    $switch_color = shipbubble_is_live_mode() ? 'blue' : 'red';
+		    ob_start();
+		    ?>
+		    <label class="switch">
+			    <input type="checkbox" id="woocommerce_shipbubble_shipping_services_live_mode" name="woocommerce_shipbubble_shipping_services_live_mode" value="1" class="api_form_field" <?php checked(shipbubble_is_live_mode(), 'yes'); ?>>
+			    <span class="slider" style="background-color: <?php echo esc_attr($switch_color); ?>;"></span>
+		    </label>
+		    <span class="switch-status" style="color: <?php echo esc_attr($switch_color); ?>; margin-left: 20px;"><?php echo esc_html($switch_status); ?></span>
+		    <?php
+		    return ob_get_clean();
+	    }
+
     }

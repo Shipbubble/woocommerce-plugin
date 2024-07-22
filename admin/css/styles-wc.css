@@ -88,13 +88,11 @@
 
 }
 
-/* The switch - the box around the slider */
 .switch {
     position: relative;
     display: inline-block;
     width: 40px; /* Shorter width */
     height: 20px; /* Adjust height */
-    margin-left: 10px; /* Adjust as needed */
 }
 
 /* Hide default HTML checkbox */
@@ -131,4 +129,9 @@
 
 input:checked + .slider:before {
     transform: translateX(20px); /* Adjust based on slider width */
+}
+
+/* Add space between switch and status text */
+.switch-status {
+    margin-left: 20px; /* Adjust margin as needed */
 }

@@ -288,31 +288,6 @@
         var $checkbox = $('#woocommerce_shipbubble_shipping_services_live_mode');
 
         if ($checkbox.length) {
-            // Create the switch container and slider
-            var $switchContainer = $('<label class="switch"></label>');
-            var $slider = $('<span class="slider"></span>');
-            var $statusText = $('<span class="switch-status"></span>');
-
-
-            // Insert the switch container before the checkbox and append the checkbox and slider to it
-            $checkbox.before($switchContainer);
-            $switchContainer.append($checkbox);
-            $switchContainer.append($slider);
-
-            // Insert the status text after the switch container
-            $switchContainer.after($statusText);
-
-            // Function to update the status text based on the checkbox state
-            function updateStatusText() {
-                if ($checkbox.is(':checked')) {
-                    $statusText.text('Live').css('color', 'blue');
-                    $slider.css('background-color', 'blue');
-                } else {
-                    $statusText.text('Sandbox').css('color', 'red');
-                    $slider.css('background-color', 'red');
-                }
-            }
-
             // Initial update of the status text
             updateStatusText();
 
@@ -348,6 +323,15 @@
                 }
             });
 
+
+            // Function to update the status text based on the checkbox state
+            function updateStatusText() {
+                var $statusText = $checkbox.closest('.switch').next('.switch-status');
+                var mode = $checkbox.is(':checked') ? 'Live' : 'Sandbox';
+                var color = mode === 'Live' ? 'blue' : 'red';
+                $statusText.text(mode).css('color', color);
+                $checkbox.next('.slider').css('background-color', color);
+            }
         }
 
     });
