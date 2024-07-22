@@ -23,7 +23,12 @@ function shipbubble_get_keys() {
 function shipbubble_is_live_mode() {
 	$options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
 
-	return 'yes' === $options['live_mode'] ?? '';
+	if (!isset($options['live_mode'])) {
+		$options['live_mode'] = 'yes';
+		update_option(WC_SHIPBUBBLE_ID, $options);
+	}
+
+	return 'yes' === $options['live_mode'];
 }
 
 function shipbubble_base_response($status = null, $message = null, $data = null)
@@ -411,4 +416,12 @@ function shipbubble_live_address_validated() {
 function shipbubble_sandbox_address_validated() {
 	$shipbubble_init = get_option(SHIPBUBBLE_INIT);
 	return true === $shipbubble_init[SHIPBUBBLE_SANDBOX_ADDRESS_VALIDATED] ?? false;
+}
+
+function shipbubble_get_address_code() {
+	if (shipbubble_is_live_mode()) {
+		return get_option(WC_SHIPBUBBLE_ID)['address_code'] ?? '';
+	} else {
+		return get_option(WC_SHIPBUBBLE_ID)['sandbox_address_code'] ?? '';
+	}
 }

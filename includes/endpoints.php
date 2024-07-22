@@ -317,7 +317,7 @@ function shipbubble_get_shipping_rates(string $addressCode, array $products, $se
 
     $setDimensions = shipbubble_set_package_dimensions($netWeight);
 
-    $senderAddressCode = get_option(WC_SHIPBUBBLE_ID)['address_code'];
+    $senderAddressCode = shipbubble_get_address_code();
     $categoryCode = get_option(WC_SHIPBUBBLE_ID)['store_category'];
 
 	$currency_code = shipbubble_get_currency_code();

@@ -72,6 +72,13 @@
 		                    // $this->method_description .= $isEnabled;
 
 		                    $this->form_fields = array(
+			                    'live_mode' => array(
+				                    'title' => __('Switch Mode', 'woocommerce'),
+				                    'type' => 'checkbox',
+				                    'class' => 'switch-checkbox',
+				                    'description' => __('', 'woocommerce'),
+				                    'default' => __('yes', 'woocommerce'),
+			                    ),
 			                    'activate_shipbubble' => array(
 				                    'title' => __('Activate to use', 'woocommerce'),
 				                    'type' => 'checkbox',
@@ -141,19 +148,13 @@
 				                    'class' => 'address_form_field',
 				                    // 'custom_attributes' => array('readonly' => 'readonly')
 			                    ),
-			                    'test_address_code' => array(
+			                    'sandbox_address_code' => array(
 				                    // 'title'         => __( 'Address Code', 'woocommerce' ),
 				                    'type' => 'hidden',
 				                    // 'description'     => __( 'This is the address code setup for pickup (66502255).', 'woocommerce' ),
 				                    'default' => __('0', 'woocommerce'),
 				                    'class' => 'address_form_field',
 				                    // 'custom_attributes' => array('readonly' => 'readonly')
-			                    ),
-			                    'live_mode' => array(
-				                    'title' => __('Live Mode', 'woocommerce'),
-				                    'type' => 'checkbox',
-				                    'class' => 'api_form_field',
-				                    'default' => __('yes', 'woocommerce'),
 			                    ),
 			                    'live_api_key' => array(
 				                    'title' => __('Live API Key', 'woocommerce'),
@@ -173,8 +174,9 @@
 	                    } else {
 		                    $this->form_fields = array(
 			                    'live_mode' => array(
-				                    'title' => __('Live Mode', 'woocommerce'),
+				                    'title' => __('Switch Mode', 'woocommerce'),
 				                    'type' => 'checkbox',
+									'class' => 'switch-checkbox',
 				                    'description' => __('', 'woocommerce'),
 				                    'default' => __('yes', 'woocommerce'),
 			                    ),

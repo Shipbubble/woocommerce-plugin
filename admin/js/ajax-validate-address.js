@@ -23,7 +23,6 @@
         const cancelEditBtn = $('<a href="#" id="cancel-edit-btn">Cancel</a>');
         const sandbox_api_key_note = $('<p id="sandbox_api_key_note" class="form_note_shipbubble_api_key"></p>');
         const live_api_key_note = $('<p id="live_api_key_note" class="form_note_shipbubble_api_key"></p>');
-        const live_mode_checkbox = mainform.find('#woocommerce_shipbubble_shipping_services_live_mode');
 
         function toggleFormFields(showApiKey) {
             mainform.find('.address_form_field').closest('tr').toggle(!showApiKey);
@@ -281,4 +280,70 @@
         editApiKeyBtn.on('click', showApiKeyForm);
         cancelEditBtn.on('click', hideApiKeyForm);
     });
+
+    jQuery(document).ready(function($) {
+        var $checkbox = $('#woocommerce_shipbubble_shipping_services_live_mode');
+
+        if ($checkbox.length) {
+            // Create the switch container and slider
+            var $switchContainer = $('<label class="switch"></label>');
+            var $slider = $('<span class="slider"></span>');
+            var $statusText = $('<span class="switch-status"></span>');
+
+
+            // Insert the switch container before the checkbox and append the checkbox and slider to it
+            $checkbox.before($switchContainer);
+            $switchContainer.append($checkbox);
+            $switchContainer.append($slider);
+
+            // Insert the status text after the switch container
+            $switchContainer.after($statusText);
+
+            // Function to update the status text based on the checkbox state
+            function updateStatusText() {
+                if ($checkbox.is(':checked')) {
+                    $statusText.text('Live').css('color', 'blue');
+                    $slider.css('background-color', 'blue');
+                } else {
+                    $statusText.text('Sandbox').css('color', 'red');
+                    $slider.css('background-color', 'red');
+                }
+            }
+
+            // Initial update of the status text
+            updateStatusText();
+
+            // Add an event listener to update the status text when the checkbox state changes
+            $checkbox.on('change', function() {
+                var isChecked = $checkbox.is(':checked');
+                var confirmMessage = isChecked
+                    ? 'Do you want to switch to Live mode?'
+                    : 'Do you want to switch to Sandbox mode?';
+
+                if (confirm(confirmMessage)) {
+                    // Perform AJAX call if the user confirms
+                    $.post(ajaxurl, {
+                        nonce: ajax_wc_admin.nonce,
+                        action: 'validate_api_keys',
+                        data: { isChecked },
+                        dataType: 'json'
+                    }).done(function () {
+                        updateStatusText();
+                    }).fail(function (response) {
+                        console.error('Error switching mode: ', response.message ?? 'Something went wrong');
+                        // Revert the checkbox state on error
+                        $checkbox.prop('checked', !isChecked);
+                        updateStatusText();
+                    });
+                } else {
+                    // Revert the checkbox state if the user cancels
+                    $checkbox.prop('checked', !isChecked);
+                    updateStatusText();
+                }
+            });
+
+        }
+
+    });
+
 })(jQuery);

@@ -115,3 +115,9 @@
 
     // ajax hook for logged-in users: wp_ajax_{action}
     add_action( 'wp_ajax_initiate_validate_sender_address', 'shipbubble_initiate_validate_sender_address' );
+
+	function shipbubble_switch_mode() {
+
+	}
+
+add_action( 'wp_ajax_shipbubble_switch_mode', 'shipbubble_switch_mode' );
