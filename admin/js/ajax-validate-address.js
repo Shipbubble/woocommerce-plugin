@@ -284,7 +284,7 @@
         $('#mainform input, select').prop('disabled', false);
     }
 
-    jQuery(document).ready(function($) {
+    $(document).ready(function($) {
         var $checkbox = $('#woocommerce_shipbubble_shipping_services_live_mode');
 
         if ($checkbox.length) {
