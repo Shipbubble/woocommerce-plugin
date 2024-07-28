@@ -477,47 +477,6 @@ function hook_shipbubble_admin_notices() {
 }
 
 function render_shipbubble_admin_notices() {
-	$shipbubble_init = get_option(SHIPBUBBLE_INIT);
-	$message = '';
-	$notice_type = 'notice-error';
-
-	$link = '<a href="admin.php?page=wc-settings&tab=shipping&section=shipbubble_shipping_services" style="text-decoration: underline; font-weight: bold;">%s</a>';
-
-	if (false == $shipbubble_init['account_status']) {
-		$message = sprintf(
-			__('Please %s your Shipbubble API Keys to start shipping.', 'shipbubble'),
-			sprintf($link, __('setup', 'shipbubble'))
-		);
-	}
-    elseif (!shipbubble_is_live_mode()) {
-        if (shipbubble_sandbox_address_validated()) {
-            $message = __('Shipbubble test mode is active, please do not use for a live site', 'shipbubble');
-            $notice_type = 'notice-info';
-        } else {
-            $message = sprintf(
-                    __('Please complete your Shipbubble %s.', 'shipbubble'),
-                    sprintf($link, __('setup', 'shipbubble'))
-                ) . ' '. __('Validate your address and start shipping with ease.');
-        }
-    } elseif (shipbubble_is_live_mode() && !shipbubble_live_address_validated()) {
-        $message = sprintf(
-				__('Please complete your Shipbubble %s.', 'shipbubble'),
-				sprintf($link, __('setup', 'shipbubble'))
-			) . ' '. __('Validate your address and start shipping with ease.');
-    }
-
-	if (!empty($message)) {
-		$logo_url = SHIPBUBBLE_LOGO_URL;
-        ?>
-        <div class="notice <?php echo $notice_type; ?> is-dismissible" style="padding: 15px; background-color: #f1f1f1;">
-            <p>
-                <img src="<?php echo esc_url($logo_url); ?>" alt="<?php esc_attr_e('Shipbubble Logo', 'shipbubble'); ?>" style="max-width: 100px; height: auto;">
-            </p>
-            <p style="font-size: 14px; color: #333;">
-				<?php echo $message; ?>
-            </p>
-        </div>
-		<?php
-	}
+    echo generate_shipbubble_notice();
 }
 

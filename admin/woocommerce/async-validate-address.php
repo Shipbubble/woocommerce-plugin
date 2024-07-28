@@ -142,9 +142,10 @@
 		if (isset($response->response_code) && $response->response_code == SHIPBUBBLE_RESPONSE_IS_OK) {
 			shipbubble_switch_mode($live_mode ? 'yes' : 'no');
 			$response->message = 'You have successfully switched to ' . $mode . ' mode';
+			$response->notice = generate_shipbubble_notice();
 		}
 
-		echo wp_json_encode($response);
+		echo json_encode($response);
 		wp_die();
 	}
 	add_action( 'wp_ajax_shipbubble_switch_mode', 'shipbubble_switch_mode_ajax' );

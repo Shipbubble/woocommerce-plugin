@@ -288,9 +288,6 @@
         var $checkbox = $('#woocommerce_shipbubble_shipping_services_live_mode');
 
         if ($checkbox.length) {
-            // Initial update of the status text
-            updateStatusText();
-
             // Add an event listener to update the status text when the checkbox state changes
             $checkbox.on('change', function() {
                 var isChecked = $checkbox.is(':checked');
@@ -306,11 +303,40 @@
                         action: 'shipbubble_switch_mode',
                         data: { 'live_mode' : isChecked ? 1 : 0 },
                         dataType: 'json'
-                    }).done(function () {
-                        enableForm();
+                    }).done(function (data) {
+                        let response = JSON.parse(data);
+                        if (response.hasOwnProperty('response_code') && response['response_code'] !== 200) {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: '',
+                                text:'Error switching mode: ' + response['message'] ?? 'Something went wrong',
+                                showConfirmButton: false,
+                                timer: 4500
+                            });
+                            // Revert the checkbox state on error
+                            $checkbox.prop('checked', !isChecked);
+                        } else {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Mode switched successfully!',
+                                text: response['message'],
+                                showConfirmButton: false,
+                                timer: 2000
+                            });
+                            $('#shipbubble_notice_div').remove()
+                            $('ul.subsubsub').before(response['notice']);
+                        }
                         updateStatusText();
-                    }).fail(function (response) {
-                        console.error('Error switching mode: ', response.message ?? 'Something went wrong');
+                        enableForm();
+                    }).fail(function (data) {
+                        let response = JSON.parse(data);
+                        Swal.fire({
+                            icon: 'warning',
+                            title: '',
+                            text:'Error switching mode: ' + response['message'] ?? 'Something went wrong',
+                            showConfirmButton: false,
+                            timer: 4500
+                        });
                         // Revert the checkbox state on error
                         $checkbox.prop('checked', !isChecked);
                         updateStatusText();
