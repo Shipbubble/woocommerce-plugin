@@ -249,7 +249,7 @@
 				    <fieldset>
 					    <legend class="screen-reader-text"><span><?php echo wp_kses_post( $title ); ?></span></legend>
 					    <label class="switch">
-						    <input type="checkbox" id="woocommerce_shipbubble_shipping_services_live_mode" name="woocommerce_shipbubble_shipping_services_live_mode" value="1" class="<?php echo esc_attr($class); ?>" <?php checked(shipbubble_is_live_mode(), 'yes'); ?>>
+						    <input type="checkbox" id="woocommerce_shipbubble_shipping_services_live_mode" name="woocommerce_shipbubble_shipping_services_live_mode" value="1" class="<?php echo esc_attr($class); ?>" <?php checked(shipbubble_is_live_mode()); ?>>
 						    <span class="slider" style="background-color: <?php echo esc_attr($switch_color); ?>;"></span>
 					    </label>
 					    <span class="switch-status" style="color: <?php echo esc_attr($switch_color); ?>; margin-left: 20px;"><?php echo esc_html($switch_status); ?></span>

@@ -345,7 +345,6 @@
                 } else {
                     // Revert the checkbox state if the user cancels
                     $checkbox.prop('checked', !isChecked);
-                    updateStatusText();
                 }
             });
 
