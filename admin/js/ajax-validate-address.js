@@ -88,7 +88,7 @@
             let input_error = false;
 
             if (sandbox_api_key.length <= 10 || !sandbox_api_key.startsWith('sb_sandbox') ) {
-                sandbox_api_key_note.text('Please provide valid Shipbubble Sanbox API key').addClass('error');
+                sandbox_api_key_note.text('Please provide valid Shipbubble test API key').addClass('error');
                 sandbox_api_key_input.addClass('input-error');
                 input_error = true;
             }
@@ -293,7 +293,7 @@
                 var isChecked = $checkbox.is(':checked');
                 var confirmMessage = isChecked
                     ? 'Do you want to switch to Live mode?'
-                    : 'Do you want to switch to Sandbox mode?';
+                    : 'Do you want to switch to Test mode?';
 
                 if (confirm(confirmMessage)) {
                     disableForm('Switching...');
@@ -352,7 +352,7 @@
             // Function to update the status text based on the checkbox state
             function updateStatusText() {
                 var $statusText = $checkbox.closest('.switch').next('.switch-status');
-                var mode = $checkbox.is(':checked') ? 'Live' : 'Sandbox';
+                var mode = $checkbox.is(':checked') ? 'Live' : 'Test';
                 var color = mode === 'Live' ? 'blue' : 'red';
                 $statusText.text(mode).css('color', color);
                 $checkbox.next('.slider').css('background-color', color);

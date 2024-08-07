@@ -164,7 +164,7 @@
 				                    'placeholder' => 'sb_prod_xxxxxxxxxxxxxxxxxxxxx'
 			                    ),
 			                    'sandbox_api_key' => array(
-				                    'title' => __('Sandbox API Key', 'woocommerce'),
+				                    'title' => __('Test API Key', 'woocommerce'),
 				                    'type' => 'text',
 				                    'class' => 'api_form_field',
 				                    'description' => __('', 'woocommerce'),
@@ -180,7 +180,7 @@
 				                    'placeholder' => 'sb_prod_xxxxxxxxxxxxxxxxxxxxx'
 			                    ),
 			                    'sandbox_api_key' => array(
-				                    'title' => __('Sandbox API Key', 'woocommerce'),
+				                    'title' => __('Test API Key', 'woocommerce'),
 				                    'type' => 'text',
 				                    'description' => __('', 'woocommerce'),
 				                    'placeholder' => 'sb_sandbox_xxxxxxxxxxxxxxxxxxxxx'
@@ -230,7 +230,7 @@
 	    function generate_shipbubble_switch($field_html, $key, $value, $wc_settings) {
 
 			if (empty($wc_settings->get_option('sandbox_api_key'))) return $field_html;
-		    $switch_status = shipbubble_is_live_mode() ? 'Live' : 'Sandbox';
+		    $switch_status = shipbubble_is_live_mode() ? 'Live' : 'Test';
 		    $switch_color = shipbubble_is_live_mode() ? 'blue' : 'red';
 			$class = $value['class'];
 			if (is_array($class)) {
