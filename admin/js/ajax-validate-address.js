@@ -353,7 +353,7 @@
             function updateStatusText() {
                 var $statusText = $checkbox.closest('.switch').next('.switch-status');
                 var mode = $checkbox.is(':checked') ? 'Live' : 'Test';
-                var color = mode === 'Live' ? 'blue' : 'red';
+                var color = mode === 'Live' ? 'green' : 'grey';
                 $statusText.text(mode).css('color', color);
                 $checkbox.next('.slider').css('background-color', color);
             }

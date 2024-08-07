@@ -88,21 +88,20 @@
 
 }
 
+/* Smaller Toggle Switch */
 .switch {
     position: relative;
     display: inline-block;
-    width: 40px; /* Shorter width */
-    height: 20px; /* Adjust height */
+    width: 40px;  /* Adjusted width */
+    height: 20px;  /* Adjusted height */
 }
 
-/* Hide default HTML checkbox */
-.switch-checkbox {
+.switch input {
     opacity: 0;
     width: 0;
     height: 0;
 }
 
-/* The slider */
 .slider {
     position: absolute;
     cursor: pointer;
@@ -110,28 +109,40 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: red; /* Default color for unchecked */
+    background-color: #ccc;
     transition: .4s;
-    border-radius: 0; /* Remove border radius */
+    border-radius: 20px;  /* Adjusted for smaller size */
 }
 
 .slider:before {
     position: absolute;
     content: "";
-    height: 16px; /* Adjust height */
-    width: 16px; /* Adjust width */
-    left: 2px;
-    bottom: 2px;
+    height: 16px;  /* Adjusted knob size */
+    width: 16px;  /* Adjusted knob size */
+    left: 2px;  /* Adjusted position */
+    bottom: 2px;  /* Adjusted position */
     background-color: white;
     transition: .4s;
-    border-radius: 0; /* Remove border radius */
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: #2196F3; /* You can set the color here */
+}
+
+input:focus + .slider {
+    box-shadow: 0 0 1px #2196F3; /* Optional focus styling */
 }
 
 input:checked + .slider:before {
-    transform: translateX(20px); /* Adjust based on slider width */
+    transform: translateX(20px);  /* Adjusted for smaller size */
 }
 
-/* Add space between switch and status text */
-.switch-status {
-    margin-left: 20px; /* Adjust margin as needed */
+/* Rounded sliders */
+.slider.round {
+    border-radius: 20px;  /* Adjusted for smaller size */
+}
+
+.slider.round:before {
+    border-radius: 50%;
 }

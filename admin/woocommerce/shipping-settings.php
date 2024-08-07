@@ -231,7 +231,7 @@
 
 			if (empty($wc_settings->get_option('sandbox_api_key'))) return $field_html;
 		    $switch_status = shipbubble_is_live_mode() ? 'Live' : 'Test';
-		    $switch_color = shipbubble_is_live_mode() ? 'blue' : 'red';
+		    $switch_color = shipbubble_is_live_mode() ? 'green' : 'grey';
 			$class = $value['class'];
 			if (is_array($class)) {
 				$class = implode(' ', $class);
@@ -241,21 +241,21 @@
 			$value['desc_tip'] = false;
 		    ob_start();
 		    ?>
-		    <tr valign="top">
-			    <th scope="row" class="titledesc">
-				    <label for="<?php echo esc_attr( $field_key ); ?>"><?php echo wp_kses_post( $title ); ?> <?php echo $wc_settings->get_tooltip_html( $value ); // WPCS: XSS ok. ?></label>
-			    </th>
-			    <td class="forminp">
-				    <fieldset>
-					    <legend class="screen-reader-text"><span><?php echo wp_kses_post( $title ); ?></span></legend>
-					    <label class="switch">
-						    <input type="checkbox" id="woocommerce_shipbubble_shipping_services_live_mode" name="woocommerce_shipbubble_shipping_services_live_mode" value="1" class="<?php echo esc_attr($class); ?>" <?php checked(shipbubble_is_live_mode()); ?>>
-						    <span class="slider" style="background-color: <?php echo esc_attr($switch_color); ?>;"></span>
-					    </label>
-					    <span class="switch-status" style="color: <?php echo esc_attr($switch_color); ?>; margin-left: 20px;"><?php echo esc_html($switch_status); ?></span>
-				    </fieldset>
-			    </td>
-		    </tr>
+            <tr valign="top">
+                <th scope="row" class="titledesc">
+                    <label for="<?php echo esc_attr( $field_key ); ?>"><?php echo wp_kses_post( $title ); ?> <?php echo $wc_settings->get_tooltip_html( $value ); // WPCS: XSS ok. ?></label>
+                </th>
+                <td class="forminp">
+                    <fieldset>
+                        <legend class="screen-reader-text"><span><?php echo wp_kses_post( $title ); ?></span></legend>
+                        <label class="switch">
+                            <input type="checkbox" id="woocommerce_shipbubble_shipping_services_live_mode" name="woocommerce_shipbubble_shipping_services_live_mode" value="1" class="<?php echo esc_attr($class); ?>" <?php checked(shipbubble_is_live_mode()); ?>>
+                            <span class="slider round" style="background-color: <?php echo esc_attr($switch_color); ?>;"></span>
+                        </label>
+                        <span class="switch-status" style="color: <?php echo esc_attr($switch_color); ?>; margin-left: 20px;"><?php echo esc_html($switch_status); ?></span>
+                    </fieldset>
+                </td>
+            </tr>
 		    <?php
 		    return ob_get_clean();
 	    }
