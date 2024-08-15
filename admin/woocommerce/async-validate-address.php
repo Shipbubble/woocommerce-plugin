@@ -9,8 +9,11 @@
         // define script url
         $script_url = plugins_url( '/js/ajax-validate-address.js', plugin_dir_path( __FILE__ ) );
 
-        // enqueue script
-        wp_enqueue_script( 'ajax-wc-admin', $script_url, array( 'jquery' ) );
+	    // Generate a random version number
+	    $version = rand(1000, 9999); // or use another method to generate a version string
+
+	    // Enqueue script with random version
+	    wp_enqueue_script( 'ajax-wc-admin', $script_url, array( 'jquery' ), $version );
 
         // create nonce
         $nonce = wp_create_nonce( 'ajax_wc_admin' );
