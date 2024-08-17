@@ -376,11 +376,32 @@ function shipbubble_data_is_serialized($str) {
 }
 
 function shipbubble_get_currency_code() {
-	if (class_exists('YITH_WCMCS_Currency_Handler')) {
-		$currency_code = yith_wcmcs_get_current_currency_id();
-	} else {
+	$currency_code = '';
+
+	$plugins = array(
+		array(
+			'check' => function() { return class_exists('YITH_WCMCS_Currency_Handler'); },
+			'get_currency' => function() { return yith_wcmcs_get_current_currency_id(); }
+		),
+		array(
+			'check' => function() { return is_plugin_active('yaycurrency/yay-currency.php'); },
+			'get_currency' => function() {
+				$currency_data = YayCurrencyHelper::get_current_currency();
+				return is_array($currency_data) ? isset($currency_data['currency']) ? $currency_data['currency'] : '' : '';
+			}
+		),
+	);
+
+	foreach ($plugins as $plugin) {
+		if ($plugin['check']()) {
+			$currency_code = $plugin['get_currency']();
+			break;
+		}
+	}
+	if (empty($currency_code)) {
 		$currency_code = get_woocommerce_currency();
 	}
+
 
 	return empty($currency_code) ? 'NGN' : $currency_code;
 }
