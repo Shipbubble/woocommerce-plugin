@@ -380,11 +380,11 @@ function shipbubble_create_shipment_after_order_created($order_id)
 			// set empty shipping status
 			update_post_meta($order_id, 'shipbubble_tracking_status', '');
 		}
+
+		// Flag the action as done (to avoid repetitions on reload for example)
+		$order->update_meta_data('_thankyou_action_done', true);
+		$order->save();
 	}
-	
-	// Flag the action as done (to avoid repetitions on reload for example)
-	$order->update_meta_data('_thankyou_action_done', true);
-	$order->save();
 }
 
 add_action( 'woocommerce_before_checkout_process', 'shipbubble_validate_checkout_order' , 10, 1 );
