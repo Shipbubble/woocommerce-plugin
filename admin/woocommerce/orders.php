@@ -1,7 +1,7 @@
 <?php
 
-add_action('woocommerce_admin_order_data_after_billing_address', 'shibubble_order_data_after_billing_address', 10, 1);
-function shibubble_order_data_after_billing_address($order)
+add_action('woocommerce_admin_order_data_after_billing_address', 'shipbubble_order_data_after_billing_address', 10, 1);
+function shipbubble_order_data_after_billing_address($order)
 {
     if (in_array($order->get_status(), SHIPBUBBLE_WC_BAD_ORDER_STATUS_ARR)) {
         return;
@@ -13,6 +13,7 @@ function shibubble_order_data_after_billing_address($order)
     }
 
     $order_id = $order->get_id();
+	$order_data = $order->get_data();
 
     // Get Shipbubble Order ID
     $shipbubbleOrderId = get_post_meta($order_id, 'shipbubble_order_id', true);
@@ -54,8 +55,8 @@ function shibubble_order_data_after_billing_address($order)
     $shipmentDetailsArray['order_id'] = $order_id;
 
     // Get Shipping Data
-    $shippingData = $order->data['shipping'];
-    $shippingPhone = $order->data['billing']['phone'];
+    $shippingData = $order_data['shipping'];
+    $shippingPhone = $order_data['billing']['phone'];
     $orderAddress = sb_create_address($shippingData['address_1'], $shippingData['city'], $shippingData['state'], $shippingData['country']);
     $orderPhone = get_post_meta($order_id, 'shipbubble_delivery_phone', true);
 
@@ -284,7 +285,7 @@ function shipbubble_display_wallet_balance($order)
             $balance = $response->data->balance;
         }
 
-        echo '<input type="hidden" id="shipbubble_shipping_cost" name="shipbubble_shipping_cost" value="' . esc_html((float) $order->shipping_total) . '"/>';
+        echo '<input type="hidden" id="shipbubble_shipping_cost" name="shipbubble_shipping_cost" value="' . esc_html((float) $order->get_shipping_total()) . '"/>';
 
         echo '<input type="hidden" id="shipbubble_wallet_balance" name="shipbubble_wallet_balance" value="' . esc_html((float) $balance) . '"/>';
 
