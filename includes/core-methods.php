@@ -1,5 +1,5 @@
 <?php // Core Methods
-
+use \Yay_Currency\Helpers\YayCurrencyHelper;
 
 function shipbubble_get_token(): string
 {
@@ -399,6 +399,7 @@ function shipbubble_data_is_serialized($str) {
 }
 
 function shipbubble_get_currency_code() {
+
 	$currency_code = '';
 
 	$plugins = array(
@@ -407,7 +408,7 @@ function shipbubble_get_currency_code() {
 			'get_currency' => function() { return yith_wcmcs_get_current_currency_id(); }
 		),
 		array(
-			'check' => function() { return is_plugin_active('yaycurrency/yay-currency.php'); },
+			'check' => function() { return is_plugin_active('yaycurrency/yay-currency.php') && class_exists('Yay_Currency\Helpers\YayCurrencyHelper'); },
 			'get_currency' => function() {
 				$currency_data = YayCurrencyHelper::get_current_currency();
 				return is_array($currency_data) ? isset($currency_data['currency']) ? $currency_data['currency'] : '' : '';
@@ -431,12 +432,12 @@ function shipbubble_get_currency_code() {
 
 function shipbubble_live_address_validated() {
 	$shipbubble_init = get_option(SHIPBUBBLE_INIT);
-	return true === $shipbubble_init[SHIPBUBBLE_ADDRESS_VALIDATED] ?? false;
+	return true === ($shipbubble_init[SHIPBUBBLE_ADDRESS_VALIDATED] ?? false);
 }
 
 function shipbubble_sandbox_address_validated() {
 	$shipbubble_init = get_option(SHIPBUBBLE_INIT);
-	return true === $shipbubble_init[SHIPBUBBLE_SANDBOX_ADDRESS_VALIDATED] ?? false;
+	return true === ($shipbubble_init[SHIPBUBBLE_SANDBOX_ADDRESS_VALIDATED] ?? false);
 }
 
 function shipbubble_get_address_code() {
