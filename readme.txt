@@ -4,7 +4,7 @@ Donate link: https://www.shipbubble.com/
 Tags: logistics, deliveries, shipping rates, multiple couriers, post-purchase experience
 Requires at least: 4.0
 Tested up to: 6.5
-Stable tag: 2.4.1
+Stable tag: 2.5
 Requires PHP: 5.6
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
@@ -45,11 +45,14 @@ Please visit our website - https://shipbubble.com
 
 1. Get access to multiple courier rates at checkout
 2. Create a personalized branded tracking experience for your customers
-3. Provide your api key
+3. Provide your api keys
 4. Validate your plugin
 5. Complete set up
 
 == Changelog ==
+= 2.5 =
+* Test mode shipment implementation, yay and yith currency converter support, fixes and improvements.
+
 = 2.4.1 =
 * Free shipping at checkout fix and currency converter optimizer
 
@@ -120,5 +123,5 @@ Please visit our website - https://shipbubble.com
 * Initial release.
 
 == Upgrade Notice ==
-= 2.4.1 =
-Free shipping at checkout fix and currency converter optimizer.
+= 2.5 =
+* Test mode shipment implementation, yay and yith currency converter support, fixes and improvements.
