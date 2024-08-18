@@ -28,3 +28,121 @@
     border-radius: 20px; 
     font-weight: bold;
 }
+
+.form_note_shipbubble_api_key {
+    margin-top: 10px;
+}
+
+.form_note_shipbubble_api_key.error {
+    color: red;
+}
+
+.form_note_shipbubble_api_key.success {
+    color: green;
+}
+
+.form_note_shipbubble_api_key.validating {
+    color: black;
+}
+
+.input-error {
+    border: 1px solid red !important;
+}
+
+.input-valid {
+    border: 2px solid green !important;
+}
+
+.input-validating {
+    border: 1px solid black;
+}
+
+#cancel-edit-btn {
+    color: red;
+}
+
+.blockUI.blockOverlay.ui-widget-overlay {
+    background: #000;
+}
+
+.shipbubble_saving_popup img {
+    animation-name: aios_blink;
+    animation-duration: 610ms;
+    animation-iteration-count: infinite;
+    animation-direction: alternate;
+    animation-timing-function: ease-out;
+}
+
+
+@keyframes aios_blink {
+
+    from {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    to {
+        opacity: 0.4;
+        transform: scale(0.85);
+    }
+
+}
+
+/* Smaller Toggle Switch */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 40px;  /* Adjusted width */
+    height: 20px;  /* Adjusted height */
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 20px;  /* Adjusted for smaller size */
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;  /* Adjusted knob size */
+    width: 16px;  /* Adjusted knob size */
+    left: 2px;  /* Adjusted position */
+    bottom: 2px;  /* Adjusted position */
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: #2196F3; /* You can set the color here */
+}
+
+input:focus + .slider {
+    box-shadow: 0 0 1px #2196F3; /* Optional focus styling */
+}
+
+input:checked + .slider:before {
+    transform: translateX(20px);  /* Adjusted for smaller size */
+}
+
+/* Rounded sliders */
+.slider.round {
+    border-radius: 20px;  /* Adjusted for smaller size */
+}
+
+.slider.round:before {
+    border-radius: 50%;
+}

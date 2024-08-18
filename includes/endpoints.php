@@ -191,14 +191,16 @@ function shipbubble_get_couriers()
  * @param string $address
  * @return mixed addressCode
  */
-function shipbubble_validate_address(string $name, string $email, string $phone, string $address)
+function shipbubble_validate_address(string $name, string $email, string $phone, string $address, string $token = '')
 {
     $url = SHIPBUBBLE_BASE_URL . '/address/validate';
 
     $url = esc_url_raw($url);
 
-    // get API key from options
-    $token = shipbubble_get_token();
+	if (empty($token)) {
+		// get API key from options
+		$token = shipbubble_get_token();
+	}
 
     $body = shipbubble_base_response(); // default response
 
@@ -315,7 +317,7 @@ function shipbubble_get_shipping_rates(string $addressCode, array $products, $se
 
     $setDimensions = shipbubble_set_package_dimensions($netWeight);
 
-    $senderAddressCode = get_option(WC_SHIPBUBBLE_ID)['address_code'];
+    $senderAddressCode = shipbubble_get_address_code();
     $categoryCode = get_option(WC_SHIPBUBBLE_ID)['store_category'];
 
 	$currency_code = shipbubble_get_currency_code();

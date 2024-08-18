@@ -14,6 +14,7 @@
  * Domain Path:  /languages
  * License: GPLv3 or later
  * License URI: https://www.gnu.org/licenses/gpl-3.0.html
+ * Requires Plugins: woocommerce
  */
 
 // exit if file is called directly
@@ -24,10 +25,6 @@ if (!defined('ABSPATH')) {
 // if  admin area
 if (is_admin()) {
 	// include dependencies
-	require_once plugin_dir_path(__FILE__) . 'admin/wordpress/settings-menu.php';
-	require_once plugin_dir_path(__FILE__) . 'admin/wordpress/settings-page.php';
-	require_once plugin_dir_path(__FILE__) . 'admin/wordpress/settings-register.php';
-	require_once plugin_dir_path(__FILE__) . 'admin/wordpress/settings-callback.php';
 	require_once plugin_dir_path(__FILE__) . 'admin/wordpress/async-validate-auth.php';
 
 	// Woocommerce
@@ -45,19 +42,23 @@ require_once plugin_dir_path(__FILE__) . 'includes/core-methods.php';
 // public
 require_once plugin_dir_path(__FILE__) . 'public/async-checkout-couriers.php';
 
+define('SHIPBUBBLE_PLUGIN_URL', plugins_url('', __FILE__));
+define('SHIPBUBBLE_LOGO_URL', SHIPBUBBLE_PLUGIN_URL . '/public/images/logo.svg');
+
 
 // action on activation
 function shipbubble_on_activation()
 {
 	if (!current_user_can('activate_plugins')) return;
 
-	if (get_option('shipbubble_init')) {
-		$data = array('initialized' => true, 'account_status' => false);
-		update_option('shipbubble_init', $data);
+	$data = array('initialized' => true, 'account_status' => false, SHIPBUBBLE_ADDRESS_VALIDATED => false, SHIPBUBBLE_SANDBOX_ADDRESS_VALIDATED => false);
+	if (get_option(SHIPBUBBLE_INIT)) {
+		update_option(SHIPBUBBLE_INIT, $data);
 	} else {
-		$data = array('initialized' => true, 'account_status' => false);
-		add_option('shipbubble_init', $data);
+		add_option(SHIPBUBBLE_INIT, $data);
 	}
+
+	add_option('shipbubble_first_time_redirection', true);
 }
 
 register_activation_hook(__FILE__, 'shipbubble_on_activation');
@@ -68,8 +69,7 @@ function shipbubble_on_deactivation()
 {
 	if (!current_user_can('activate_plugins')) return;
 
-	$data = array('initialized' => false, 'account_status' => false);
-	update_option('shipbubble_init', $data);
+    flush_rewrite_rules();
 }
 
 register_deactivation_hook(__FILE__, 'shipbubble_on_deactivation');
@@ -92,6 +92,9 @@ function shipbubble_wc_options_default(): array
 		'user_can_ship' => 'yes',
 		'activate_shipbubble' => 'no',
 		'disable_other_shipping_methods' => 'no',
+		'live_api_key' => '',
+		'sandbox_api_key' => '',
+		'live_mode' => 'yes'
 	);
 }
 
@@ -110,7 +113,52 @@ function shipbubble_wc_api_init()
 	require_once plugin_dir_path(__FILE__) . 'public/woocommerce/checkout.php';
 	require_once plugin_dir_path(__FILE__) . 'public/woocommerce/enqueue-styles.php';
 	// }
+
+	$version = '2.5';
+	$shipbubble_version = get_option(SHIPBUBBLE_PLUGIN_VERSION, '');
+
+	// Check if the shipbubble_version is empty or less than the specified version
+	if (empty($shipbubble_version) || version_compare($shipbubble_version, $version, '<')) {
+		// Get the current options
+		$options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
+
+		// If the API key is not set, try to get it from the old options
+		if (empty($options['live_api_key'])) {
+			$old_options = get_option('shipbubble_options', shipbubble_options_default());
+			$options['live_api_key'] = isset($old_options['shipbubble_api_key']) ? sanitize_text_field($old_options['shipbubble_api_key']) : '';
+			update_option(WC_SHIPBUBBLE_ID, $options);
+		}
+
+		if (!empty($options['live_api_key'])) {
+			$data = array('initialized' => true, 'account_status' => true, SHIPBUBBLE_ADDRESS_VALIDATED => !empty($options['address_code']), SHIPBUBBLE_SANDBOX_ADDRESS_VALIDATED => false);
+			update_option(SHIPBUBBLE_INIT, $data);
+		}
+
+		// Update the shipbubble version in the database
+		update_option(SHIPBUBBLE_PLUGIN_VERSION, $version);
+	}
+
 }
+
+function shipbubble_settings_redirect() {
+
+	if( !in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ) ) ) return;
+
+	if (get_option('shipbubble_first_time_redirection', false)) {
+		delete_option('shipbubble_first_time_redirection');
+		exit(wp_redirect(SHIPBUBBLE_EXT_BASE_URL  . '/wp-admin/admin.php?page=wc-settings&tab=shipping&section=shipbubble_shipping_services'));
+	}
+}
+add_action('admin_init', 'shipbubble_settings_redirect');
+
+function shipbubble_show_plugin_settings_link($links, $file) {
+	if (plugin_basename(__FILE__) == $file) {
+		$settings_link = '<a href="admin.php?page=wc-settings&tab=shipping&section=shipbubble_shipping_services">' . __('Settings', 'shipbubble') . '</a>';
+		array_unshift($links, $settings_link);
+	}
+	return $links;
+}
+add_filter('plugin_action_links', 'shipbubble_show_plugin_settings_link', 10, 2);
 
 
 // Disable Shipping methods if not in checkout page
@@ -332,11 +380,11 @@ function shipbubble_create_shipment_after_order_created($order_id)
 			// set empty shipping status
 			update_post_meta($order_id, 'shipbubble_tracking_status', '');
 		}
+
+		// Flag the action as done (to avoid repetitions on reload for example)
+		$order->update_meta_data('_thankyou_action_done', true);
+		$order->save();
 	}
-	
-	// Flag the action as done (to avoid repetitions on reload for example)
-	$order->update_meta_data('_thankyou_action_done', true);
-	$order->save();
 }
 
 add_action( 'woocommerce_before_checkout_process', 'shipbubble_validate_checkout_order' , 10, 1 );
@@ -396,7 +444,8 @@ function shipbubble_validate_checkout_order($order_id)
 function shipbubble_append_enqueue_script()
 {
 	wp_enqueue_script('sweetalert2', plugins_url('public/js/sweetalert2.min.js', __FILE__), array());
-	// here you can enqueue more js / css files 
+	wp_enqueue_script('blockui', plugins_url('public/js/blockui/jquery.blockUI.js', __FILE__), array());
+	// here you can enqueue more js / css files
 }
 
 add_action('wp_enqueue_scripts', 'shipbubble_append_enqueue_script');
@@ -409,3 +458,25 @@ function shipbubble_checkout_block_incompatibilty() {
 		\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'cart_checkout_blocks', __FILE__, false );
 	}
 }
+
+add_action('admin_init', 'hook_shipbubble_admin_notices');
+
+function hook_shipbubble_admin_notices() {
+	if (!current_user_can('update_plugins')) {
+		return;
+	}
+
+	global $pagenow;
+
+//	// If it's not the admin dashboard page and not the Shipbubble shipping services page, then bail
+//	if ('index.php' != $pagenow && !('admin.php' == $pagenow && isset($_GET['page']) && $_GET['page'] == 'wc-settings' && isset($_GET['tab']) && $_GET['tab'] == 'shipping' && isset($_GET['section']) && $_GET['section'] == 'shipbubble_shipping_services')) {
+//		return;
+//	}
+
+	add_action('all_admin_notices', 'render_shipbubble_admin_notices');
+}
+
+function render_shipbubble_admin_notices() {
+    echo generate_shipbubble_notice();
+}
+

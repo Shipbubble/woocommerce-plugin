@@ -1,11 +1,34 @@
 <?php // Core Methods
-
+use \Yay_Currency\Helpers\YayCurrencyHelper;
 
 function shipbubble_get_token(): string
 {
-    $options = get_option('shipbubble_options', shipbubble_options_default());
+    $options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
 
-    return isset($options['shipbubble_api_key']) ? sanitize_text_field($options['shipbubble_api_key']) : '';
+	if ('yes' === $options['live_mode']) {
+		return isset($options['live_api_key']) ? sanitize_text_field($options['live_api_key']) : '';
+	}
+
+	return isset($options['sandbox_api_key']) ? sanitize_text_field($options['sandbox_api_key']) : '';
+}
+
+function shipbubble_get_keys() {
+	$options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
+	return array(
+		'live_api_key' => isset($options['live_api_key']) ? sanitize_text_field($options['live_api_key']) : '',
+		'sandbox_api_key' => isset($options['sandbox_api_key']) ? sanitize_text_field($options['sandbox_api_key']) : ''
+	);
+}
+
+function shipbubble_is_live_mode() {
+	$options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
+
+	if (!isset($options['live_mode'])) {
+		$options['live_mode'] = 'yes';
+		update_option(WC_SHIPBUBBLE_ID, $options);
+	}
+
+	return 'yes' === $options['live_mode'];
 }
 
 function shipbubble_base_response($status = null, $message = null, $data = null)
@@ -376,11 +399,106 @@ function shipbubble_data_is_serialized($str) {
 }
 
 function shipbubble_get_currency_code() {
-	if (class_exists('YITH_WCMCS_Currency_Handler')) {
-		$currency_code = yith_wcmcs_get_current_currency_id();
-	} else {
+
+	$currency_code = '';
+
+	$plugins = array(
+		array(
+			'check' => function() { return class_exists('YITH_WCMCS_Currency_Handler'); },
+			'get_currency' => function() { return yith_wcmcs_get_current_currency_id(); }
+		),
+		array(
+			'check' => function() { return is_plugin_active('yaycurrency/yay-currency.php') && class_exists('Yay_Currency\Helpers\YayCurrencyHelper'); },
+			'get_currency' => function() {
+				$currency_data = YayCurrencyHelper::get_current_currency();
+				return is_array($currency_data) ? isset($currency_data['currency']) ? $currency_data['currency'] : '' : '';
+			}
+		),
+	);
+
+	foreach ($plugins as $plugin) {
+		if ($plugin['check']()) {
+			$currency_code = $plugin['get_currency']();
+			break;
+		}
+	}
+	if (empty($currency_code)) {
 		$currency_code = get_woocommerce_currency();
 	}
 
+
 	return empty($currency_code) ? 'NGN' : $currency_code;
+}
+
+function shipbubble_live_address_validated() {
+	$shipbubble_init = get_option(SHIPBUBBLE_INIT);
+	return true === ($shipbubble_init[SHIPBUBBLE_ADDRESS_VALIDATED] ?? false);
+}
+
+function shipbubble_sandbox_address_validated() {
+	$shipbubble_init = get_option(SHIPBUBBLE_INIT);
+	return true === ($shipbubble_init[SHIPBUBBLE_SANDBOX_ADDRESS_VALIDATED] ?? false);
+}
+
+function shipbubble_get_address_code() {
+	if (shipbubble_is_live_mode()) {
+		return get_option(WC_SHIPBUBBLE_ID)['address_code'] ?? '';
+	} else {
+		return get_option(WC_SHIPBUBBLE_ID)['sandbox_address_code'] ?? '';
+	}
+}
+
+function shipbubble_switch_mode($mode) {
+	$options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
+	$options['live_mode'] = $mode;
+	update_option(WC_SHIPBUBBLE_ID, $options);
+}
+
+function generate_shipbubble_notice() {
+	$shipbubble_init = get_option(SHIPBUBBLE_INIT);
+	$message = '';
+	$notice_type = 'notice-error';
+
+	$link = '<a href="admin.php?page=wc-settings&tab=shipping&section=shipbubble_shipping_services" style="text-decoration: underline; font-weight: bold;">%s</a>';
+
+	if (false == $shipbubble_init['account_status']) {
+		$message = sprintf(
+			__('Please %s your Shipbubble API Keys to start shipping.', 'shipbubble'),
+			sprintf($link, __('setup', 'shipbubble'))
+		);
+	}
+	elseif (!shipbubble_is_live_mode()) {
+		if (shipbubble_sandbox_address_validated()) {
+			$message = __('Shipbubble test mode is active, please do not use for a live site', 'shipbubble');
+			$notice_type = 'notice-info';
+		} else {
+			$message = sprintf(
+					__('Please complete your Shipbubble %s.', 'shipbubble'),
+					sprintf($link, __('setup', 'shipbubble'))
+				) . ' '. __('Validate your address and start shipping with ease.');
+		}
+	} elseif (shipbubble_is_live_mode() && !shipbubble_live_address_validated()) {
+		$message = sprintf(
+				__('Please complete your Shipbubble %s.', 'shipbubble'),
+				sprintf($link, __('setup', 'shipbubble'))
+			) . ' '. __('Validate your address and start shipping with ease.');
+	}
+
+	if (!empty($message)) {
+		$logo_url = SHIPBUBBLE_LOGO_URL;
+		ob_start();
+		?>
+		<div id="shipbubble_notice_div" class="notice <?php echo $notice_type; ?> is-dismissible" style="padding: 15px; background-color: #f1f1f1;">
+			<p>
+				<img src="<?php echo esc_url($logo_url); ?>" alt="<?php esc_attr_e('Shipbubble Logo', 'shipbubble'); ?>" style="max-width: 100px; height: auto;">
+			</p>
+			<p style="font-size: 14px; color: #333;">
+				<?php echo $message; ?>
+			</p>
+		</div>
+		<?php
+		return ob_get_clean();
+	} else {
+		return '';
+	}
 }

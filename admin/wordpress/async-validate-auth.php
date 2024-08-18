@@ -1,46 +1,63 @@
 <?php
-
-    // enqueue scripts
-    function ajax_admin_enqueue_scripts( $hook ) 
-    {
-        // check if our page
-        if ( 'toplevel_page_shipbubble' !== $hook ) return;
-        
-        // define script url
-        $script_url = plugins_url( '/js/ajax-validate-auth.js', plugin_dir_path( __FILE__ ) );
-
-        // var_dump($script_url);
-        // die();
-
-        // enqueue script
-        wp_enqueue_script( 'ajax-admin', $script_url, array( 'jquery' ) );
-
-        // create nonce
-        $nonce = wp_create_nonce( 'ajax_admin' );
-
-        // define script
-        $script = array( 'nonce' => $nonce );
-
-        // localize script
-        wp_localize_script( 'ajax-admin', 'ajax_admin', $script );
-
-    }
-
-    add_action( 'admin_enqueue_scripts', 'ajax_admin_enqueue_scripts' );
-
-
     // process ajax request
     function shipbubble_validate_api_key() {
 
         // check nonce
-        check_ajax_referer( 'ajax_admin', 'nonce' );
+	    check_ajax_referer( 'ajax_wc_admin', 'nonce' );
 
         // check user
         if ( ! current_user_can( 'manage_options' ) ) return;
 
-        $apiKey = sanitize_text_field($_POST['data']['api_key']);
 
-        echo json_encode(shipbubble_get_wallet_balance($apiKey)); 
+        $liveKey = sanitize_text_field($_POST['data']['live_api_key']);
+		$sandboxKey = sanitize_text_field($_POST['data']['sandbox_api_key']);
+
+		$keys = array( 'live' => $liveKey, 'sandbox' => $sandboxKey );
+		$storedKeys = shipbubble_get_keys();
+
+		$errors = array();
+
+	    $options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
+	    $shipbubble_init = get_option(SHIPBUBBLE_INIT);
+
+		foreach ($keys as $index => $key) {
+			$result = shipbubble_get_wallet_balance($key);
+
+			if ('200' == $result->response_code) {
+				$index = $index . '_api_key';
+
+				$options[$index] = $key;
+
+				update_option(WC_SHIPBUBBLE_ID, $options);
+			} else {
+				$errors[] = $index . ' key error: ' . $result->message;
+			}
+
+		}
+
+		if (empty($errors)) {
+			$shipbubble_init['account_status'] = true;
+			$result = array(
+				'response_code' => 200,
+				'status' => 'success',
+				'message' => 'API Key validation was successful',
+			);
+			$result = json_encode($result);
+			if ($storedKeys['live_api_key'] != $liveKey) {
+				$shipbubble_init[SHIPBUBBLE_ADDRESS_VALIDATED] = false;
+			}
+			if ($storedKeys['sandbox_api_key'] != $sandboxKey) {
+				$shipbubble_init[SHIPBUBBLE_SANDBOX_ADDRESS_VALIDATED] = false;
+			}
+
+			update_option( SHIPBUBBLE_INIT, $shipbubble_init);
+		} else {
+			$error_message = implode("\n", $errors);
+
+			$result = shipbubble_base_response('failed', $error_message);
+		}
+
+	    echo $result;
 
         // end processing
         wp_die();
@@ -48,4 +65,4 @@
     }
 
     // ajax hook for logged-in users: wp_ajax_{action}
-    add_action( 'wp_ajax_validate_api_key', 'shipbubble_validate_api_key' );
+    add_action( 'wp_ajax_validate_api_keys', 'shipbubble_validate_api_key' );
