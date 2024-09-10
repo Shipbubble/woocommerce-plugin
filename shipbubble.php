@@ -8,7 +8,7 @@
  * Tags: logistics, deliveries, shipping rates, multiple couriers, post purchase experience
  * Requires at least: 4.0
  * Tested up to: 6.5
- * Version: 2.5
+ * Version: 2.5.1
  * Requires PHP: 5.6
  * Text Domain:  shipbubble
  * Domain Path:  /languages
