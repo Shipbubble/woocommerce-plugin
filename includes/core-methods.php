@@ -203,6 +203,11 @@ function shipbubble_process_shipping_rates($addressCode, $products, $serviceCode
         $rates['rate'] = 'default';
         $rates['couriers'] = $data->couriers;
 
+        if (shipbubble_is_local_pickup_active()) {
+            $local_pickup = generate_local_pickup_courier();
+            array_unshift($rates['couriers'], $local_pickup);
+        }
+
         // currency code
         $currency_code = $data->couriers[0]->rate_card_currency;
 
@@ -501,4 +506,28 @@ function generate_shipbubble_notice() {
 	} else {
 		return '';
 	}
+}
+
+function generate_local_pickup_courier() {
+    $options = get_option(WC_SHIPBUBBLE_ID);
+    if(empty($options['address_code'])) return;
+    $address = $options['pickup_address'] . ", " . $options['pickup_state'] . ", " . $options["pickup_country"];
+	return array(
+		'courier_id' => 'local_pickup',
+        'courier_image' => SHIPBUBBLE_LOGO_URL,
+        'courier_name' => 'Local Pickup',
+        'delivery_eta' => $address,
+        'rate_card_amount' => 0,
+    );
+}
+
+function shipbubble_is_local_pickup_active() {
+	$options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
+
+	if (!isset($options['local_pickup'])) {
+		$options['local_pickup'] = 'no';
+		update_option(WC_SHIPBUBBLE_ID, $options);
+	}
+
+	return 'yes' === $options['local_pickup'];
 }

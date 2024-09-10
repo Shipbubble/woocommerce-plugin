@@ -214,7 +214,12 @@
 
                         $.each(output.couriers, function (i, value) {
                             // set total charge
-                            let total = parseFloat(value.rate_card_amount) + parseFloat(output.extra_charges);
+
+							let total = parseFloat(value.rate_card_amount) + parseFloat(output.extra_charges);
+
+							if ('local_pickup' == value.courier_id) {
+								let total = 0;
+							}
 
                             newCourierList.append(`
                                 <div class="container-delivery-card-list-item">

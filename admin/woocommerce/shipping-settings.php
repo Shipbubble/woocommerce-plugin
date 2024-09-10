@@ -140,6 +140,13 @@
 				                    'description' => __('Shipbubble will disable other shipping methods.', 'woocommerce'),
 				                    'default' => __('no', 'woocommerce'),
 			                    ),
+			                    'local_pickup' => array(
+				                    'title' => __('Activate Local Pickup', 'woocommerce'),
+				                    'type' => 'checkbox',
+				                    'class' => 'address_form_field',
+				                    'description' => __('', 'woocommerce'),
+				                    'default' => __('no', 'woocommerce'),
+			                    ),
 			                    'address_code' => array(
 				                    // 'title'         => __( 'Address Code', 'woocommerce' ),
 				                    'type' => 'hidden',
