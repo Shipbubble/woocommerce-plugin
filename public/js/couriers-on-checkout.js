@@ -282,6 +282,17 @@
                             style: 'font-size:16px',
                         }).text(`${responseMessage}`).appendTo('#order_review_heading').show();
 
+						Swal.fire({
+							title: '',
+							text: responseMessage,
+							showConfirmButton: false,
+							showCloseButton: true,
+							width: 400,
+							customClass: {
+								closeButton: "shipbubble-close-button"
+							}
+						});
+
                     }
                 }
 
