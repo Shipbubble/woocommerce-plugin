@@ -322,3 +322,10 @@
         background-position: 450px 0;
     }
 }
+
+.shipbubble-close-button {
+    margin-bottom: 1px !important;
+    font-size: 30px !important;
+    font-weight: bolder !important;
+    color: black !important;
+}
