@@ -1,4 +1,4 @@
-=== Shipbubble - Shipping rates at checkout===
+=== Shipbubble - Shipping Automation for Woocommerce ===
 Contributors: Shipbubble
 Donate link: https://www.shipbubble.com/
 Tags: logistics, deliveries, shipping rates, multiple couriers, post-purchase experience
