@@ -62,11 +62,11 @@ Please visit our website - https://shipbubble.com
 
 == Screenshots ==
 
-1. Get access to multiple courier rates at checkout
-2. Create a personalized branded tracking experience for your customers
-3. Provide your api key
-4. Validate your plugin
-5. Complete set up
+1. Get access to multiple courier rates at checkout.
+2. Automate your checkout process and label generation.
+3. Cut costs and save resources.
+4. Real time tracking.
+5. Performance based analytics.
 
 == Changelog ==
 = 2.5.1 =
