@@ -69,7 +69,7 @@ Please visit our website - https://shipbubble.com
 5. Performance based analytics.
 
 == Changelog ==
-= 2.5.1 =
+= 2.5.2 =
 * Currncy plugin checkout support fix.
 
 = 2.5.1 =
