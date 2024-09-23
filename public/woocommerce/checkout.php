@@ -165,9 +165,15 @@ function shipbubble_change_rates($rates, $packages)
 	$disableOtherShippingMethods = isset($options['disable_other_shipping_methods']) ? sanitize_text_field($options['disable_other_shipping_methods']) : 'no';
 
 	$post_data = [];
+
 	if (isset($_POST['post_data'])) {
 		wp_parse_str($_POST['post_data'], $post_data);
 		// $post_data = array_map( 'sanitize_text_field', $post_data );
+	} elseif (isset($_POST['shipbubble_courier_set'])) {
+		$post_data = $_POST;
+	}
+
+	if (!empty($post_data)) {
 		foreach ($post_data as $key => $value) {
 			if (is_array($value)) {
 				$post_data[$key] = $value;
@@ -175,8 +181,6 @@ function shipbubble_change_rates($rates, $packages)
 				$post_data[$key] = sanitize_text_field($value);
 			}
 		}
-
-		// error_log(print_r($post_data, true));
 	}
 
 	if (count($post_data) > 0 && isset($post_data['shipbubble_reset_shipping_method'])) {
