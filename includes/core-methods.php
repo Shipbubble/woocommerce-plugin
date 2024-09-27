@@ -511,6 +511,7 @@ function shipbubble_update_order_meta($order_id, $meta_key, $meta_value) {
 
     if (OrderUtil::custom_orders_table_usage_is_enabled()) {
         $order->update_meta_data($meta_key, $meta_value);
+        $order->save();
     } else {
         update_post_meta($order_id, $meta_key, $meta_value);
     }
