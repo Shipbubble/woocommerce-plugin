@@ -16,9 +16,9 @@ function shipbubble_order_data_after_billing_address($order)
 	$order_data = $order->get_data();
 
     // Get Shipbubble Order ID
-    $shipbubbleOrderId = get_post_meta($order_id, 'shipbubble_order_id', true);
+    $shipbubbleOrderId = shipbubble_get_order_meta($order_id, 'shipbubble_order_id', true);
 
-    $serializedShipment = get_post_meta($order_id, 'shipbubble_shipment_details')[0];
+    $serializedShipment = shipbubble_get_order_meta($order_id, 'shipbubble_shipment_details')[0];
 	$style = "background-color: #000; color: #FFF; padding: 4px 16px; border: 1px solid #000; border-radius: 3px; cursor: not-allowed;";
 
 	if (strlen($shipbubbleOrderId) < 1 && !shipbubble_data_is_serialized($serializedShipment))
@@ -58,15 +58,15 @@ function shipbubble_order_data_after_billing_address($order)
     $shippingData = $order_data['shipping'];
     $shippingPhone = $order_data['billing']['phone'];
     $orderAddress = sb_create_address($shippingData['address_1'], $shippingData['city'], $shippingData['state'], $shippingData['country']);
-    $orderPhone = get_post_meta($order_id, 'shipbubble_delivery_phone', true);
+    $orderPhone = shipbubble_get_order_meta($order_id, 'shipbubble_delivery_phone', true);
 
     if (empty($orderPhone)) {
         $orderPhone = $shippingPhone;
-        update_post_meta($order_id, 'shipbubble_delivery_phone', $orderPhone);
+        shipbubble_update_order_meta($order_id, 'shipbubble_delivery_phone', $orderPhone);
     }
 
     // Get Delivery Address
-    $shipbubbleDeliveryAddress = get_post_meta($order_id, 'shipbubble_delivery_address', true);
+    $shipbubbleDeliveryAddress = shipbubble_get_order_meta($order_id, 'shipbubble_delivery_address', true);
     
     // serialize shipment
     $serializedShipment = serialize($shipmentDetailsArray);
@@ -139,7 +139,7 @@ function shipbubble_shipping_status_column_content($column)
         // Conditional function based on the Order shipping method 
         if ($order->has_shipping_method(SHIPBUBBLE_ID)) {
             // Check Shipping Status
-            $status = get_post_meta($post->ID, 'shipbubble_tracking_status', true);
+            $status = shipbubble_get_order_meta($post->ID, 'shipbubble_tracking_status', true);
             if (!empty($status)) {
                 echo shipbubble_shipment_status_label($status);
             } elseif (in_array($order->get_status(), SHIPBUBBLE_WC_BAD_ORDER_STATUS_ARR)) {
@@ -212,7 +212,7 @@ if (!function_exists('shipbubble_track_order_shipment')) {
     {
         global $post;
 
-        $shipbubbleOrderId = get_post_meta($post->ID, 'shipbubble_order_id', true) ?? '';
+        $shipbubbleOrderId = shipbubble_get_order_meta($post->ID, 'shipbubble_order_id', true) ?? '';
 
         $response = null;
         if (strlen($shipbubbleOrderId) > 0) {
@@ -231,7 +231,7 @@ if (!function_exists('shipbubble_track_order_shipment')) {
             $latestPackageStatus = end($response->data[0]->package_status);
 
             // set shipping status
-            update_post_meta($post->ID, 'shipbubble_tracking_status', strtolower($latestPackageStatus->status));
+            shipbubble_update_order_meta($post->ID, 'shipbubble_tracking_status', strtolower($latestPackageStatus->status));
 
             ?>
 
@@ -273,11 +273,11 @@ function shipbubble_display_wallet_balance($order)
         return;
     }
 
-    if (!count(get_post_meta($order->get_id(), 'shipbubble_shipment_details'))) {
+    if (!count(shipbubble_get_order_meta($order->get_id(), 'shipbubble_shipment_details'))) {
         return;
     }
 
-    $shipbubbleOrderId = get_post_meta($order->get_id(), 'shipbubble_order_id', true);
+    $shipbubbleOrderId = shipbubble_get_order_meta($order->get_id(), 'shipbubble_order_id', true);
     if (strlen($shipbubbleOrderId) < 1) {
         $response = shipbubble_get_wallet_balance(shipbubble_get_token());
 

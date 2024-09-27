@@ -1,5 +1,6 @@
 <?php // Core Methods
 use \Yay_Currency\Helpers\YayCurrencyHelper;
+use Automattic\WooCommerce\Utilities\OrderUtil;
 
 function shipbubble_get_token(): string
 {
@@ -501,4 +502,31 @@ function generate_shipbubble_notice() {
 	} else {
 		return '';
 	}
+}
+
+function shipbubble_update_order_meta($order_id, $meta_key, $meta_value) {
+	$order = wc_get_order($order_id);
+
+    if (!$order) return false;
+
+    if (OrderUtil::custom_orders_table_usage_is_enabled()) {
+        $order->update_meta_data($meta_key, $meta_value);
+    } else {
+        update_post_meta($order_id, $meta_key, $meta_value);
+    }
+
+    return true;
+} 
+
+function shipbubble_get_order_meta($order_id, $meta_key) {
+	$order = wc_get_order($order_id);
+
+    if (!$order) return '';
+    if (OrderUtil::custom_orders_table_usage_is_enabled()) {
+        $metadata = $order->get_meta($meta_key);
+    } else {
+        $metadata = get_post_meta($order_id, $meta_key);
+    }
+
+    return $metadata;
 }
