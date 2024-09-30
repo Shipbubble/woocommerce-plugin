@@ -138,8 +138,8 @@ function shipbubble_wc_api_init()
 		update_option(SHIPBUBBLE_PLUGIN_VERSION, $version);
 	}
 
-	$updated_time = get_option('shipbubble_db_update_time');
-	if (empty($updated_time)) {
+	$update_time = get_option('shipbubble_db_update_time');
+	if (empty($update_time)) {
 		add_option('shipbubble_db_update_time', time());
 	}
 
