@@ -18,7 +18,7 @@ function shipbubble_order_data_after_billing_address($order)
     // Get Shipbubble Order ID
     $shipbubbleOrderId = shipbubble_get_order_meta($order_id, 'shipbubble_order_id', true);
 
-    $serializedShipment = shipbubble_get_order_meta($order_id, 'shipbubble_shipment_details')[0];
+    $serializedShipment = shipbubble_get_order_meta($order_id, 'shipbubble_shipment_details');
 	$style = "background-color: #000; color: #FFF; padding: 4px 16px; border: 1px solid #000; border-radius: 3px; cursor: not-allowed;";
 
 	if (strlen($shipbubbleOrderId) < 1 && !shipbubble_data_is_serialized($serializedShipment))
@@ -273,7 +273,9 @@ function shipbubble_display_wallet_balance($order)
         return;
     }
 
-    if (!count(shipbubble_get_order_meta($order->get_id(), 'shipbubble_shipment_details'))) {
+    $shipment_details = maybe_unserialize(shipbubble_get_order_meta($order->get_id(), 'shipbubble_shipment_details'));
+
+    if (empty($shipment_details) || !count($shipment_details)) {
         return;
     }
 

@@ -509,7 +509,7 @@ function shipbubble_update_order_meta($order_id, $meta_key, $meta_value) {
 
     if (!$order) return false;
 
-    if (OrderUtil::custom_orders_table_usage_is_enabled()) {
+	if (shipbubble_is_order_migrated($order)) {
         $order->update_meta_data($meta_key, $meta_value);
         $order->save();
     } else {
@@ -523,11 +523,31 @@ function shipbubble_get_order_meta($order_id, $meta_key) {
 	$order = wc_get_order($order_id);
 
     if (!$order) return '';
-    if (OrderUtil::custom_orders_table_usage_is_enabled()) {
+    if (shipbubble_is_order_migrated($order)) {
         $metadata = $order->get_meta($meta_key);
     } else {
-        $metadata = get_post_meta($order_id, $meta_key);
+        $metadata = get_post_meta($order_id, $meta_key, true);
     }
 
     return $metadata;
+}
+
+
+function shipbubble_is_order_migrated($order) {
+	$updated_time = get_option('shipbubble_db_update_time');
+
+    if (!$updated_time) return false;
+
+	// Get the order creation date (WooCommerce stores this in the order object)
+	$order_date = $order->get_date_created(); // Returns a DateTime object
+
+	// Convert the order date to a timestamp for comparison
+	$order_timestamp = $order_date ? $order_date->getTimestamp() : 0;
+
+	// Compare the order timestamp with the updated time
+	if ($order_timestamp >= $updated_time) {
+		return true; // Order is considered migrated
+	} else {
+		return false; // Order is not migrated
+	}
 }

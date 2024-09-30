@@ -138,6 +138,11 @@ function shipbubble_wc_api_init()
 		update_option(SHIPBUBBLE_PLUGIN_VERSION, $version);
 	}
 
+	$updated_time = get_option('shipbubble_db_update_time');
+	if (empty($updated_time)) {
+		add_option('shipbubble_db_update_time', time());
+	}
+
 }
 
 function shipbubble_settings_redirect() {
@@ -347,7 +352,7 @@ function shipbubble_create_shipment_after_order_created($order_id)
 		// Get an instance of the WC_Order object
 		$order = wc_get_order($order_id);
 
-		$shipmentMeta = unserialize(shipbubble_get_order_meta($order_id, 'sb_shipment_meta')[0]);
+		$shipmentMeta = unserialize(shipbubble_get_order_meta($order_id, 'sb_shipment_meta'));
 
 		if (count($shipmentMeta)) {
 			if ($shipmentMeta['user_can_ship']) {
@@ -361,7 +366,7 @@ function shipbubble_create_shipment_after_order_created($order_id)
 					// set shipping status
 					shipbubble_update_order_meta($order_id, 'shipbubble_tracking_status', 'pending');
 
-					$shipmentDetailsArray = unserialize(shipbubble_get_order_meta($order_id, 'shipbubble_shipment_details')[0]);
+					$shipmentDetailsArray = unserialize(shipbubble_get_order_meta($order_id, 'shipbubble_shipment_details'));
 
 					if (count($shipmentDetailsArray)) 
 					{

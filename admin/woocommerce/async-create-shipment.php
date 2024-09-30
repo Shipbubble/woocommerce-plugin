@@ -39,14 +39,14 @@
         $orderId = sanitize_text_field( $_POST['data']['order_id'] );
 
         // get shipment details
-        $shipmentPayload = unserialize(shipbubble_get_order_meta($orderId, 'shipbubble_shipment_details')[0]);
+        $shipmentPayload = unserialize(shipbubble_get_order_meta($orderId, 'shipbubble_shipment_details'));
 
         // set time meta to initiate the request
         $shipmentPayload['admin_initiate_shipment_time'] = date('Y-m-d H:i:s');
         shipbubble_update_order_meta($orderId, 'shipbubble_shipment_details', serialize($shipmentPayload));
 
         if (!isset($shipmentPayload) || empty($shipmentPayload['request_token']) || empty($shipmentPayload['courier_id']) || empty($shipmentPayload['service_code'])) {
-	        $checkoutPayload = unserialize(shipbubble_get_order_meta($orderId, 'sb_shipment_meta')[0]);
+	        $checkoutPayload = unserialize(shipbubble_get_order_meta($orderId, 'sb_shipment_meta'));
 
 	        // TODO: check token expiry
 	        if (empty($shipmentPayload['request_token'])) {
