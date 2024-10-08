@@ -509,12 +509,8 @@ function shipbubble_update_order_meta($order_id, $meta_key, $meta_value) {
 
     if (!$order) return false;
 
-	if (shipbubble_is_order_migrated($order)) {
-        $order->update_meta_data($meta_key, $meta_value);
-        $order->save();
-    } else {
-        update_post_meta($order_id, $meta_key, $meta_value);
-    }
+    $order->update_meta_data($meta_key, $meta_value);
+    $order->save();
 
     return true;
 } 
