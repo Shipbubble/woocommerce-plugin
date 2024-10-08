@@ -1543,6 +1543,23 @@
                 return 'Nigeria';
             }
         }
-    });
+
+		$("form.woocommerce-checkout").on('checkout_place_order', function(e) {
+			// Check if the radio button with value 'shipbubble_shipping_services' is checked
+			var isShipbubbleChecked = $('input[name="shipping_method[0]"][value="shipbubble_shipping_services"]').is(':checked');
+
+			if (isShipbubbleChecked) {
+				// Skip the confirmation prompt if 'shipbubble_shipping_services' is checked
+				return true;
+			} else {
+				// Show the confirmation prompt if any other shipping method is selected
+				if (!confirm("You have selected the pickup option. If you want your order delivered to your address, please select a delivery option. Otherwise, click 'OK' to confirm your pickup order.")) {
+					console.log("Submission Stopped");
+					return false;
+				}
+			}
+		});
+
+	});
 
 })(jQuery);

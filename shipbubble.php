@@ -333,6 +333,7 @@ function shipbubble_update_order_meta_on_checkout($order_id)
 // }
 
 add_action('woocommerce_thankyou', 'shipbubble_create_shipment_after_order_created', 10, 1);
+add_action('woocommerce_order_status_pending_to_processing', 'shipbubble_create_shipment_after_order_created', 10, 1);
 function shipbubble_create_shipment_after_order_created($order_id)
 {
 	if (!$order_id)
