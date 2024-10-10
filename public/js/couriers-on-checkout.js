@@ -1553,7 +1553,7 @@
 				return true;
 			} else {
 				// Show the confirmation prompt if any other shipping method is selected
-				if (!confirm("You have selected the pickup option. If you want your order delivered to your address, please select a delivery option. Otherwise, click 'OK' to confirm your pickup order.")) {
+				if (!confirm("You've chosen pickup. For home delivery options, click 'Get Delivery Prices'. To proceed with pickup, click 'OK'.")) {
 					console.log("Submission Stopped");
 					return false;
 				}
