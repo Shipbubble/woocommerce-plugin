@@ -1545,11 +1545,13 @@
         }
 
 		$("form.woocommerce-checkout").on('checkout_place_order', function(e) {
-			// Check if the radio button with value 'shipbubble_shipping_services' is checked
-			var isShipbubbleChecked = $('input[name="shipping_method[0]"][value="shipbubble_shipping_services"]').is(':checked');
+			// Check both radio buttons and hidden inputs
+			var isShipbubbleSelected =
+				$('input[name="shipping_method[0]"][value="shipbubble_shipping_services"]').is(':checked') || // Radio button
+				$('input[name="shipping_method[0]"][value="shipbubble_shipping_services"][type="hidden"]').length > 0; // Hidden input
 
-			if (isShipbubbleChecked) {
-				// Skip the confirmation prompt if 'shipbubble_shipping_services' is checked
+			if (isShipbubbleSelected) {
+				// Skip the confirmation prompt if shipbubble is selected
 				return true;
 			} else {
 				// Show the confirmation prompt if any other shipping method is selected
