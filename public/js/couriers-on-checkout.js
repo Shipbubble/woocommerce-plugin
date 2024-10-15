@@ -287,6 +287,17 @@
                             style: 'font-size:16px',
                         }).text(`${responseMessage}`).appendTo('#order_review_heading').show();
 
+						Swal.fire({
+							title: '',
+							text: responseMessage,
+							showConfirmButton: false,
+							showCloseButton: true,
+							width: 400,
+							customClass: {
+								closeButton: "shipbubble-close-button"
+							}
+						});
+
                     }
                 }
 
@@ -1537,6 +1548,25 @@
                 return 'Nigeria';
             }
         }
-    });
+
+		$("form.woocommerce-checkout").on('checkout_place_order', function(e) {
+			// Check both radio buttons and hidden inputs
+			var isShipbubbleSelected =
+				$('input[name="shipping_method[0]"][value="shipbubble_shipping_services"]').is(':checked') || // Radio button
+				$('input[name="shipping_method[0]"][value="shipbubble_shipping_services"][type="hidden"]').length > 0; // Hidden input
+
+			if (isShipbubbleSelected) {
+				// Skip the confirmation prompt if shipbubble is selected
+				return true;
+			} else {
+				// Show the confirmation prompt if any other shipping method is selected
+				if (!confirm("You've chosen pickup. For home delivery options, click 'Get Delivery Prices'. To proceed with pickup, click 'OK'.")) {
+					console.log("Submission Stopped");
+					return false;
+				}
+			}
+		});
+
+	});
 
 })(jQuery);

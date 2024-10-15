@@ -1,5 +1,6 @@
 <?php // Core Methods
 use \Yay_Currency\Helpers\YayCurrencyHelper;
+use Automattic\WooCommerce\Utilities\OrderUtil;
 
 function shipbubble_get_token(): string
 {
@@ -530,4 +531,79 @@ function shipbubble_is_local_pickup_active() {
 	}
 
 	return 'yes' === $options['local_pickup'];
+}
+
+/**
+ * Update order meta data for a given order.
+ *
+ * This function retrieves an order by its ID, updates its meta data, and saves the order.
+ *
+ * @param int    $order_id  The ID of the order to update.
+ * @param string $meta_key  The meta key to update or add.
+ * @param mixed  $meta_value The meta value to set for the given meta key.
+ *
+ * @return bool Returns true if the order was updated successfully, false otherwise.
+ */
+function shipbubble_update_order_meta($order_id, $meta_key, $meta_value) {
+	$order = wc_get_order($order_id);
+
+    if (!$order) return false;
+
+    $order->update_meta_data($meta_key, $meta_value);
+    $order->save();
+
+    return true;
+}
+
+/**
+ * Retrieve order meta data for a given order.
+ *
+ * This function fetches meta data for an order using WooCommerce's order meta system.
+ * If the order is not migrated, it falls back to using the post meta system.
+ *
+ * @param int    $order_id The ID of the order to retrieve meta data from.
+ * @param string $meta_key The meta key to retrieve the value for.
+ *
+ * @return mixed The meta value if found, or an empty string if the order does not exist or the meta data is not available.
+ */
+function shipbubble_get_order_meta($order_id, $meta_key) {
+	$order = wc_get_order($order_id);
+
+    if (!$order) return '';
+    if (shipbubble_is_order_migrated($order)) {
+        $metadata = $order->get_meta($meta_key);
+    } else {
+        $metadata = get_post_meta($order_id, $meta_key, true);
+    }
+
+    return $metadata;
+}
+
+/**
+ * Check if a WooCommerce order has been migrated based on the database update time.
+ *
+ * This function compares the order's creation date with the `shipbubble_db_update_time` option
+ * to determine if the order was created after the migration date, thus marking it as migrated.
+ *
+ * @param WC_Order $order The WooCommerce order object to check.
+ *
+ * @return bool Returns true if the order is considered migrated, false otherwise.
+ */
+function shipbubble_is_order_migrated($order) {
+	$updated_time = get_option('shipbubble_db_update_time');
+
+    if (!$updated_time) return false;
+
+	// Get the order creation date (WooCommerce stores this in the order object)
+	$order_date = $order->get_date_created(); // Returns a DateTime object
+
+	// Convert the order date to a timestamp for comparison
+	$order_timestamp = $order_date ? $order_date->getTimestamp() : 0;
+
+	// Compare the order timestamp with the updated time
+	if ($order_timestamp >= $updated_time) {
+		return true; // Order is considered migrated
+	} else {
+		return false; // Order is not migrated
+	}
 }
