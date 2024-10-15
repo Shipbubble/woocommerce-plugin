@@ -142,7 +142,7 @@
 			                    ),
 			                    'local_pickup' => array(
 				                    'title' => __('Activate Local Pickup', 'woocommerce'),
-				                    'type' => 'checkbox',
+				                    'type' => 'shipbubble_switch',
 				                    'class' => 'address_form_field',
 				                    'description' => __('', 'woocommerce'),
 				                    'default' => __('no', 'woocommerce'),
@@ -234,11 +234,30 @@
 
 	    add_filter('woocommerce_generate_shipbubble_switch_html', 'generate_shipbubble_switch', 10, 4);
 
+	    /**
+	     * Generates a toggle switch field for Shipbubble settings.
+	     *
+	     * This function creates a switch UI element that allows toggling between enabled and disabled states.
+	     * It also customizes the display based on whether it's for live mode or a general option.
+	     *
+	     * @param string $field_html The current HTML for the field, passed in from WooCommerce settings.
+	     * @param string $key The key for the current setting option.
+	     * @param array $value Array containing field values like title and class.
+	     * @param WC_Settings_API $wc_settings The WooCommerce settings object.
+	     *
+	     * @return string The generated HTML for the switch field.
+	     */
 	    function generate_shipbubble_switch($field_html, $key, $value, $wc_settings) {
 
-			if (empty($wc_settings->get_option('sandbox_api_key'))) return $field_html;
-		    $switch_status = shipbubble_is_live_mode() ? 'Live' : 'Test';
-		    $switch_color = shipbubble_is_live_mode() ? 'green' : 'grey';
+		    $switch_status = shipbubble_is_option_active($key) ? 'On' : 'Off';
+		    $switch_color = shipbubble_is_option_active($key) ? 'green' : 'grey';
+
+		    if ('live_mode' === $key) {
+	            if (empty($wc_settings->get_option('sandbox_api_key'))) return $field_html;
+	            $switch_status = shipbubble_is_live_mode() ? 'Live' : 'Test';
+			    $switch_color = shipbubble_is_live_mode() ? 'green' : 'grey';
+            }
+
 			$class = $value['class'];
 			if (is_array($class)) {
 				$class = implode(' ', $class);
@@ -256,7 +275,7 @@
                     <fieldset>
                         <legend class="screen-reader-text"><span><?php echo wp_kses_post( $title ); ?></span></legend>
                         <label class="switch">
-                            <input type="checkbox" id="woocommerce_shipbubble_shipping_services_live_mode" name="woocommerce_shipbubble_shipping_services_live_mode" value="1" class="<?php echo esc_attr($class); ?>" <?php checked(shipbubble_is_live_mode()); ?>>
+                            <input type="checkbox" id="<?php echo esc_attr( $field_key ); ?>" name="<?php echo esc_attr( $field_key ); ?>" value="1" class="<?php echo esc_attr($class); ?>" <?php checked(shipbubble_is_option_active($key)); ?>>
                             <span class="slider round" style="background-color: <?php echo esc_attr($switch_color); ?>;"></span>
                         </label>
                         <span class="switch-status" style="color: <?php echo esc_attr($switch_color); ?>; margin-left: 20px;"><?php echo esc_html($switch_status); ?></span>

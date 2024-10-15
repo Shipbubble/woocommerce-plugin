@@ -340,6 +340,16 @@ function shipbubble_update_order_meta_on_checkout($order_id)
 
 add_action('woocommerce_thankyou', 'shipbubble_create_shipment_after_order_created', 10, 1);
 add_action('woocommerce_order_status_pending_to_processing', 'shipbubble_create_shipment_after_order_created', 10, 1);
+/**
+ * Creates a shipment via Shipbubble after an order is created.
+ *
+ * This function checks if the shipment for the order has already been created. If not, and if the order is not marked for local pickup,
+ * it processes the shipment creation through the Shipbubble API and updates the order's metadata accordingly.
+ *
+ * @param int $order_id The ID of the WooCommerce order.
+ *
+ * @return void
+ */
 function shipbubble_create_shipment_after_order_created($order_id)
 {
 	if (!$order_id)
@@ -354,38 +364,39 @@ function shipbubble_create_shipment_after_order_created($order_id)
 		// Get an instance of the WC_Order object
 		$order = wc_get_order($order_id);
 
-		$shipmentMeta = unserialize(shipbubble_get_order_meta($order_id, 'sb_shipment_meta'));
+		if (!shipbubble_get_order_meta($order_id, 'shipbubble_local_pickup')) {
+			$shipmentMeta = unserialize(shipbubble_get_order_meta($order_id, 'sb_shipment_meta'));
 
-		if (count($shipmentMeta)) {
-			if ($shipmentMeta['user_can_ship']) {
-				$shipmentPayload = $shipmentMeta['shipment_payload'];
+			if (count($shipmentMeta)) {
+				if ($shipmentMeta['user_can_ship']) {
+					$shipmentPayload = $shipmentMeta['shipment_payload'];
 
-				$response = shipbubble_create_shipment($shipmentPayload);
-				if (isset($response->response_code) && $response->response_code == SHIPBUBBLE_RESPONSE_IS_OK) {
-					// set shipbubble order id
-					shipbubble_update_order_meta($order_id, 'shipbubble_order_id', $response->data->order_id);
+					$response = shipbubble_create_shipment($shipmentPayload);
+					if (isset($response->response_code) && $response->response_code == SHIPBUBBLE_RESPONSE_IS_OK) {
+						// set shipbubble order id
+						shipbubble_update_order_meta($order_id, 'shipbubble_order_id', $response->data->order_id);
 
-					// set shipping status
-					shipbubble_update_order_meta($order_id, 'shipbubble_tracking_status', 'pending');
+						// set shipping status
+						shipbubble_update_order_meta($order_id, 'shipbubble_tracking_status', 'pending');
 
-					$shipmentDetailsArray = unserialize(shipbubble_get_order_meta($order_id, 'shipbubble_shipment_details'));
+						$shipmentDetailsArray = unserialize(shipbubble_get_order_meta($order_id, 'shipbubble_shipment_details'));
 
-					if (count($shipmentDetailsArray)) 
-					{
-						$shipmentDetailsArray['create_shipment_time'] = date('Y-m-d H:i:s');
-						shipbubble_update_order_meta($order_id, 'shipbubble_shipment_details', serialize($shipmentDetailsArray));
+						if (count($shipmentDetailsArray)) {
+							$shipmentDetailsArray['create_shipment_time'] = date('Y-m-d H:i:s');
+							shipbubble_update_order_meta($order_id, 'shipbubble_shipment_details', serialize($shipmentDetailsArray));
+						}
 					}
 				}
+			} else {
+				// set empty shipbubble service code
+				shipbubble_update_order_meta($order_id, 'shipbubble_shipment_details', serialize(['service_code' => '']));
+
+				// set empty shipbubble order id
+				shipbubble_update_order_meta($order_id, 'shipbubble_order_id', '');
+
+				// set empty shipping status
+				shipbubble_update_order_meta($order_id, 'shipbubble_tracking_status', '');
 			}
-		} else {
-			// set empty shipbubble service code
-			shipbubble_update_order_meta($order_id, 'shipbubble_shipment_details', serialize(['service_code' => '']));
-
-			// set empty shipbubble order id 
-			shipbubble_update_order_meta($order_id, 'shipbubble_order_id', '');
-
-			// set empty shipping status
-			shipbubble_update_order_meta($order_id, 'shipbubble_tracking_status', '');
 		}
 
 		// Flag the action as done (to avoid repetitions on reload for example)
@@ -396,6 +407,16 @@ function shipbubble_create_shipment_after_order_created($order_id)
 
 add_action( 'woocommerce_before_checkout_process', 'shipbubble_validate_checkout_order' , 10, 1 );
 add_action( 'woocommerce_checkout_order_processed', 'shipbubble_validate_checkout_order', 10, 1 );
+/**
+ * Validates the checkout order based on shipping and payment conditions.
+ *
+ * This function checks if the order contains virtual products, validates the shipping method, and deletes the order if certain conditions are met.
+ * Additionally, it handles the case for local pickup orders.
+ *
+ * @param int $order_id The ID of the WooCommerce order being validated.
+ *
+ * @return void This function does not return any value. It either deletes the order or updates its meta data.
+ */
 function shipbubble_validate_checkout_order($order_id)
 {
 	$order = new WC_Order( $order_id );
@@ -430,9 +451,10 @@ function shipbubble_validate_checkout_order($order_id)
 
 	// Get the selected shipping method from the checkout object
 	$chosen_shipping_method = WC()->checkout->get_value('shipping_method');
+	$is_local_pickup = 'local_pickup' === $_POST['shipbubble_courier_id'];
 
 	// check
-	if (!$all_virtual && !empty($payment_method) && !empty($enabled_gateways)) {
+	if (!$all_virtual && !empty($payment_method) && !empty($enabled_gateways) && !$is_local_pickup) {
 		if (in_array($payment_method, $enabled_gateways)) {
 			// check shipping items is empty or shipping total is 0
             if (empty($shipping_items) || (!empty($chosen_shipping_method) && $chosen_shipping_method[0] == SHIPBUBBLE_ID && $shipping_total == "0")) {
@@ -440,6 +462,11 @@ function shipbubble_validate_checkout_order($order_id)
 				error_log(print_r('selected sb & 0', true));
             }
 		}
+	}
+
+	if ($is_local_pickup) {
+		$order->update_meta_data('shipbubble_local_pickup', true);
+		$order->save();
 	}
 
 	if ($delete_order) {
@@ -487,3 +514,17 @@ function render_shipbubble_admin_notices() {
     echo generate_shipbubble_notice();
 }
 
+/**
+ * Conditionally removes the WooCommerce local pickup shipping method.
+ *
+ * @param array $methods The array of available shipping methods.
+ *
+ * @return array The modified array of shipping methods with local pickup removed if the option is active.
+ */
+function maybe_remove_woocommerce_local_pickup($methods) {
+	if (shipbubble_is_option_active('local_pickup')) {
+		unset($methods['local_pickup']);
+	}
+	return $methods;
+}
+add_filter('woocommerce_shipping_methods', 'maybe_remove_woocommerce_local_pickup');

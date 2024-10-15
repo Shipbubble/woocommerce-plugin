@@ -184,6 +184,15 @@ function shipbubble_package_dimensions(): array
     );
 }
 
+/**
+ * Processes shipping rates based on the address code, products, and service codes.
+ *
+ * @param string $addressCode  The address code used to fetch the shipping rates.
+ * @param array  $products     The list of products for which shipping rates are to be calculated.
+ * @param array  $serviceCodes Optional. An array of specific service codes for which rates should be calculated. Defaults to an empty array.
+ *
+ * @return array An array containing the shipping rates, request token, extra charges, couriers, and the currency symbol. In case of errors, it will return an error message.
+ */
 function shipbubble_process_shipping_rates($addressCode, $products, $serviceCodes = array())
 {
     $options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
@@ -206,7 +215,7 @@ function shipbubble_process_shipping_rates($addressCode, $products, $serviceCode
 
         if (shipbubble_is_local_pickup_active()) {
             $local_pickup = generate_local_pickup_courier();
-            array_unshift($rates['couriers'], $local_pickup);
+            if ($local_pickup) array_unshift($rates['couriers'], $local_pickup);
         }
 
         // currency code
@@ -509,18 +518,33 @@ function generate_shipbubble_notice() {
 	}
 }
 
+/**
+ * Generates the details for a local pickup courier.
+ *
+ * @return array|false Returns an array of courier details if the address code is set, or false if not.
+ */
 function generate_local_pickup_courier() {
-    $options = get_option(WC_SHIPBUBBLE_ID);
-    if(empty($options['address_code'])) return;
-    $address = $options['pickup_address'] . ", " . $options['pickup_state'] . ", " . $options["pickup_country"];
+	// Get the Shipbubble options.
+	$options = get_option(WC_SHIPBUBBLE_ID);
+
+	// Return false if the address code is not set.
+	if (empty($options['address_code'])) {
+		return false;
+	}
+
+	// Construct the pickup address using available options.
+	$address = $options['pickup_address'] . ", " . $options['pickup_state'] . ", " . $options['pickup_country'];
+
+	// Return the local pickup courier details.
 	return array(
-		'courier_id' => 'local_pickup',
-        'courier_image' => SHIPBUBBLE_LOGO_URL,
-        'courier_name' => 'Local Pickup',
-        'delivery_eta' => $address,
-        'rate_card_amount' => 0,
-    );
+		'courier_id'        => 'local_pickup',
+		'courier_image'     => SHIPBUBBLE_LOGO_URL,
+		'courier_name'      => 'Local Pickup',
+		'delivery_eta'      => $address,
+		'rate_card_amount'  => 0,
+	);
 }
+
 
 function shipbubble_is_local_pickup_active() {
 	$options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
@@ -606,4 +630,24 @@ function shipbubble_is_order_migrated($order) {
 	} else {
 		return false; // Order is not migrated
 	}
+}
+
+/**
+ * Checks if a specific Shipbubble option is active.
+ *
+ * @param string $option The key of the option to check.
+ * @return bool Returns true if the option is set to 'yes', false otherwise.
+ */
+function shipbubble_is_option_active($option) {
+	// Retrieve the Shipbubble options or the default options if not set.
+	$options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
+
+	// If the specified option is not set, default it to 'no' and update the option.
+	if (!isset($options[$option])) {
+		$options[$option] = 'no';
+		update_option(WC_SHIPBUBBLE_ID, $options);
+	}
+
+	// Return true if the option is set to 'yes', false otherwise.
+	return 'yes' === $options[$option];
 }

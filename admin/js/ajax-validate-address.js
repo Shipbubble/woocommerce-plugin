@@ -359,6 +359,81 @@
             }
         }
 
+		var $local_pickup = $('#woocommerce_shipbubble_shipping_services_local_pickup');
+
+		if ($local_pickup.length) {
+			// Add an event listener to update the status text when the checkbox state changes
+			$local_pickup.on('change', function() {
+				var isChecked = $local_pickup.is(':checked');
+				var confirmMessage = isChecked
+					? 'Do you want to turn Local Pickup on?'
+					: 'Do you want to turn Local Pickup off?';
+
+				if (confirm(confirmMessage)) {
+					disableForm('Switching...');
+					// Perform AJAX call if the user confirms
+					$.post(ajaxurl, {
+						nonce: ajax_wc_admin.nonce,
+						action: 'shipbubble_toggle_local_pickup',
+						data: { 'local_pickup_enabled': isChecked ? 1 : 0 },
+						dataType: 'json'
+					}).done(function (data) {
+						let response = JSON.parse(data);
+						if (response.hasOwnProperty('response_code') && response['response_code'] !== 200) {
+							Swal.fire({
+								icon: 'warning',
+								title: '',
+								text: 'Error updating Local Pickup: ' + (response['message'] || 'Something went wrong'),
+								showConfirmButton: false,
+								timer: 4500
+							});
+							// Revert the checkbox state on error
+							$local_pickup.prop('checked', !isChecked);
+						} else {
+							Swal.fire({
+								icon: 'success',
+								title: 'Local Pickup updated successfully!',
+								text: response['message'],
+								showConfirmButton: false,
+								timer: 2000
+							});
+							$('#shipbubble_local_pickup_notice_div').remove();
+							$('ul.subsubsub').before(response['notice']);
+						}
+						updateLocalPickupStatusText();
+						enableForm();
+					}).fail(function (data) {
+						let response = JSON.parse(data);
+						Swal.fire({
+							icon: 'warning',
+							title: '',
+							text: 'Error updating Local Pickup: ' + (response['message'] || 'Something went wrong'),
+							showConfirmButton: false,
+							timer: 4500
+						});
+						// Revert the checkbox state on error
+						$local_pickup.prop('checked', !isChecked);
+						updateLocalPickupStatusText();
+						enableForm();
+					});
+				} else {
+					// Revert the checkbox state if the user cancels
+					$local_pickup.prop('checked', !isChecked);
+				}
+			});
+
+			// Function to update the status text based on the checkbox state
+			function updateLocalPickupStatusText() {
+				var $statusText = $local_pickup.closest('.switch').next('.switch-status');
+				var status = $local_pickup.is(':checked') ? 'On' : 'Off';
+				var color = status === 'On' ? 'green' : 'grey';
+				$statusText.text(status).css('color', color);
+				$local_pickup.next('.slider').css('background-color', color);
+			}
+
+			// Initial call to set the correct status text
+			updateLocalPickupStatusText();
+		}
     });
 
 })(jQuery);

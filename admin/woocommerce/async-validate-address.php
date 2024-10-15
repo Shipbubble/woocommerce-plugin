@@ -152,3 +152,27 @@
 		wp_die();
 	}
 	add_action( 'wp_ajax_shipbubble_switch_mode', 'shipbubble_switch_mode_ajax' );
+
+	function shipbubble_toggle_local_pickup_ajax() {
+	// check nonce
+	check_ajax_referer( 'ajax_wc_admin', 'nonce' );
+
+	// check user
+	if ( ! current_user_can( 'manage_options' ) ) return;
+
+	$local_pickup = $_POST['data']['local_pickup_enabled'] ?? 0;
+
+	$options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
+	$options['local_pickup'] = 1 == $local_pickup ? 'yes' : 'no';
+
+	update_option(WC_SHIPBUBBLE_ID, $options);
+
+	$response = array(
+		'message' => 'Success',
+		'response_code' => 200
+	);
+
+	echo json_encode($response);
+	wp_die();
+}
+	add_action( 'wp_ajax_shipbubble_toggle_local_pickup', 'shipbubble_toggle_local_pickup_ajax' );
