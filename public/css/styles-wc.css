@@ -275,15 +275,15 @@
     color: #5D5758;
 }
 
-.container-delivery-card-list.loading {
+.container-delivery-card-list.shipbubble-loading {
     display: none;
 }
 
-.loading {
+.shipbubble-loading {
     width: 100%;
 }
 
-.loading span {
+.shipbubble-loading span {
     display: block;
     background: #ebebeb;
     overflow: hidden;
@@ -293,12 +293,12 @@
     margin-bottom: 8px;
 }
 
-.loading span:last-of-type {
+.shipbubble-loading span:last-of-type {
     margin-bottom: 0px;
 }
 
 
-.loading span::before {
+.shipbubble-loading span::before {
     position: absolute;
     content: "";
     height: 300px;
