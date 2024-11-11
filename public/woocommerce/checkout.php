@@ -36,8 +36,34 @@ function shipbubble_courier_list_container()
 		}
 	
 		if ($isShipbubbleActive == 'yes') {
+            $is_local_pickup_enabled = shipbubble_is_local_pickup_active();
+			$container = '<div class="shipbubble-delivery-method-container">';
+
+			if ($is_local_pickup_enabled) {
+				$container .= '<div class="shipbubble-delivery-options-card">
+    <div class="shipbubble-delivery-option" onclick="document.getElementById(\'shipbubble-pickup-option\').click();">
+        <div class="shipbubble-option-container">
+            <div class="shipbubble-radio-label">
+                <input type="radio" id="shipbubble-pickup-option" name="delivery_method" value="pickup">
+                <label for="shipbubble-pickup-option">Pickup in store</label>
+            </div>
+            <span class="dashicons dashicons-store shipbubble-option-icon"></span>
+        </div>
+    </div>
+    <div class="shipbubble-delivery-option" onclick="document.getElementById(\'shipbubble-shipping-option\').click();">
+        <div class="shipbubble-option-container">
+            <div class="shipbubble-radio-label">
+                <input type="radio" id="shipbubble-shipping-option" name="delivery_method" value="shipping">
+                <label for="shipbubble-shipping-option">Ship</label>
+            </div>
+            <span class="dashicons dashicons-cart shipbubble-option-icon"></span>
+        </div>
+    </div>
+</div>';
+			}
+
 			$container .= '
-				<div id="courier-section">
+			<div id="courier-section"' . ($is_local_pickup_enabled ? ' style="display: none;"' : '') . '>
 					<input type="hidden" id="shipbubble_rate_datetime" name="shipbubble_rate_datetime" value="">
 	
 					<input type="hidden" id="shipbubble_shipment_details" name="shipbubble_shipment_details" value="">
@@ -57,7 +83,7 @@ function shipbubble_courier_list_container()
 						</button> 
 						<div id="courier-list" class="container-delivery-card"></div>
 					</div>
-				';
+				</div>';
 	
 			if ($showLabel) {
 				$container .= '
@@ -129,26 +155,53 @@ function shipbubble_courier_setup_on_change()
 						});
 					});
 
-					$('div#customer_details').on('change', 'input[name^="billing"], input[name^="shipping"]', function(){
+					// Original handler for billing/shipping changes
+					$('div#customer_details').on('change', 'input[name^="billing"], input[name^="shipping"]', handleShippingChanges);
 
-						let list = $('#courier-list');
+					// New handler for delivery method changes
+					$('input[name="delivery_method"]').on('change', handleShippingChanges);
 
-						if ($('#shipbubble_courier_set').val() == 'false' && $('#shipbubble_rate_datetime').val().length !== 0) {
-							list.empty();
+					// Consolidated function to handle both cases
+					function handleShippingChanges() {
+
+						if ($('input[name="delivery_method"]').length && $('input[name="delivery_method"]:checked').val() === 'pickup') {
+
+							const courier_name = 'Local Pickup';
+							const courier_id = 'local_pickup';
+
+							// $('#shipbubble_shipment_details').val(JSON.stringify(shipment));
+							$('#shipbubble_selected_courier').val(courier_name);
+							$('#shipbubble_cost').val(0);
+							$('#shipbubble_courier_id').val(courier_id);
+
+							// set flag that courier has been set
+							$('#shipbubble_courier_set').val('true');
+
+						} else {
+							let list = $('#courier-list');
+
+							if ($('#shipbubble_courier_set').val() == 'false' && $('#shipbubble_rate_datetime').val().length !== 0) {
+								list.empty();
+							}
+
+							if ($('#shipbubble_courier_set').val() == 'true') {
+								$('#shipbubble_reset_shipping_method').val('true');
+
+								// set flag that previously set courier should be removed
+								$('#shipbubble_courier_set').val('false');
+
+								list.empty();
+							}
 						}
 
-						if ($('#shipbubble_courier_set').val() == 'true') {
-							$('#shipbubble_reset_shipping_method').val('true');
 
-							// set flag that previously set courier should be removed
-							$('#shipbubble_courier_set').val('false');
-							
-							list.empty();
-						}
-
+						$('html, body').animate({
+							scrollTop: $(".woocommerce-shipping-totals.shipping").offset().top
+						}, 1000);
 						$(document.body).trigger('update_checkout');
-					});
 
+
+					}
 				}
 			);
 		</script>
@@ -196,7 +249,7 @@ function shipbubble_change_rates($rates, $packages)
 		}
 	}
 
-	if (count($post_data) > 0 && isset($post_data['delivery_option'])) {
+	if ((count($post_data) > 0 && isset($post_data['delivery_option'])) || (isset($post_data['shipbubble_courier_id']) && 'local_pickup' === $post_data['shipbubble_courier_id'])) {
 		$selectedCourier = sanitize_text_field($post_data['shipbubble_selected_courier']);
 		$cost = (float) sanitize_text_field($post_data['shipbubble_cost']);
 

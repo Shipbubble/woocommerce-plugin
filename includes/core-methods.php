@@ -213,11 +213,6 @@ function shipbubble_process_shipping_rates($addressCode, $products, $serviceCode
         $rates['rate'] = 'default';
         $rates['couriers'] = $data->couriers;
 
-        if (shipbubble_is_local_pickup_active()) {
-            $local_pickup = generate_local_pickup_courier();
-            if ($local_pickup) array_unshift($rates['couriers'], $local_pickup);
-        }
-
         // currency code
         $currency_code = $data->couriers[0]->rate_card_currency;
 
@@ -518,43 +513,9 @@ function generate_shipbubble_notice() {
 	}
 }
 
-/**
- * Generates the details for a local pickup courier.
- *
- * @return array|false Returns an array of courier details if the address code is set, or false if not.
- */
-function generate_local_pickup_courier() {
-	// Get the Shipbubble options.
-	$options = get_option(WC_SHIPBUBBLE_ID);
-
-	// Return false if the address code is not set.
-	if (empty($options['address_code'])) {
-		return false;
-	}
-
-	// Construct the pickup address using available options.
-	$address = $options['pickup_address'] . ", " . $options['pickup_state'] . ", " . $options['pickup_country'];
-
-	// Return the local pickup courier details.
-	return array(
-		'courier_id'        => 'local_pickup',
-		'courier_image'     => SHIPBUBBLE_LOGO_URL,
-		'courier_name'      => 'Local Pickup',
-		'delivery_eta'      => $address,
-		'rate_card_amount'  => 0,
-	);
-}
-
 
 function shipbubble_is_local_pickup_active() {
-	$options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
-
-	if (!isset($options['local_pickup'])) {
-		$options['local_pickup'] = 'no';
-		update_option(WC_SHIPBUBBLE_ID, $options);
-	}
-
-	return 'yes' === $options['local_pickup'];
+	return shipbubble_is_option_active('local_pickup');
 }
 
 /**

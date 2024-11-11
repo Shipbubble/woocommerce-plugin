@@ -217,10 +217,6 @@
 
 							let total = parseFloat(value.rate_card_amount) + parseFloat(output.extra_charges);
 
-							if ('local_pickup' == value.courier_id) {
-								let total = 0;
-							}
-
                             newCourierList.append(`
                                 <div class="container-delivery-card-list-item">
                                     <div class="container-delivery-card-list-item-top">
@@ -1567,6 +1563,20 @@
 			}
 		});
 
+		// Handle radio button changes
+		$('input[name="delivery_method"]').change(function() {
+			if ($(this).val() === 'shipping') {
+				$('#courier-section').slideDown();
+			} else {
+				$('#courier-section').slideUp();
+			}
+		});
+
+
+		$('input[name="delivery_method"]').change(function() {
+			$('.shipbubble-delivery-option').removeClass('selected');
+			$(this).closest('.shipbubble-delivery-option').addClass('selected');
+		});
 	});
 
 })(jQuery);

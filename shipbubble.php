@@ -397,6 +397,8 @@ function shipbubble_create_shipment_after_order_created($order_id)
 				// set empty shipping status
 				shipbubble_update_order_meta($order_id, 'shipbubble_tracking_status', '');
 			}
+		} else {
+			$order->update_meta_data('shipbubble_local_pickup', true);
 		}
 
 		// Flag the action as done (to avoid repetitions on reload for example)
@@ -419,7 +421,11 @@ add_action( 'woocommerce_checkout_order_processed', 'shipbubble_validate_checkou
  */
 function shipbubble_validate_checkout_order($order_id)
 {
-	$order = new WC_Order( $order_id );
+	$order = wc_get_order($order_id);
+
+	if (!$order) {
+		return;
+	}
 	$shipping_items = $order->get_items('shipping');
 	$shipping_total = $order->get_shipping_total();
 	$payment_method = isset($_POST['payment_method']) ? $_POST['payment_method'] : '';
@@ -466,13 +472,14 @@ function shipbubble_validate_checkout_order($order_id)
 
 	if ($is_local_pickup) {
 		$order->update_meta_data('shipbubble_local_pickup', true);
-		$order->save();
 	}
 
 	if ($delete_order) {
         $order->delete();
         wp_send_json_error();
-    }
+    } else {
+		$order->save();
+	}
 }
 
 function shipbubble_append_enqueue_script()
