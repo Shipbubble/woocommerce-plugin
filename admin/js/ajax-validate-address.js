@@ -173,7 +173,8 @@
                 state: mainform.find('#woocommerce_shipbubble_shipping_services_pickup_state'),
                 country: mainform.find('#woocommerce_shipbubble_shipping_services_pickup_country'),
                 category: mainform.find('#woocommerce_shipbubble_shipping_services_store_category'),
-                disableOthers: mainform.find('#woocommerce_shipbubble_shipping_services_disable_other_shipping_methods')
+                disableOthers: mainform.find('#woocommerce_shipbubble_shipping_services_disable_other_shipping_methods'),
+                local_pickup_text: mainform.find('#woocommerce_shipbubble_shipping_services_local_pickup_text')
             };
 
             if (Object.values(senderFields).some(field => field.val() === '')) {
@@ -193,7 +194,8 @@
                 store_category: senderFields.category.find('option:selected').val(),
                 pickup_country: senderFields.country.val(),
                 activate_shipbubble: activateShipbubble.is(':checked') ? 'yes' : 'no',
-                disable_other_shipping_methods: senderFields.disableOthers.is(':checked') ? 'yes' : 'no'
+                disable_other_shipping_methods: senderFields.disableOthers.is(':checked') ? 'yes' : 'no',
+				local_pickup_text: senderFields.local_pickup_text.val()
             };
 
             validateSenderAddress(payload);

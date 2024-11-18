@@ -148,10 +148,10 @@
 				                    'default' => __('no', 'woocommerce'),
 			                    ),
                                 'local_pickup_text' => array(
-	                                'title' => __('Activate Local Pickup', 'woocommerce'),
+	                                'title' => __('Local Pickup Text', 'woocommerce'),
 	                                'type' => 'text',
 	                                'class' => 'address_form_field',
-	                                'description' => __('', 'woocommerce'),
+	                                'description' => __('Customize the text displayed for in-store pickup option.', 'woocommerce'),
 	                                'default' => __('Pickup in store', 'woocommerce'),
                                 ),
 			                    'address_code' => array(

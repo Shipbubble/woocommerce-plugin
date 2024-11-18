@@ -37,7 +37,7 @@ function shipbubble_courier_list_container()
 
 		if ($isShipbubbleActive == 'yes') {
 			$is_local_pickup_enabled = shipbubble_is_local_pickup_active();
-			$local_pickup_text = shipbubble_get_option('local_pickup_text'); // Assuming this is how the text is stored
+			$local_pickup_text = shipbubble_get_option('local_pickup_text') ?: 'Pickup in store'; // Assuming this is how the text is stored
 			$pickup_address = shipbubble_get_option('pickup_address'); // Assuming this is how the address is stored
 
 			$container = '<div class="shipbubble-delivery-method-container">';
@@ -48,8 +48,10 @@ function shipbubble_courier_list_container()
                 <div class="shipbubble-option-container">
                     <div class="shipbubble-radio-label">
                         <input type="radio" id="shipbubble-pickup-option" name="delivery_method" value="pickup">
-                        <label for="shipbubble-pickup-option">' . esc_html($local_pickup_text) . '</label>
-                        <div class="shipbubble-pickup-address">' . esc_html($pickup_address) . '</div>
+                        <div class="shipbubble-pickup-text-container">
+                            <label for="shipbubble-pickup-option">' . esc_html($local_pickup_text) . '</label>
+                            ' . ($pickup_address ? '<div class="shipbubble-pickup-address">' . esc_html($pickup_address) . '</div>' : '') . '
+                        </div>
                     </div>
                     <span class="dashicons dashicons-store shipbubble-option-icon"></span>
                 </div>
@@ -67,7 +69,7 @@ function shipbubble_courier_list_container()
 			}
 
 			$container .= '
-    <div id="courier-section"' . ($is_local_pickup_enabled ? ' style="display: none;"' : '') . '>
+    <div id="courier-section">
         <input type="hidden" id="shipbubble_rate_datetime" name="shipbubble_rate_datetime" value="">
         <input type="hidden" id="shipbubble_shipment_details" name="shipbubble_shipment_details" value="">
         <input type="hidden" id="shipbubble_selected_courier" name="shipbubble_selected_courier" value="">
@@ -79,7 +81,7 @@ function shipbubble_courier_list_container()
         <input type="hidden" id="shipbubble_courier_id" name="shipbubble_courier_id" value="">
         
         <div class="container-card">
-            <button id="request_courier_rates" style="background: ' . $btnColor . ';">
+            <button id="request_courier_rates" style="background: ' . $btnColor . ';' . ($is_local_pickup_enabled ? ' display: none;' : '') . '">
                 <p>Get Delivery Prices</p>
             </button> 
             <div id="courier-list" class="container-delivery-card"></div>
