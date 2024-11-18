@@ -612,3 +612,9 @@ function shipbubble_is_option_active($option) {
 	// Return true if the option is set to 'yes', false otherwise.
 	return 'yes' === $options[$option];
 }
+
+function shipbubble_get_option($key) {
+	$options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
+
+    return $options[$key] ?? '';
+}

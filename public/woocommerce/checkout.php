@@ -37,8 +37,8 @@ function shipbubble_courier_list_container()
 
 		if ($isShipbubbleActive == 'yes') {
 			$is_local_pickup_enabled = shipbubble_is_local_pickup_active();
-			$local_pickup_text = get_option('shipbubble_local_pickup_text', 'Pickup in store'); // Assuming this is how the text is stored
-			$pickup_address = get_option('shipbubble_pickup_address', ''); // Assuming this is how the address is stored
+			$local_pickup_text = shipbubble_get_option('local_pickup_text'); // Assuming this is how the text is stored
+			$pickup_address = shipbubble_get_option('pickup_address'); // Assuming this is how the address is stored
 
 			$container = '<div class="shipbubble-delivery-method-container">';
 
