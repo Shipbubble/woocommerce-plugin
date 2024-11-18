@@ -80,6 +80,7 @@
 		        $options['pickup_address'] = isset($address[0]) ? trim($address[0]) : '';
 		        $options['pickup_state'] = isset($address[1]) ? trim($address[1]) : '';
 		        $options['pickup_country'] = sanitize_text_field($data['pickup_country']);
+		        $options['local_pickup_text'] = sanitize_text_field($data['local_pickup_text']);
 
 		        update_option( SHIPBUBBLE_INIT, $shipbubble_init);
 		        update_option( WC_SHIPBUBBLE_ID, $options);

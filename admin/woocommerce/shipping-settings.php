@@ -147,6 +147,13 @@
 				                    'description' => __('', 'woocommerce'),
 				                    'default' => __('no', 'woocommerce'),
 			                    ),
+                                'local_pickup_text' => array(
+	                                'title' => __('Activate Local Pickup', 'woocommerce'),
+	                                'type' => 'text',
+	                                'class' => 'address_form_field',
+	                                'description' => __('', 'woocommerce'),
+	                                'default' => __('Pickup in store', 'woocommerce'),
+                                ),
 			                    'address_code' => array(
 				                    // 'title'         => __( 'Address Code', 'woocommerce' ),
 				                    'type' => 'hidden',

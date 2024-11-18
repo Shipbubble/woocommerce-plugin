@@ -410,3 +410,10 @@
 .shipbubble-delivery-option.selected label {
 	color: #ff4400;
 }
+
+.shipbubble-pickup-address {
+	font-size: 0.9em;
+	color: #666;
+	margin-top: 4px;
+	line-height: 1.2;
+}

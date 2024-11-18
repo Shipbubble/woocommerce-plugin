@@ -95,7 +95,8 @@ function shipbubble_wc_options_default(): array
 		'live_api_key' => '',
 		'sandbox_api_key' => '',
 		'live_mode' => 'yes',
-		'local_pickup' => 'no'
+		'local_pickup' => 'no',
+		'local_pickup_text' => ''
 	);
 }
 

@@ -34,71 +34,71 @@ function shipbubble_courier_list_container()
 			$btnColor = strlen($response->data->brand_color) > 1 ? $response->data->brand_color . ' !important' : '';
 			$showLabel = (bool) $response->data->powered_by_label;
 		}
-	
+
 		if ($isShipbubbleActive == 'yes') {
-            $is_local_pickup_enabled = shipbubble_is_local_pickup_active();
+			$is_local_pickup_enabled = shipbubble_is_local_pickup_active();
+			$local_pickup_text = get_option('shipbubble_local_pickup_text', 'Pickup in store'); // Assuming this is how the text is stored
+			$pickup_address = get_option('shipbubble_pickup_address', ''); // Assuming this is how the address is stored
+
 			$container = '<div class="shipbubble-delivery-method-container">';
 
 			if ($is_local_pickup_enabled) {
 				$container .= '<div class="shipbubble-delivery-options-card">
-    <div class="shipbubble-delivery-option" onclick="document.getElementById(\'shipbubble-pickup-option\').click();">
-        <div class="shipbubble-option-container">
-            <div class="shipbubble-radio-label">
-                <input type="radio" id="shipbubble-pickup-option" name="delivery_method" value="pickup">
-                <label for="shipbubble-pickup-option">Pickup in store</label>
+            <div class="shipbubble-delivery-option" onclick="document.getElementById(\'shipbubble-pickup-option\').click();">
+                <div class="shipbubble-option-container">
+                    <div class="shipbubble-radio-label">
+                        <input type="radio" id="shipbubble-pickup-option" name="delivery_method" value="pickup">
+                        <label for="shipbubble-pickup-option">' . esc_html($local_pickup_text) . '</label>
+                        <div class="shipbubble-pickup-address">' . esc_html($pickup_address) . '</div>
+                    </div>
+                    <span class="dashicons dashicons-store shipbubble-option-icon"></span>
+                </div>
             </div>
-            <span class="dashicons dashicons-store shipbubble-option-icon"></span>
-        </div>
-    </div>
-    <div class="shipbubble-delivery-option" onclick="document.getElementById(\'shipbubble-shipping-option\').click();">
-        <div class="shipbubble-option-container">
-            <div class="shipbubble-radio-label">
-                <input type="radio" id="shipbubble-shipping-option" name="delivery_method" value="shipping">
-                <label for="shipbubble-shipping-option">Ship</label>
+            <div class="shipbubble-delivery-option" onclick="document.getElementById(\'shipbubble-shipping-option\').click();">
+                <div class="shipbubble-option-container">
+                    <div class="shipbubble-radio-label">
+                        <input type="radio" id="shipbubble-shipping-option" name="delivery_method" value="shipping">
+                        <label for="shipbubble-shipping-option">Ship</label>
+                    </div>
+                    <span class="dashicons dashicons-cart shipbubble-option-icon"></span>
+                </div>
             </div>
-            <span class="dashicons dashicons-cart shipbubble-option-icon"></span>
-        </div>
-    </div>
-</div>';
+        </div>';
 			}
 
 			$container .= '
-			<div id="courier-section"' . ($is_local_pickup_enabled ? ' style="display: none;"' : '') . '>
-					<input type="hidden" id="shipbubble_rate_datetime" name="shipbubble_rate_datetime" value="">
-	
-					<input type="hidden" id="shipbubble_shipment_details" name="shipbubble_shipment_details" value="">
-					<input type="hidden" id="shipbubble_selected_courier" name="shipbubble_selected_courier" value="">
-					<input type="hidden" id="shipbubble_cost" name="shipbubble_cost" value="">
-					<input type="hidden" id="shipbubble_courier_set" name="shipbubble_courier_set" value="false">
-					<input type="hidden" id="shipbubble_reset_shipping_method" name="shipbubble_reset_shipping_method" value="false">
-	
-					<input type="hidden" id="request_token" name="request_token" value="">
-					<input type="hidden" id="shipbubble_service_code" name="shipbubble_service_code" value="">
-					<input type="hidden" id="shipbubble_courier_id" name="shipbubble_courier_id" value="">
-					<!--<input type="hidden" id="shipbubble_reset_cost" name="shipbubble_reset_cost" value="no">-->
-					
-					<div class="container-card">
-						<button id="request_courier_rates" style="background: ' . $btnColor . ';">
-							<p>Get Delivery Prices</p>
-						</button> 
-						<div id="courier-list" class="container-delivery-card"></div>
-					</div>
-				</div>';
-	
+    <div id="courier-section"' . ($is_local_pickup_enabled ? ' style="display: none;"' : '') . '>
+        <input type="hidden" id="shipbubble_rate_datetime" name="shipbubble_rate_datetime" value="">
+        <input type="hidden" id="shipbubble_shipment_details" name="shipbubble_shipment_details" value="">
+        <input type="hidden" id="shipbubble_selected_courier" name="shipbubble_selected_courier" value="">
+        <input type="hidden" id="shipbubble_cost" name="shipbubble_cost" value="">
+        <input type="hidden" id="shipbubble_courier_set" name="shipbubble_courier_set" value="false">
+        <input type="hidden" id="shipbubble_reset_shipping_method" name="shipbubble_reset_shipping_method" value="false">
+        <input type="hidden" id="request_token" name="request_token" value="">
+        <input type="hidden" id="shipbubble_service_code" name="shipbubble_service_code" value="">
+        <input type="hidden" id="shipbubble_courier_id" name="shipbubble_courier_id" value="">
+        
+        <div class="container-card">
+            <button id="request_courier_rates" style="background: ' . $btnColor . ';">
+                <p>Get Delivery Prices</p>
+            </button> 
+            <div id="courier-list" class="container-delivery-card"></div>
+        </div>
+    </div>';
+
 			if ($showLabel) {
 				$container .= '
-					<div class="sb-slogan-container" style="display:none; !important">
-						<div class="sb-slogan">
-							<span>Powered by</span>
-							<img
-								src="https://res.cloudinary.com/delivry/image/upload/v1693997143/app_assets/white-shipbubble-logo_ox2w53.svg" />
-						</div>
-					</div>
-				';
+            <div class="sb-slogan-container" style="display:none; !important">
+                <div class="sb-slogan">
+                    <span>Powered by</span>
+                    <img src="https://res.cloudinary.com/delivry/image/upload/v1693997143/app_assets/white-shipbubble-logo_ox2w53.svg" />
+                </div>
+            </div>
+        ';
 			} else {
 				$container .= '<div style="margin: 8px 0;"></div>';
 			}
-	
+
 			$container .= '</div>';
 		}
 	}
