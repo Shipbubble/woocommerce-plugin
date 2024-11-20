@@ -175,11 +175,11 @@
                 </div>
             `);
 
-            let newCourierList = $('<div class="container-delivery-card-list loading"></div');
+            let newCourierList = $('<div class="container-delivery-card-list shipbubble-loading"></div');
 
             list.append(newCourierList);
 
-            let loaders = $(`<div class="loading">
+            let loaders = $(`<div class="shipbubble-loading">
                 <span></span>
                 <span></span>
                 <span></span>
@@ -210,7 +210,7 @@
 
                         loaders.hide();
 
-                        newCourierList.removeClass('loading');
+                        newCourierList.removeClass('shipbubble-loading');
 
                         $.each(output.couriers, function (i, value) {
                             // set total charge

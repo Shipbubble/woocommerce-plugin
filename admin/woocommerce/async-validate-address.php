@@ -46,7 +46,7 @@
         // Any of the WordPress data sanitization functions can be used here
 
         if ( empty($data) || empty($data['name']) || empty($data['email']) || empty($data['phone']) || 
-            empty($data['address']) ) {
+            empty($data['full_address']) ) {
 
             $output = array('status' => 'failed', 'data' => 'some items are missing, please fill');
 
@@ -60,7 +60,7 @@
                 sanitize_text_field($data['name']), 
                 sanitize_email($data['email']), 
                 sanitize_text_field($data['phone']), 
-                sanitize_text_field($data['address']),
+                sanitize_text_field($data['full_address']),
 	            $keys['live_api_key']
             );
 	        $shipbubble_init = get_option(SHIPBUBBLE_INIT);
@@ -76,9 +76,9 @@
 				$options['address_code'] = $live_key_response->data->address_code;
 				$options['disable_other_shipping_methods'] = sanitize_text_field($data['disable_other_shipping_methods']);
 				$address = sanitize_text_field($data['address']);
-				$address = explode(',', $address);
-		        $options['pickup_address'] = isset($address[0]) ? trim($address[0]) : '';
-		        $options['pickup_state'] = isset($address[1]) ? trim($address[1]) : '';
+				$state = sanitize_text_field($data['state']);
+		        $options['pickup_address'] = $address;
+		        $options['pickup_state'] = $state;
 		        $options['pickup_country'] = sanitize_text_field($data['pickup_country']);
 
 		        update_option( SHIPBUBBLE_INIT, $shipbubble_init);
@@ -90,7 +90,7 @@
 					sanitize_text_field($data['name']),
 					sanitize_email($data['email']),
 					sanitize_text_field($data['phone']),
-					sanitize_text_field($data['address']),
+					sanitize_text_field($data['full_address']),
 					$keys['sandbox_api_key']
 				);
 
