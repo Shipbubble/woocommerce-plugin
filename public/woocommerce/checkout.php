@@ -60,7 +60,7 @@ function shipbubble_courier_list_container()
                 <div class="shipbubble-option-container">
                     <div class="shipbubble-radio-label">
                         <input type="radio" id="shipbubble-shipping-option" name="delivery_method" value="shipping">
-                        <label for="shipbubble-shipping-option">Ship</label>
+                        <label for="shipbubble-shipping-option">Get Delivery Prices</label>
                     </div>
                     <span class="dashicons dashicons-cart shipbubble-option-icon"></span>
                 </div>
@@ -81,9 +81,9 @@ function shipbubble_courier_list_container()
         <input type="hidden" id="shipbubble_courier_id" name="shipbubble_courier_id" value="">
         
         <div class="container-card">
-            <button id="request_courier_rates" style="background: ' . $btnColor . ';' . ($is_local_pickup_enabled ? ' display: none;' : '') . '">
+            ' . (!$is_local_pickup_enabled ? '<button id="request_courier_rates" style="background: ' . $btnColor . ';">
                 <p>Get Delivery Prices</p>
-            </button> 
+            </button>' : '') . '
             <div id="courier-list" class="container-delivery-card"></div>
         </div>
     </div>';

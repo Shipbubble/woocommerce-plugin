@@ -372,7 +372,7 @@
 /* Radio Button Styles */
 .shipbubble-radio-label input[type="radio"] {
 	margin: 0;
-	accent-color: #ff4400;
+	accent-color: #D93855;
 }
 
 /* Label Styles */
@@ -393,22 +393,22 @@
 
 /* Selected State Styles */
 .shipbubble-delivery-option:has(input[type="radio"]:checked) {
-	border: 1px solid #ff4400;
+	border: 1px solid #D93855;
 }
 
 .shipbubble-delivery-option:has(input[type="radio"]:checked) .shipbubble-option-icon,
 .shipbubble-delivery-option:has(input[type="radio"]:checked) label {
-	color: #ff4400;
+	color: #D93855;
 }
 
 /* Fallback for browsers that don't support :has() */
 .shipbubble-delivery-option.selected {
-	border: 1px solid #ff4400;
+	border: 1px solid #D93855;
 }
 
 .shipbubble-delivery-option.selected .shipbubble-option-icon,
 .shipbubble-delivery-option.selected label {
-	color: #ff4400;
+	color: #D93855;
 }
 
 .shipbubble-pickup-text-container {
