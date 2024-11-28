@@ -148,7 +148,7 @@ function shipbubble_courier_setup_on_change()
 								$('#shipbubble_courier_set').val('true');
 
 								$('html, body').animate({
-									scrollTop: $("tfoot tr.woocommerce-shipping-totals.shipping").offset().top
+									scrollTop: $(".woocommerce-shipping-totals.shipping").offset().top
 								}, 1000);
 
 								jQuery('body').trigger('update_checkout');
