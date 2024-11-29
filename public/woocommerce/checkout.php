@@ -129,12 +129,15 @@ function shipbubble_courier_setup_on_change()
 						});
 					});
 
-					$('div#customer_details').on('change', 'input[name^="billing"], input[name^="shipping"]', function(){
+					$('div#customer_details').on('change', 'input[name^="billing"], input[name^="shipping"], select[name^="billing"], select[name^="shipping"]', function(){
 
-						let list = $('#courier-list');
+						let list = $('#courier-list'),
+							sbSlogan = $('.sb-slogan-container');
+
 
 						if ($('#shipbubble_courier_set').val() == 'false' && $('#shipbubble_rate_datetime').val().length !== 0) {
 							list.empty();
+							sbSlogan.hide();
 						}
 
 						if ($('#shipbubble_courier_set').val() == 'true') {
@@ -144,6 +147,7 @@ function shipbubble_courier_setup_on_change()
 							$('#shipbubble_courier_set').val('false');
 							
 							list.empty();
+							sbSlogan.hide();
 						}
 
 						$(document.body).trigger('update_checkout');
