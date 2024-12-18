@@ -332,13 +332,11 @@
 
 .shipbubble-delivery-method-container {
 	width: 100%;
-	max-width: 600px;
+	max-width: 549px;
 }
 
 .shipbubble-delivery-options-card {
 	background: #fff;
-	border: 1px solid #e5e5e5;
-	border-radius: 8px;
 	padding: 5px;
 	margin-bottom: 10px;
 }
@@ -348,10 +346,9 @@
 	padding: 15px;
 	cursor: pointer;
 	transition: background-color 0.2s;
-	border-radius: 4px;
-}
-
-.shipbubble-delivery-option:hover {
+	border: 1px solid #EBEBEB;
+	border-radius: 8px;
+	margin-bottom: 10px;
 	background-color: #f5f5f5;
 }
 
@@ -365,20 +362,25 @@
 
 .shipbubble-radio-label {
 	display: flex;
-	align-items: center;
+	align-items: flex-start;
 	gap: 10px;
 }
 
 /* Radio Button Styles */
 .shipbubble-radio-label input[type="radio"] {
-	margin: 0;
-	accent-color: #D93855;
+	accent-color: #000;
+	margin: 0.125rem 0 0;
+	width: 20px;
+	height: 20px;
 }
 
 /* Label Styles */
 .shipbubble-radio-label label {
-	margin: 0;
-	line-height: 1;
+	font-weight: 500;
+	font-size: 14px;
+	line-height: 16px;
+	color: #241D1E;
+	margin: 0 0 8px;
 	cursor: pointer;
 }
 
@@ -393,22 +395,22 @@
 
 /* Selected State Styles */
 .shipbubble-delivery-option:has(input[type="radio"]:checked) {
-	border: 1px solid #D93855;
+	border: 1px solid #000;
 }
 
 .shipbubble-delivery-option:has(input[type="radio"]:checked) .shipbubble-option-icon,
 .shipbubble-delivery-option:has(input[type="radio"]:checked) label {
-	color: #D93855;
+	color: #000;
 }
 
 /* Fallback for browsers that don't support :has() */
 .shipbubble-delivery-option.selected {
-	border: 1px solid #D93855;
+	border: 1px solid #000;
 }
 
 .shipbubble-delivery-option.selected .shipbubble-option-icon,
 .shipbubble-delivery-option.selected label {
-	color: #D93855;
+	color: #000;
 }
 
 .shipbubble-pickup-text-container {
@@ -417,8 +419,9 @@
 }
 
 .shipbubble-pickup-address {
-	font-size: 0.8em;
-	color: #666;
 	margin-top: 4px;
-	line-height: 1.2;
+	font-weight: 400;
+	font-size: 14px;
+	line-height: 16px;
+	color: #5D5758;
 }

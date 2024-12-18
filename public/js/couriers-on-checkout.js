@@ -1560,14 +1560,50 @@
 		// Handle radio button changes
 		$('input[name="delivery_method"]').change(function() {
 			if ($(this).val() === 'shipping') {
+				clearShipping();
+				$('#courier-section').slideDown(); // Add the slide down animation
 				processShippingRateRequest(this);
 			} else {
 				$('#courier-section').slideUp();
 				$('.sb-slogan-container').hide();
 				$('#shipping-notice').remove();
+
+				const courier_name = 'Local Pickup';
+				const courier_id = 'local_pickup';
+
+				$('#shipbubble_selected_courier').val(courier_name);
+				$('#shipbubble_cost').val(0);
+				$('#shipbubble_courier_id').val(courier_id);
+				$('#shipbubble_courier_set').val('true');
+
+				$(document.body).trigger('update_checkout');
 			}
 		});
 
+		function clearShipping() {
+			let list = $('#courier-list')
+			sbSlogan = $('.sb-slogan-container');
+
+			if ($('#shipbubble_courier_set').val() == 'false' && $('#shipbubble_rate_datetime').val().length !== 0) {
+				list.empty();
+				sbSlogan.hide();
+			}
+
+			if ($('#shipbubble_courier_set').val() == 'true') {
+				$('#shipbubble_reset_shipping_method').val('true');
+
+				// set flag that previously set courier should be removed
+				$('#shipbubble_courier_set').val('false');
+
+				list.empty();
+				sbSlogan.hide();
+			}
+
+			$('html, body').animate({
+				scrollTop: $(".woocommerce-shipping-totals.shipping").offset().top
+			}, 1000);
+			$(document.body).trigger('update_checkout');
+		}
 
 		$('input[name="delivery_method"]').change(function() {
 			$('.shipbubble-delivery-option').removeClass('selected');

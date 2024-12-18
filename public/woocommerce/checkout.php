@@ -53,16 +53,17 @@ function shipbubble_courier_list_container()
                             ' . ($pickup_address ? '<div class="shipbubble-pickup-address">' . esc_html($pickup_address) . '</div>' : '') . '
                         </div>
                     </div>
-                    <span class="dashicons dashicons-store shipbubble-option-icon"></span>
                 </div>
             </div>
             <div class="shipbubble-delivery-option" onclick="document.getElementById(\'shipbubble-shipping-option\').click();">
                 <div class="shipbubble-option-container">
                     <div class="shipbubble-radio-label">
                         <input type="radio" id="shipbubble-shipping-option" name="delivery_method" value="shipping">
+                        <div class="shipbubble-pickup-text-container">
                         <label for="shipbubble-shipping-option">Get Delivery Prices</label>
+                        <div class="shipbubble-pickup-address">(Click here to get shipping rates)</div>
+                        </div>
                     </div>
-                    <span class="dashicons dashicons-cart shipbubble-option-icon"></span>
                 </div>
             </div>
         </div>';
@@ -158,55 +159,30 @@ function shipbubble_courier_setup_on_change()
 					});
 
 					// Original handler for billing/shipping changes
-					$('div#customer_details').on('change', 'input[name^="billing"], input[name^="shipping"], select[name^="billing"], select[name^="shipping"]', handleShippingChanges);
+					$('div#customer_details').on('change', 'input[name^="billing"], input[name^="shipping"], select[name^="billing"], select[name^="shipping"]', function handleShippingChanges() {
+						let list = $('#courier-list')
+                        sbSlogan = $('.sb-slogan-container');
 
-					// New handler for delivery method changes
-					$('input[name="delivery_method"]').on('change', handleShippingChanges);
+                        if ($('#shipbubble_courier_set').val() == 'false' && $('#shipbubble_rate_datetime').val().length !== 0) {
+                            list.empty();
+                            sbSlogan.hide();
+                        }
 
-					// Consolidated function to handle both cases
-					function handleShippingChanges() {
+                        if ($('#shipbubble_courier_set').val() == 'true') {
+                            $('#shipbubble_reset_shipping_method').val('true');
 
-						if ($('input[name="delivery_method"]').length && $('input[name="delivery_method"]:checked').val() === 'pickup') {
+                            // set flag that previously set courier should be removed
+                            $('#shipbubble_courier_set').val('false');
 
-							const courier_name = 'Local Pickup';
-							const courier_id = 'local_pickup';
+                            list.empty();
+                            sbSlogan.hide();
+                        }
 
-							// $('#shipbubble_shipment_details').val(JSON.stringify(shipment));
-							$('#shipbubble_selected_courier').val(courier_name);
-							$('#shipbubble_cost').val(0);
-							$('#shipbubble_courier_id').val(courier_id);
-
-							// set flag that courier has been set
-							$('#shipbubble_courier_set').val('true');
-
-						} else {
-							let list = $('#courier-list')
-                            sbSlogan = $('.sb-slogan-container');
-
-							if ($('#shipbubble_courier_set').val() == 'false' && $('#shipbubble_rate_datetime').val().length !== 0) {
-								list.empty();
-                                sbSlogan.hide();
-							}
-
-							if ($('#shipbubble_courier_set').val() == 'true') {
-								$('#shipbubble_reset_shipping_method').val('true');
-
-								// set flag that previously set courier should be removed
-								$('#shipbubble_courier_set').val('false');
-
-								list.empty();
-                                sbSlogan.hide();
-							}
-						}
-
-
-						$('html, body').animate({
-							scrollTop: $(".woocommerce-shipping-totals.shipping").offset().top
-						}, 1000);
+                        $('html, body').animate({
+                        scrollTop: $(".woocommerce-shipping-totals.shipping").offset().top
+                    }, 1000);
 						$(document.body).trigger('update_checkout');
-
-
-					}
+                    })
 				}
 			);
 		</script>
