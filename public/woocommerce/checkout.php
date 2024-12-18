@@ -158,7 +158,7 @@ function shipbubble_courier_setup_on_change()
 					});
 
 					// Original handler for billing/shipping changes
-					$('div#customer_details').on('change', 'input[name^="billing"], input[name^="shipping"]', handleShippingChanges);
+					$('div#customer_details').on('change', 'input[name^="billing"], input[name^="shipping"], select[name^="billing"], select[name^="shipping"]', handleShippingChanges);
 
 					// New handler for delivery method changes
 					$('input[name="delivery_method"]').on('change', handleShippingChanges);
@@ -180,10 +180,12 @@ function shipbubble_courier_setup_on_change()
 							$('#shipbubble_courier_set').val('true');
 
 						} else {
-							let list = $('#courier-list');
+							let list = $('#courier-list')
+                            sbSlogan = $('.sb-slogan-container');
 
 							if ($('#shipbubble_courier_set').val() == 'false' && $('#shipbubble_rate_datetime').val().length !== 0) {
 								list.empty();
+                                sbSlogan.hide();
 							}
 
 							if ($('#shipbubble_courier_set').val() == 'true') {
@@ -193,6 +195,7 @@ function shipbubble_courier_setup_on_change()
 								$('#shipbubble_courier_set').val('false');
 
 								list.empty();
+                                sbSlogan.hide();
 							}
 						}
 
