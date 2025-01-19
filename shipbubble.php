@@ -32,6 +32,9 @@ if (is_admin()) {
 	require_once plugin_dir_path(__FILE__) . 'admin/woocommerce/async-create-shipment.php';
 	require_once plugin_dir_path(__FILE__) . 'admin/woocommerce/async-validate-address.php';
 	require_once plugin_dir_path(__FILE__) . 'admin/woocommerce/enqueue-styles.php';
+
+	// settings menu
+	require_once plugin_dir_path(__FILE__) . 'admin/settings/settings-menu.php';
 }
 
 // includes
