@@ -25,15 +25,15 @@ function add_shipbubble_menu() {
 		'display_shipbubble_settings_page' // Callback function
 	);
 
-	// Add the "Local Pickup" submenu
-	add_submenu_page(
-		'shipbubble-settings',     // Parent slug
-		'Local Pickup Settings',   // Page title
-		'Local Pickup',            // Menu title
-		'manage_options',          // Capability
-		'shipbubble-local-pickup', // Menu slug
-		'display_shipbubble_local_pickup_page' // Callback function
-	);
+	// Add submenu pages
+//	add_submenu_page(
+//		'shipbubble-settings',     // Parent slug
+//		'Local Pickup Settings',   // Page title
+//		'Local Pickup',            // Menu title
+//		'manage_options',          // Capability
+//		'shipbubble-local-pickup', // Menu slug
+//		'display_shipbubble_local_pickup_page' // Callback function
+//	);
 }
 
 // Callback function to render the settings page
@@ -45,20 +45,16 @@ function display_shipbubble_settings_page() {
 		<h2 class="nav-tab-wrapper">
 			<a href="#shipbubble-settings-api-tab" class="nav-tab nav-tab-active" id="tab1-link">API Keys</a>
 			<a href="#shipbubble-settings-sender-tab" class="nav-tab" id="tab2-link">Sender Details</a>
+			<a href="#shipbubble-settings-local-pickup" class="nav-tab" id="tab2-link">Local Pickup</a>
 		</h2>
 		<?php
 		include_once plugin_dir_path(__FILE__) . 'templates/api-keys.php';
 		include_once plugin_dir_path(__FILE__) . 'templates/sender-details.php';
+		include_once plugin_dir_path(__FILE__) . 'templates/local-pickup.php';
 		?>
 	</div>
 
 	<?php
-}
-
-// Callback function to render the local pickup page
-function display_shipbubble_local_pickup_page() {
-	echo '<h1>Shipbubble Local Pickup Settings</h1>';
-	echo '<p>Manage the local pickup settings for the Shipbubble plugin here.</p>';
 }
 
 
@@ -67,6 +63,12 @@ add_action('admin_enqueue_scripts', 'shipbubble_enqueue_admin_scripts');
 function shipbubble_enqueue_admin_scripts($hook) {
 	// Only enqueue on our plugin's settings pages
 	if (strpos($hook, 'shipbubble') !== false) {
+		// create nonce
+		$nonce = wp_create_nonce( 'ajax_wc_admin' );
+
+		// define script
+		$script = array( 'nonce' => $nonce, 'logo' => SHIPBUBBLE_LOGO_URL );
+
 		wp_enqueue_script(
 			'shipbubble-settings',
 			plugins_url('js/settings.js', __FILE__),
@@ -74,5 +76,8 @@ function shipbubble_enqueue_admin_scripts($hook) {
 			'1.0.0',
 			true
 		);
+
+		// localize script
+		wp_localize_script( 'shipbubble-settings', 'ajax_wc_admin', $script );
 	}
 }

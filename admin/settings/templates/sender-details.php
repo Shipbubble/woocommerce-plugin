@@ -1,5 +1,5 @@
 <div id="shipbubble-settings-sender-tab" class="shipbubble-tab-content" style="display:none;">
-	<form method="post" action="options.php">
+	<form id="shipbubble-settings-form">
 		<?php
 		settings_fields('shipbubble_sender_details');
 		do_settings_sections('shipbubble_sender_details');
@@ -14,13 +14,14 @@
         $activate = $options['activate_shipbubble'] === 'yes';
         $other_plugins = $options['disable_other_shipping_methods'] === 'yes';
 		?>
-		<table class="form-table">
+        <div class="shipbubble-settings">
+            <table class="form-table">
 			<tr>
 				<th scope="row"><label for="shipbubble_activate">Activate to use</label></th>
 				<td>
 					<input type="checkbox" name="shipbubble_activate" id="shipbubble_activate" value="1" <?php checked($activate); ?>>
 					<label for="shipbubble_activate">Activate to use</label>
-					<p class="description">Activate Shipubble on Checkout.</p>
+					<p class="description">Activate Shipbubble on Checkout.</p>
 				</td>
 			</tr>
 			<tr>
@@ -82,12 +83,15 @@
 			<tr>
 				<th scope="row"><label for="shipbubble_deactivate">Disable Other Shipping Method</label></th>
 				<td>
-					<input type="checkbox" name="shipbubble_deactivate" id="shipbubble_deactivate" value="1" <?php checked(1, get_option('shipbubble_deactivate'), true); ?>>
+					<input type="checkbox" name="shipbubble_deactivate" id="shipbubble_deactivate" value="1" <?php checked($other_plugins); ?>>
 					<label for="shipbubble_deactivate">Disable Other Shipping Method</label>
-                    <p class="description">Disable Other Shipping Method</p>
+                    <p class="description">Shipbubble will disable other shipping methods.</p>
 				</td>
 			</tr>
 		</table>
-		<?php submit_button(); ?>
+        </div>
+        <div class="shipbubble-actions">
+			<?php submit_button(); ?>
+        </div>
 	</form>
 </div>
