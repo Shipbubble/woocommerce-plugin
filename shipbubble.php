@@ -28,7 +28,6 @@ if (is_admin()) {
 	require_once plugin_dir_path(__FILE__) . 'admin/wordpress/async-validate-auth.php';
 
 	// Woocommerce
-	// require_once plugin_dir_path( __FILE__ ) . 'admin/woocommerce/shipping-settings.php';
 	require_once plugin_dir_path(__FILE__) . 'admin/woocommerce/async-create-shipment.php';
 	require_once plugin_dir_path(__FILE__) . 'admin/woocommerce/async-validate-address.php';
 	require_once plugin_dir_path(__FILE__) . 'admin/woocommerce/enqueue-styles.php';
@@ -111,7 +110,6 @@ function shipbubble_wc_api_init()
 {
 	// if( class_exists( 'WC_Payment_Gateway' ) ) {
 	// admin
-	require_once plugin_dir_path(__FILE__) . 'admin/woocommerce/shipping-settings.php';
 	require_once plugin_dir_path(__FILE__) . 'admin/woocommerce/orders.php';
 
 	// public
@@ -119,7 +117,7 @@ function shipbubble_wc_api_init()
 	require_once plugin_dir_path(__FILE__) . 'public/woocommerce/enqueue-styles.php';
 	// }
 
-	$version = '2.5';
+	$version = '2.6';
 	$shipbubble_version = get_option(SHIPBUBBLE_PLUGIN_VERSION, '');
 
 	// Check if the shipbubble_version is empty or less than the specified version
@@ -156,14 +154,14 @@ function shipbubble_settings_redirect() {
 
 	if (get_option('shipbubble_first_time_redirection', false)) {
 		delete_option('shipbubble_first_time_redirection');
-		exit(wp_redirect(SHIPBUBBLE_EXT_BASE_URL  . '/wp-admin/admin.php?page=wc-settings&tab=shipping&section=shipbubble_shipping_services'));
+		exit(wp_redirect(SHIPBUBBLE_EXT_BASE_URL  . '/wp-admin/admin.php?page=shipbubble-settings'));
 	}
 }
 add_action('admin_init', 'shipbubble_settings_redirect');
 
 function shipbubble_show_plugin_settings_link($links, $file) {
 	if (plugin_basename(__FILE__) == $file) {
-		$settings_link = '<a href="admin.php?page=wc-settings&tab=shipping&section=shipbubble_shipping_services">' . __('Settings', 'shipbubble') . '</a>';
+		$settings_link = '<a href="admin.php?page=shipbubble-settings">' . __('Settings', 'shipbubble') . '</a>';
 		array_unshift($links, $settings_link);
 	}
 	return $links;

@@ -1,35 +1,5 @@
 <?php
 
-    // enqueue scripts
-    function ajax_enqueue_scripts_validate_address( $hook ) 
-    {
-        // check if our page
-        if ( !(isset($_GET['page']) && $_GET['page'] == 'wc-settings' && isset($_GET['tab']) && $_GET['tab'] == 'shipping' && isset($_GET['section']) && $_GET['section'] == 'shipbubble_shipping_services') ) return;
-        
-        // define script url
-        $script_url = plugins_url( '/js/ajax-validate-address.js', plugin_dir_path( __FILE__ ) );
-
-	    // Generate a random version number
-	    $version = rand(1000, 9999); // or use another method to generate a version string
-
-	    // Enqueue script with random version
-	    wp_enqueue_script( 'ajax-wc-admin', $script_url, array( 'jquery' ), $version );
-
-        // create nonce
-        $nonce = wp_create_nonce( 'ajax_wc_admin' );
-
-        // define script
-        $script = array( 'nonce' => $nonce, 'logo' => SHIPBUBBLE_LOGO_URL );
-
-        // localize script
-        wp_localize_script( 'ajax-wc-admin', 'ajax_wc_admin', $script );
-
-    }
-    
-
-    add_action( 'admin_enqueue_scripts', 'ajax_enqueue_scripts_validate_address' );
-
-
     // process ajax request
     function shipbubble_initiate_validate_sender_address() {
 
@@ -80,7 +50,6 @@
 		        $options['pickup_address'] = $address;
 		        $options['pickup_state'] = $state;
 		        $options['pickup_country'] = sanitize_text_field($data['pickup_country']);
-		        $options['local_pickup_text'] = sanitize_text_field($data['local_pickup_text']);
 
 		        update_option( SHIPBUBBLE_INIT, $shipbubble_init);
 		        update_option( WC_SHIPBUBBLE_ID, $options);
@@ -163,8 +132,10 @@
 
 	$local_pickup = $_POST['data']['local_pickup_enabled'] ?? 0;
 
+
 	$options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
 	$options['local_pickup'] = 1 == $local_pickup ? 'yes' : 'no';
+	$options['local_pickup_text'] = sanitize_text_field($_POST['data']['local_pickup_text'] ?? '');
 
 	update_option(WC_SHIPBUBBLE_ID, $options);
 

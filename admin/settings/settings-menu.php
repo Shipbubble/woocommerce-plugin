@@ -68,16 +68,26 @@ function shipbubble_enqueue_admin_scripts($hook) {
 
 		// define script
 		$script = array( 'nonce' => $nonce, 'logo' => SHIPBUBBLE_LOGO_URL );
+		$version = rand(1000, 9999); // or use another method to generate a version string
 
 		wp_enqueue_script(
 			'shipbubble-settings',
 			plugins_url('js/settings.js', __FILE__),
 			array('jquery'),
-			'1.0.0',
+			$version,
 			true
 		);
 
 		// localize script
 		wp_localize_script( 'shipbubble-settings', 'ajax_wc_admin', $script );
 	}
+
+
+	function shipbubble_couriers_methods( $methods )
+	{
+		$methods['shipbubble_shipping_services'] = 'WC_SHIPBUBBLE_SHIPPING_METHOD';
+		return $methods;
+	}
+
+	add_filter( 'woocommerce_shipping_methods', 'shipbubble_couriers_methods' );
 }

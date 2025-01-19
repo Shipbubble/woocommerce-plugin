@@ -469,7 +469,7 @@ function generate_shipbubble_notice() {
 	$message = '';
 	$notice_type = 'notice-error';
 
-	$link = '<a href="admin.php?page=wc-settings&tab=shipping&section=shipbubble_shipping_services" style="text-decoration: underline; font-weight: bold;">%s</a>';
+	$link = '<a href="admin.php?page=shipbubble-settings" style="text-decoration: underline; font-weight: bold;">%s</a>';
 
 	if (false == $shipbubble_init['account_status']) {
 		$message = sprintf(

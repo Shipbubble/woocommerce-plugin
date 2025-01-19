@@ -32,7 +32,7 @@ jQuery(document).ready(function($) {
 	})
 
 	function validateShipbubbleApiKeys(sandbox_api_key, live_api_key) {
-		disableForm();
+		disableForm('shipbubble-api-keys-form');
 
 		$.post(ajaxurl, {
 			nonce: ajax_wc_admin.nonce,
@@ -77,7 +77,7 @@ jQuery(document).ready(function($) {
 			timer: 4500
 		});
 
-		enableForm();
+		enableForm('shipbubble-api-keys-form');
 	}
 
 	sandbox_api_key_input.on('change', function () {
@@ -102,10 +102,11 @@ jQuery(document).ready(function($) {
 		}
 	}
 
-wo
 	// address settings
 	$('#shipbubble-settings-form').on('submit', function (e) {
 		e.preventDefault();
+
+		disableForm('shipbubble-settings-form');
 
 		handleAddressFormSubmit()
 	})
@@ -127,7 +128,7 @@ wo
 			Object.values(senderFields).forEach(field => {
 				if (field.val() === '') field.addClass('input-error');
 			});
-			enableForm();
+			enableForm('shipbubble-settings-form');
 			return;
 		}
 
@@ -148,7 +149,7 @@ wo
 	}
 
 	function validateSenderAddress(payload) {
-		disableForm();
+		disableForm('shipbubble-settings-form');
 
 		$.post(ajaxurl, {
 			nonce: ajax_wc_admin.nonce,
@@ -174,7 +175,7 @@ wo
 		} else {
 			handleAddressValidationError(response);
 		}
-		enableForm();
+		enableForm('shipbubble-settings-form');
 	}
 
 	function handleAddressValidationError(response = null) {
@@ -186,7 +187,7 @@ wo
 			showConfirmButton: false,
 			timer: 4500
 		});
-		enableForm();
+		enableForm('shipbubble-settings-form');
 	}
 
 
@@ -201,7 +202,7 @@ wo
 				: 'Do you want to switch to Test mode?';
 
 			if (confirm(confirmMessage)) {
-				disableForm('Switching...');
+				disableForm('shipbubble-api-keys-form', 'Switching...');
 				// Perform AJAX call if the user confirms
 				$.post(ajaxurl, {
 					nonce: ajax_wc_admin.nonce,
@@ -232,7 +233,7 @@ wo
 						$('ul.subsubsub').before(response['notice']);
 					}
 					updateStatusText();
-					enableForm();
+					enableForm('shipbubble-api-keys-form');
 				}).fail(function (data) {
 					let response = JSON.parse(data);
 					Swal.fire({
@@ -245,7 +246,7 @@ wo
 					// Revert the checkbox state on error
 					shipbubble_mode.prop('checked', !isChecked);
 					updateStatusText();
-					enableForm();
+					enableForm('shipbubble-api-keys-form');
 				});
 			} else {
 				// Revert the checkbox state if the user cancels
@@ -264,82 +265,58 @@ wo
 		}
 	}
 
-	var $local_pickup = $('#shipbubble_local_pickup');
+	$('#shipbubble-local-pickup-form').on('submit', function (e) {
+		e.preventDefault();
 
-	if ($local_pickup.length) {
+		var $local_pickup = $('#shipbubble_local_pickup'),
+			local_pickup_text = $('#shipbubble_local_pickup_text').val()
 		// Add an event listener to update the status text when the checkbox state changes
-		$local_pickup.on('change', function() {
-			var isChecked = $local_pickup.is(':checked');
-			var confirmMessage = isChecked
-				? 'Do you want to turn Local Pickup on?'
-				: 'Do you want to turn Local Pickup off?';
+		var isChecked = $local_pickup.is(':checked');
 
-			if (confirm(confirmMessage)) {
-				disableForm('Switching...');
-				// Perform AJAX call if the user confirms
-				$.post(ajaxurl, {
-					nonce: ajax_wc_admin.nonce,
-					action: 'shipbubble_toggle_local_pickup',
-					data: { 'local_pickup_enabled': isChecked ? 1 : 0 },
-					dataType: 'json'
-				}).done(function (data) {
-					let response = JSON.parse(data);
-					if (response.hasOwnProperty('response_code') && response['response_code'] !== 200) {
-						Swal.fire({
-							icon: 'warning',
-							title: '',
-							text: 'Error updating Local Pickup: ' + (response['message'] || 'Something went wrong'),
-							showConfirmButton: false,
-							timer: 4500
-						});
-						// Revert the checkbox state on error
-						$local_pickup.prop('checked', !isChecked);
-					} else {
-						Swal.fire({
-							icon: 'success',
-							title: 'Local Pickup updated successfully!',
-							text: response['message'],
-							showConfirmButton: false,
-							timer: 2000
-						});
-						$('#shipbubble_local_pickup_notice_div').remove();
-						$('ul.subsubsub').before(response['notice']);
-					}
-					updateLocalPickupStatusText();
-					enableForm();
-				}).fail(function (data) {
-					let response = JSON.parse(data);
-					Swal.fire({
-						icon: 'warning',
-						title: '',
-						text: 'Error updating Local Pickup: ' + (response['message'] || 'Something went wrong'),
-						showConfirmButton: false,
-						timer: 4500
-					});
-					// Revert the checkbox state on error
-					$local_pickup.prop('checked', !isChecked);
-					updateLocalPickupStatusText();
-					enableForm();
+		disableForm('shipbubble-local-pickup-form');
+		// Perform AJAX call if the user confirms
+		$.post(ajaxurl, {
+			nonce: ajax_wc_admin.nonce,
+			action: 'shipbubble_toggle_local_pickup',
+			data: {'local_pickup_enabled': isChecked ? 1 : 0, local_pickup_text},
+			dataType: 'json'
+		}).done(function (data) {
+			let response = JSON.parse(data);
+			if (response.hasOwnProperty('response_code') && response['response_code'] !== 200) {
+				Swal.fire({
+					icon: 'warning',
+					title: '',
+					text: 'Error updating Local Pickup: ' + (response['message'] || 'Something went wrong'),
+					showConfirmButton: false,
+					timer: 4500
 				});
-			} else {
-				// Revert the checkbox state if the user cancels
+				// Revert the checkbox state on error
 				$local_pickup.prop('checked', !isChecked);
+			} else {
+				Swal.fire({
+					icon: 'success',
+					title: 'Local Pickup updated successfully!',
+					text: response['message'],
+					showConfirmButton: false,
+					timer: 2000
+				});
+				$('#shipbubble_local_pickup_notice_div').remove();
+				$('ul.subsubsub').before(response['notice']);
 			}
+			enableForm('shipbubble-local-pickup-form');
+		}).fail(function (data) {
+			let response = JSON.parse(data);
+			Swal.fire({
+				icon: 'warning',
+				title: '',
+				text: 'Error updating Local Pickup: ' + (response['message'] || 'Something went wrong'),
+				showConfirmButton: false,
+				timer: 4500
+			});
+			// Revert the checkbox state on error
+			enableForm('shipbubble-local-pickup-form');
 		});
-
-		// Function to update the status text based on the checkbox state
-		function updateLocalPickupStatusText() {
-			var $statusText = $local_pickup.closest('.switch').next('.switch-status');
-			var status = $local_pickup.is(':checked') ? 'On' : 'Off';
-			var color = status === 'On' ? 'green' : 'grey';
-			$statusText.text(status).css('color', color);
-			$local_pickup.next('.slider').css('background-color', color);
-		}
-
-		// Initial call to set the correct status text
-		updateLocalPickupStatusText();
-	}
-
+	});
 
 	// form handlers
 	function disableForm(form_id, loading_message = '') {
@@ -379,6 +356,9 @@ wo
 	 */
 	function store_values() {
 		jQuery('.shipbubble-settings :input').each(function() {
+			if (jQuery(this).hasClass('shipbubble-actions-ignore')) {
+				return;
+			}
 			if (jQuery(this).is(':checkbox')) {
 				initial_values[jQuery(this).attr('name')] = jQuery(this).is(':checked');
 			} else {
@@ -391,7 +371,7 @@ wo
 	store_values();
 
 	// Add change event listener to all inputs
-	jQuery('.shipbubble-settings :input').on('change', function() {
+	jQuery('.shipbubble-settings :input').on('change', function()  {
 		var all_inputs_back_to_original = true;
 		jQuery('.shipbubble-settings :input').each(function() {
 			var input_name = jQuery(this).attr('name');
