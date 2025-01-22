@@ -208,8 +208,6 @@ if (!function_exists('mv_add_meta_boxes')) {
 		    ? wc_get_page_screen_id( 'shop-order' )
 		    : 'shop_order';
 
-	    error_log('Screen: ' . $screen);
-
 	    add_meta_box('sb_track_shipment', __('Track Shipment', 'woocommerce'), 'shipbubble_track_order_shipment', $screen, 'side', 'core');
     }
 }
@@ -221,12 +219,14 @@ if (!function_exists('shipbubble_track_order_shipment')) {
         global $post;
 
         if (!$post) {
-	        $post = ( $post_or_order_object instanceof WC_Order )
-		        ? $post_or_order_object
-		        : wc_get_order($post_or_order_object->ID);
+	        $postID = ( $post_or_order_object instanceof WC_Order )
+		        ? $post_or_order_object->get_id()
+		        : wc_get_order($post_or_order_object->ID)->get_id();
+        } else {
+            $postID = $post->ID;
         }
 
-        $shipbubbleOrderId = shipbubble_get_order_meta($post->ID, 'shipbubble_order_id', true) ?? '';
+        $shipbubbleOrderId = shipbubble_get_order_meta($postID, 'shipbubble_order_id') ?? '';
 
         $response = null;
         if (strlen($shipbubbleOrderId) > 0) {
@@ -245,7 +245,7 @@ if (!function_exists('shipbubble_track_order_shipment')) {
             $latestPackageStatus = end($response->data[0]->package_status);
 
             // set shipping status
-            shipbubble_update_order_meta($post->ID, 'shipbubble_tracking_status', strtolower($latestPackageStatus->status));
+            shipbubble_update_order_meta($postID, 'shipbubble_tracking_status', strtolower($latestPackageStatus->status));
 
             ?>
 
