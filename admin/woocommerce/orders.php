@@ -1,5 +1,7 @@
 <?php
 
+use Automattic\WooCommerce\Internal\DataStores\Orders\CustomOrdersTableController;
+
 add_action('woocommerce_admin_order_data_after_billing_address', 'shipbubble_order_data_after_billing_address', 10, 1);
 function shipbubble_order_data_after_billing_address($order)
 {
@@ -202,17 +204,29 @@ add_action('add_meta_boxes', 'mv_add_meta_boxes');
 if (!function_exists('mv_add_meta_boxes')) {
     function mv_add_meta_boxes()
     {
-        add_meta_box('sb_track_shipment', __('Track Shipment', 'woocommerce'), 'shipbubble_track_order_shipment', 'shop_order', 'side', 'core');
+	    $screen = class_exists( '\Automattic\WooCommerce\Internal\DataStores\Orders\CustomOrdersTableController' ) && wc_get_container()->get( CustomOrdersTableController::class )->custom_orders_table_usage_is_enabled()
+		    ? wc_get_page_screen_id( 'shop-order' )
+		    : 'shop_order';
+
+	    add_meta_box('sb_track_shipment', __('Track Shipment', 'woocommerce'), 'shipbubble_track_order_shipment', $screen, 'side', 'core');
     }
 }
 
 // Adding Meta field in the meta container admin shop_order pages
 if (!function_exists('shipbubble_track_order_shipment')) {
-    function shipbubble_track_order_shipment()
+    function shipbubble_track_order_shipment($post_or_order_object)
     {
         global $post;
 
-        $shipbubbleOrderId = shipbubble_get_order_meta($post->ID, 'shipbubble_order_id', true) ?? '';
+        if (!$post) {
+	        $postID = ( $post_or_order_object instanceof WC_Order )
+		        ? $post_or_order_object->get_id()
+		        : wc_get_order($post_or_order_object->ID)->get_id();
+        } else {
+            $postID = $post->ID;
+        }
+
+        $shipbubbleOrderId = shipbubble_get_order_meta($postID, 'shipbubble_order_id') ?? '';
 
         $response = null;
         if (strlen($shipbubbleOrderId) > 0) {
@@ -231,7 +245,7 @@ if (!function_exists('shipbubble_track_order_shipment')) {
             $latestPackageStatus = end($response->data[0]->package_status);
 
             // set shipping status
-            shipbubble_update_order_meta($post->ID, 'shipbubble_tracking_status', strtolower($latestPackageStatus->status));
+            shipbubble_update_order_meta($postID, 'shipbubble_tracking_status', strtolower($latestPackageStatus->status));
 
             ?>
 
