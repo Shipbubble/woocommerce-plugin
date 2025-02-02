@@ -13,6 +13,8 @@
         }
         $activate = $options['activate_shipbubble'] === 'yes';
         $other_plugins = $options['disable_other_shipping_methods'] === 'yes';
+        $category = $options['shipping_category'];
+
 		?>
         <div class="shipbubble-settings">
             <table class="form-table">
@@ -73,7 +75,7 @@
 				<td>
 					<select name="shipbubble_category" id="shipbubble_category" class="regular-text">
 						<?php foreach ($categories_options as $key => $value): ?>
-							<option value="<?php echo esc_attr($key); ?>" <?php selected(get_option('shipbubble_category'), $key); ?>>
+							<option value="<?php echo esc_attr($key); ?>" <?php selected($category, $key); ?>>
 								<?php echo esc_html($value); ?>
 							</option>
 						<?php endforeach; ?>
