@@ -54,9 +54,7 @@ function shipbubble_on_activation()
 	if (!current_user_can('activate_plugins')) return;
 
 	$data = array('initialized' => true, 'account_status' => false, SHIPBUBBLE_ADDRESS_VALIDATED => false, SHIPBUBBLE_SANDBOX_ADDRESS_VALIDATED => false);
-	if (get_option(SHIPBUBBLE_INIT)) {
-		update_option(SHIPBUBBLE_INIT, $data);
-	} else {
+	if (!get_option(SHIPBUBBLE_INIT)) {
 		add_option(SHIPBUBBLE_INIT, $data);
 	}
 
