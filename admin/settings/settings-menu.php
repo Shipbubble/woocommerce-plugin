@@ -148,7 +148,7 @@ function shipbubble_enqueue_admin_scripts($hook) {
 
 	function shipbubble_couriers_methods( $methods )
 	{
-		$methods['shipbubble_shipping_services'] = 'WC_SHIPBUBBLE_SHIPPING_METHOD';
+		$methods[SHIPBUBBLE_ID] = 'WC_SHIPBUBBLE_SHIPPING_METHOD';
 		return $methods;
 	}
 
