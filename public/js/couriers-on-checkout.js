@@ -147,6 +147,8 @@
 					class: 'woocommerce-error',
 					style: 'font-size:16px',
 				}).text(`Ensure that you have filled your ${errorBox.join(', ')}`).appendTo('#order_review_heading').show();
+
+				$(requestRatesBtn).prop('checked', false)
 			}
 		}
 
@@ -291,6 +293,8 @@
 							}
 						});
 
+						$(requestRatesBtn).prop('checked', false)
+
                     }
                 }
 
@@ -312,6 +316,7 @@
 
             });
 			$(requestBtn).prop('disabled', false);
+			$(requestRatesBtn).prop('checked', false)
         }
 
         const countryCodes = {
