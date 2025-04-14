@@ -41,6 +41,8 @@ require_once plugin_dir_path(__FILE__) . 'includes/core-methods.php';
 
 // public
 require_once plugin_dir_path(__FILE__) . 'public/async-checkout-couriers.php';
+require_once plugin_dir_path(__FILE__) . 'admin/shortcode/shortcode.php';
+
 
 define('SHIPBUBBLE_PLUGIN_URL', plugins_url('', __FILE__));
 define('SHIPBUBBLE_LOGO_URL', SHIPBUBBLE_PLUGIN_URL . '/public/images/logo.svg');
@@ -485,4 +487,3 @@ function hook_shipbubble_admin_notices() {
 function render_shipbubble_admin_notices() {
     echo generate_shipbubble_notice();
 }
-
