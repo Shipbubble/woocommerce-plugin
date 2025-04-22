@@ -88,7 +88,7 @@ function shipbubble_wc_options_default(): array
 		'extra_charges' => '0',
 		'courier_list' =>  array('all'),
 		'shipping_price' => 'default',
-		'store_category' => '',
+		'shipping_category' => '',
 		'user_can_ship' => 'yes',
 		'activate_shipbubble' => 'no',
 		'disable_other_shipping_methods' => 'no',
