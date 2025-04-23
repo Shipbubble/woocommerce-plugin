@@ -13,7 +13,7 @@
         }
         $activate = $options['activate_shipbubble'] === 'yes';
         $other_plugins = $options['disable_other_shipping_methods'] === 'yes';
-        $category = $options['shipping_category'];
+        $category = $options['store_category'];
 
 		?>
         <div class="shipbubble-settings">

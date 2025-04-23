@@ -42,7 +42,7 @@
 				$options['sender_name'] = sanitize_text_field($data['name']);
 		        $options['sender_email'] = sanitize_email($data['email']);
 				$options['sender_phone'] =  sanitize_text_field($data['phone']);
-		        $options['shipping_category'] = sanitize_text_field($data['shipping_category']);
+		        $options['store_category'] = sanitize_text_field($data['store_category']);
 				$options['address_code'] = $live_key_response->data->address_code;
 				$options['disable_other_shipping_methods'] = sanitize_text_field($data['disable_other_shipping_methods']);
 				$address = sanitize_text_field($data['address']);

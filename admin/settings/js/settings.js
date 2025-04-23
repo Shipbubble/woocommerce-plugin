@@ -139,7 +139,7 @@ jQuery(document).ready(function($) {
 			address: senderFields.address.val(),
 			full_address: `${senderFields.address.val()}, ${senderFields.state.val()}, ${senderFields.country.find('option:selected').text()}`,
 			state: senderFields.state.val(),
-			shipping_category: senderFields.category.find('option:selected').val(),
+			store_category: senderFields.category.find('option:selected').val(),
 			pickup_country: senderFields.country.val(),
 			activate_shipbubble: $('#shipbubble_activate').is(':checked') ? 'yes' : 'no',
 			disable_other_shipping_methods: senderFields.disableOthers.is(':checked') ? 'yes' : 'no',
