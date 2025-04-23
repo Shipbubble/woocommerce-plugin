@@ -33,6 +33,14 @@ function shipbubble_courier_list_container()
 		if (isset($response->response_code) && $response->response_code == SHIPBUBBLE_RESPONSE_IS_OK) {
 			$btnColor = strlen($response->data->brand_color) > 1 ? $response->data->brand_color . ' !important' : '';
 			$showLabel = (bool) $response->data->powered_by_label;
+
+            ?>
+            <style>
+                :root {
+                    --shipbubble-btn-color: <?= htmlspecialchars($btnColor) ?>;
+                }
+            </style>
+            <?php
 		}
 
 		if ($isShipbubbleActive == 'yes') {

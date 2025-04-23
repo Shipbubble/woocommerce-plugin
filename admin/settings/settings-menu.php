@@ -44,7 +44,7 @@ function display_shipbubble_settings_page() {
 		<h1>Shipbubble Settings</h1>
 		<h2 class="nav-tab-wrapper">
 			<a href="#shipbubble-settings-api-tab" class="nav-tab nav-tab-active" id="tab1-link">API Keys</a>
-			<a href="#shipbubble-settings-sender-tab" class="nav-tab" id="tab2-link">Sender Details</a>
+			<a href="#shipbubble-settings-sender-tab" class="nav-tab" id="tab2-link">Store Information</a>
 			<a href="#shipbubble-settings-local-pickup" class="nav-tab" id="tab2-link">Local Pickup</a>
 		</h2>
 		<?php
