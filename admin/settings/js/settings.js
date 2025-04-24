@@ -57,6 +57,8 @@ jQuery(document).ready(function($) {
 				text: 'Your API keys are valid',
 				showConfirmButton: false,
 				timer: 4500
+			}).then(() => {
+				location.reload();
 			});
 		} else {
 			handleApiKeyValidationError(response);
