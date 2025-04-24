@@ -6,154 +6,153 @@
         var requestRatesBtn = $('#request_courier_rates');
 
         requestRatesBtn.click(function (e) {
+			e.preventDefault();
+			processShippingRateRequest(this)
+		});
 
-            e.preventDefault();
-            $('#shipping-notice').remove();
+		function processShippingRateRequest(requestRatesBtn) {
+			$('#shipping-notice').remove();
 
-            // initialize variables
-            let firstName = lastName = email = phone = selectedCountry = selectedState = city = streetAddress = '';
-            //08036922
+			// initialize variables
+			let firstName = lastName = email = phone = selectedCountry = selectedState = city = streetAddress = '';
+			let shippingStateRequired = billingStateRequired = 0;
 
-            let shippingStateRequired = billingStateRequired = 0;
+			let useShippingAddress = $('input#ship-to-different-address-checkbox');
 
-            let useShippingAddress = $('input#ship-to-different-address-checkbox');
+			// order comments
+			orderComments = $('textarea#order_comments').val();
 
-            // order comments
-            orderComments = $('textarea#order_comments').val();
+			// use shipping variables
+			if (useShippingAddress.is(':checked')) {
+				firstName = $('input#shipping_first_name').val();
+				lastName = $('input#shipping_last_name').val();
+				city = $('input#shipping_city').val();
+				streetAddress = $('input#shipping_address_1').val();
 
-            // use shipping variables
-            if (useShippingAddress.is(':checked')) {
+				if ($('input#shipping_email').val() == undefined) {
+					email = $('input#billing_email').val();
+				} else {
+					email = $('input#shipping_email').val();
+				}
 
-                firstName = $('input#shipping_first_name').val();
-                lastName = $('input#shipping_last_name').val();
-                city = $('input#shipping_city').val();
-                streetAddress = $('input#shipping_address_1').val();
+				if ($('input#shipping_phone').val() == undefined) {
+					phone = $('input#billing_phone').val();
+				} else {
+					phone = $('input#shipping_phone').val();
+				}
 
-                if ($('input#shipping_email').val() == undefined) {
-                    email = $('input#billing_email').val();
-                } else {
-                    email = $('input#shipping_email').val();
-                }
+				if ($('select#shipping_city').length) {
+					city = $('select#shipping_city option:selected').text();
+				} else {
+					city = $('input#shipping_city').val();
+				}
 
-                if ($('input#shipping_phone').val() == undefined) {
-                    phone = $('input#billing_phone').val();
-                } else {
-                    phone = $('input#shipping_phone').val();
-                }
+				if ($('select#shipping_country').length) {
+					selectedCountry = $('select#shipping_country option:selected').text();
+				} else {
+					selectedCountry = $('input#shipping_country').val();
+					selectedCountry = getCountryCode(selectedCountry);
+				}
 
-                if ($('select#shipping_city').length) {
-                    city = $('select#shipping_city option:selected').text();
-                } else {
-                    city = $('input#shipping_city').val();
-                }
+				billingStateRequired = $('label[for="billing_state"]').find('abbr.required').length;
 
-                if ($('select#shipping_country').length) {
-                    selectedCountry = $('select#shipping_country option:selected').text();
-                } else {
-                    selectedCountry = $('input#shipping_country').val();
-                    selectedCountry = getCountryCode(selectedCountry);
-                }
+				if ($('select#shipping_state').length) {
+					selectedState = $('select#shipping_state option:selected').text();
+				} else {
+					selectedState = $('input#shipping_state').val();
+				}
 
-                billingStateRequired = $('label[for="billing_state"]').find('abbr.required').length;
+			} else {
+				// use billing variables
+				firstName = $('input#billing_first_name').val();
+				lastName = $('input#billing_last_name').val();
+				email = $('input#billing_email').val();
+				phone = $('input#billing_phone').val();
+				streetAddress = $('input#billing_address_1').val();
 
-                if ($('select#shipping_state').length) {
-                    selectedState = $('select#shipping_state option:selected').text();
-                } else {
-                    selectedState = $('input#shipping_state').val();
-                }
+				if ($('select#billing_city').length) {
+					city = $('select#billing_city option:selected').text();
+				} else {
+					city = $('input#billing_city').val();
+				}
 
-            } else {
+				if ($('select#billing_country').length) {
+					selectedCountry = $('select#billing_country option:selected').text();
+				} else {
+					selectedCountry = $('input#billing_country').val();
+					selectedCountry = getCountryCode(selectedCountry);
+				}
 
-                // use billing variables
-                firstName = $('input#billing_first_name').val();
-                lastName = $('input#billing_last_name').val();
-                email = $('input#billing_email').val();
-                phone = $('input#billing_phone').val();
-                streetAddress = $('input#billing_address_1').val();
+				shippingStateRequired = $('label[for="shipping_state"]').find('abbr.required').length;
 
-                if ($('select#billing_city').length) {
-                    city = $('select#billing_city option:selected').text();
-                } else {
-                    city = $('input#billing_city').val();
-                }
+				if ($('select#billing_state').length) {
+					selectedState = $('select#billing_state option:selected').text();
+				} else {
+					selectedState = $('input#billing_state').val();
+				}
+			}
 
-                if ($('select#billing_country').length) {
-                    selectedCountry = $('select#billing_country option:selected').text();
-                } else {
-                    selectedCountry = $('input#billing_country').val();
-                    selectedCountry = getCountryCode(selectedCountry);
-                }
+			// check requirements are met
+			if (
+				(((!billingStateRequired || !shippingStateRequired) && selectedState.length >= 0)
+					|| (billingStateRequired || shippingStateRequired) && selectedState.length > 0)
+				&&
+				firstName != '' && lastName != '' && email != '' && phone != '' && streetAddress != '' && city != '' && selectedCountry != '') {
 
-                shippingStateRequired = $('label[for="shipping_state"]').find('abbr.required').length;
+				// hide notice
+				$('#shipping-notice').remove();
 
-                if ($('select#billing_state').length) {
-                    selectedState = $('select#billing_state option:selected').text();
-                } else {
-                    selectedState = $('input#billing_state').val();
-                }
-            }
+				// Assemble payload
+				let addressPayload = {
+					name: firstName + ' ' + lastName,
+					email,
+					phone,
+					address: streetAddress + ', ' + city + ', ' + selectedState + ', ' + selectedCountry,
+					comments: orderComments,
+				}
 
-            // check requirements are met
-            if (
-                (((!billingStateRequired || !shippingStateRequired) && selectedState.length >= 0)
-                    || (billingStateRequired || shippingStateRequired) && selectedState.length > 0)
-                &&
-                firstName != '' && lastName != '' && email != '' && phone != '' && streetAddress != '' && city != '' && selectedCountry != '') {
-                // hide notice
-                $('#shipping-notice').remove();
+				let sbSlogan = $('.sb-slogan-container');
+				sbSlogan.show();
 
-                // Assemble payload
-                let addressPayload = {
-                    name: firstName + ' ' + lastName,
-                    email,
-                    phone,
-                    address: streetAddress + ', ' + city + ', ' + selectedState + ', ' + selectedCountry,
-                    comments: orderComments,
-                }
+				// disable request btn
+				$(requestRatesBtn).prop('disabled', true);
 
-                let sbSlogan = $('.sb-slogan-container');
-                sbSlogan.show();
+				// Request shipping rates
+				fetch_shipping_rates(addressPayload, requestRatesBtn);
+			} else {
+				// Display notice
+				let errorBox = [];
+				let containerObject = { firstName, lastName, email, phone, streetAddress, city, selectedCountry }
 
-                // disable request btn
-                $(this).prop('disabled', true);
-                // $(this).addClass('load');
+				if ((billingStateRequired || shippingStateRequired)) {
+					containerObject['selectedState'] = '';
+				}
 
-                // Request shipping rates
-                fetch_shipping_rates(addressPayload);
-            } else {
-                // Display notice
-                let errorBox = [];
-                let containerObject = { firstName, lastName, email, phone, streetAddress, city, selectedCountry }
+				for (const key in containerObject) {
+					if (containerObject[key] == '') {
+						let kName = '';
 
-                if ((billingStateRequired || shippingStateRequired)) {
-                    containerObject['selectedState'] = '';
-                }
+						if (key.includes('selectedState') && (billingStateRequired || shippingStateRequired)) {
+							kName = 'selected state or county';
+						} else {
+							kName = key.split(/(?=[A-Z])/).join(' ').toLowerCase();
+						}
 
-                for (const key in containerObject) {
-                    if (containerObject[key] == '') {
-                        let kName = '';
+						errorBox.push(`${kName}`);
+					}
+				}
 
-                        if (key.includes('selectedState') && (billingStateRequired || shippingStateRequired)) {
-                            kName = 'selected state or county';
-                        } else {
-                            kName = key.split(/(?=[A-Z])/).join(' ').toLowerCase();
-                        }
+				$('<div>', {
+					id: 'shipping-notice',
+					class: 'woocommerce-error',
+					style: 'font-size:16px',
+				}).text(`Ensure that you have filled your ${errorBox.join(', ')}`).appendTo('#order_review_heading').show();
 
-                        errorBox.push(`${kName}`);
-                    }
-                }
+				$(requestRatesBtn).prop('checked', false)
+			}
+		}
 
-                $('<div>', {
-                    id: 'shipping-notice',
-                    class: 'woocommerce-error',
-                    style: 'font-size:16px',
-                }).text(`Ensure that you have filled your ${errorBox.join(', ')}`).appendTo('#order_review_heading').show();
-            }
-
-        });
-
-
-        function fetch_shipping_rates(payload) {
+        function fetch_shipping_rates(payload, requestBtn) {
             // submit the data
             let ajaxUrl = ajax_public.ajaxurl;
 
@@ -214,7 +213,8 @@
 
                         $.each(output.couriers, function (i, value) {
                             // set total charge
-                            let total = parseFloat(value.rate_card_amount) + parseFloat(output.extra_charges);
+
+							let total = parseFloat(value.rate_card_amount) + parseFloat(output.extra_charges);
 
                             newCourierList.append(`
                                 <div class="container-delivery-card-list-item">
@@ -293,11 +293,13 @@
 							}
 						});
 
+						$(requestRatesBtn).prop('checked', false)
+
                     }
                 }
 
                 // var requestRatesBtn = $('#request_courier_rates');
-                // requestRatesBtn.prop('disabled', false);
+				$(requestBtn).prop('disabled', false);
                 // requestRatesBtn.removeClass('load');
 
             }).fail(function () {
@@ -313,10 +315,8 @@
                 }).text(`unable to display couriers list, please try again later`).appendTo('#order_review_heading').show();
 
             });
-
-            var requestRatesBtn = $('#request_courier_rates');
-            requestRatesBtn.prop('disabled', false);
-
+			$(requestBtn).prop('disabled', false);
+			$(requestRatesBtn).prop('checked', false)
         }
 
         const countryCodes = {
@@ -1562,6 +1562,58 @@
 			}
 		});
 
+		// Handle radio button changes
+		$('input[name="delivery_method"]').change(function() {
+			if ($(this).val() === 'shipping') {
+				clearShipping();
+				$('#courier-section').slideDown(); // Add the slide down animation
+				processShippingRateRequest(this);
+			} else {
+				$('#courier-section').slideUp();
+				$('.sb-slogan-container').hide();
+				$('#shipping-notice').remove();
+
+				const courier_name = 'Local Pickup';
+				const courier_id = 'local_pickup';
+
+				$('#shipbubble_selected_courier').val(courier_name);
+				$('#shipbubble_cost').val(0);
+				$('#shipbubble_courier_id').val(courier_id);
+				$('#shipbubble_courier_set').val('true');
+
+				$(document.body).trigger('update_checkout');
+			}
+		});
+
+		function clearShipping() {
+			let list = $('#courier-list')
+			sbSlogan = $('.sb-slogan-container');
+
+			if ($('#shipbubble_courier_set').val() == 'false' && $('#shipbubble_rate_datetime').val().length !== 0) {
+				list.empty();
+				sbSlogan.hide();
+			}
+
+			if ($('#shipbubble_courier_set').val() == 'true') {
+				$('#shipbubble_reset_shipping_method').val('true');
+
+				// set flag that previously set courier should be removed
+				$('#shipbubble_courier_set').val('false');
+
+				list.empty();
+				sbSlogan.hide();
+			}
+
+			$('html, body').animate({
+				scrollTop: $(".woocommerce-shipping-totals.shipping").offset().top
+			}, 1000);
+			$(document.body).trigger('update_checkout');
+		}
+
+		$('input[name="delivery_method"]').change(function() {
+			$('.shipbubble-delivery-option').removeClass('selected');
+			$(this).closest('.shipbubble-delivery-option').addClass('selected');
+		});
 	});
 
 })(jQuery);

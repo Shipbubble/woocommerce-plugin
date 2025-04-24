@@ -3,6 +3,16 @@
 use Automattic\WooCommerce\Internal\DataStores\Orders\CustomOrdersTableController;
 
 add_action('woocommerce_admin_order_data_after_billing_address', 'shipbubble_order_data_after_billing_address', 10, 1);
+/**
+ * Adds the "Create Shipment via Shipbubble" button after the billing address on the order page.
+ *
+ * This function checks if the order is eligible for shipment creation via Shipbubble based on shipping method and status.
+ * If eligible, it displays the button to create the shipment. It also handles displaying warnings if shipment cannot be processed.
+ *
+ * @param WC_Order $order The WooCommerce order object.
+ *
+ * @return void
+ */
 function shipbubble_order_data_after_billing_address($order)
 {
     if (in_array($order->get_status(), SHIPBUBBLE_WC_BAD_ORDER_STATUS_ARR)) {
@@ -16,6 +26,8 @@ function shipbubble_order_data_after_billing_address($order)
 
     $order_id = $order->get_id();
 	$order_data = $order->get_data();
+
+    if (shipbubble_get_order_meta($order_id, 'shipbubble_local_pickup')) return;
 
     // Get Shipbubble Order ID
     $shipbubbleOrderId = shipbubble_get_order_meta($order_id, 'shipbubble_order_id', true);
@@ -128,38 +140,55 @@ function shipbubble_custom_order_column($columns)
     return $reorderedColumns;
 }
 
+/**
+ * Adds content to the custom "Shipping Status" column in the shop orders admin screen.
+ *
+ * @param string $column The ID of the current column being processed.
+ */
 add_action('manage_shop_order_posts_custom_column', 'shipbubble_shipping_status_column_content');
 function shipbubble_shipping_status_column_content($column)
 {
-    global $post;
+	global $post;
 
-    // Verify Column ID
-    if ('sb_shipping_status' === $column) {
-        // Get Order
-        $order = new WC_Order($post->ID);
+	// Verify that the current column is the 'sb_shipping_status' column.
+	if ('sb_shipping_status' === $column) {
+		// Get the WooCommerce Order object for the current post ID.
+		$order = new WC_Order($post->ID);
 
-        // Conditional function based on the Order shipping method 
-        if ($order->has_shipping_method(SHIPBUBBLE_ID)) {
-            // Check Shipping Status
-            $status = shipbubble_get_order_meta($post->ID, 'shipbubble_tracking_status', true);
-            if (!empty($status)) {
-                echo shipbubble_shipment_status_label($status);
-            } elseif (in_array($order->get_status(), SHIPBUBBLE_WC_BAD_ORDER_STATUS_ARR)) {
-                echo '<mark class="order-status status-on-hold">
-                        <span>No shipment initiated</span>
-                    </mark>';
-            } else {
-                echo '<mark class="order-status status-on-hold">
-                        <span>No shipment yet</span>
-                    </mark>';
-            }
-        } elseif (!$order->has_shipping_method(SHIPBUBBLE_ID)) {
-            echo '<span class="dashicons dashicons-minus" title="not processed via shipbubble"></span>';
-        } else {
-            echo esc_html('Not specified');
-        }
-    }
+		// Check if the order uses the Shipbubble shipping method.
+		if ($order->has_shipping_method(SHIPBUBBLE_ID)) {
+			// Check if this order is marked as local pickup.
+			if (shipbubble_get_order_meta($post->ID, 'shipbubble_local_pickup')) {
+				echo '<span class="dashicons dashicons-minus" title="Not processed via Shipbubble"></span>';
+			} else {
+				// Retrieve the Shipbubble tracking status for the order.
+				$status = shipbubble_get_order_meta($post->ID, 'shipbubble_tracking_status');
+
+				// If there is a shipping status, display it.
+				if (!empty($status)) {
+					echo shipbubble_shipment_status_label($status);
+				}
+				// If the order is in a bad status (e.g., canceled, failed), show 'No shipment initiated'.
+                elseif (in_array($order->get_status(), SHIPBUBBLE_WC_BAD_ORDER_STATUS_ARR)) {
+					echo '<mark class="order-status status-on-hold">
+                            <span>No shipment initiated</span>
+                          </mark>';
+				}
+				// Otherwise, display 'No shipment yet'.
+				else {
+					echo '<mark class="order-status status-on-hold">
+                            <span>No shipment yet</span>
+                          </mark>';
+				}
+			}
+		}
+		// If the order does not use the Shipbubble shipping method, display a dashicon with a note.
+		else {
+			echo '<span class="dashicons dashicons-minus" title="Not processed via Shipbubble"></span>';
+		}
+	}
 }
+
 
 
 /**
@@ -273,6 +302,16 @@ if (!function_exists('shipbubble_track_order_shipment')) {
 
 add_action('woocommerce_admin_order_data_after_billing_address', 'shipbubble_display_wallet_balance', 10, 1);
 
+/**
+ * Displays the Shipbubble wallet balance for a given order.
+ *
+ * This function checks the order status and shipping method, retrieves the wallet balance from Shipbubble,
+ * and outputs the balance or the Shipbubble Order ID if applicable.
+ *
+ * @param WC_Order $order The WooCommerce order object.
+ *
+ * @return void
+ */
 function shipbubble_display_wallet_balance($order)
 {
     $balance = '0';
@@ -286,6 +325,9 @@ function shipbubble_display_wallet_balance($order)
     if (!$order->has_shipping_method(SHIPBUBBLE_ID)) {
         return;
     }
+
+	if (shipbubble_get_order_meta($order->get_id(), 'shipbubble_local_pickup')) return;
+
 
     $shipment_details = maybe_unserialize(shipbubble_get_order_meta($order->get_id(), 'shipbubble_shipment_details'));
 

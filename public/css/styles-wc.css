@@ -329,3 +329,99 @@
     font-weight: bolder !important;
     color: black !important;
 }
+
+.shipbubble-delivery-method-container {
+	width: 100%;
+	max-width: 549px;
+}
+
+.shipbubble-delivery-options-card {
+	background: #fff;
+	padding: 5px;
+	margin-bottom: 10px;
+}
+
+/* Option Container Styles */
+.shipbubble-delivery-option {
+	padding: 15px;
+	cursor: pointer;
+	transition: background-color 0.2s;
+	border: 1px solid #EBEBEB;
+	border-radius: 8px;
+	margin-bottom: 10px;
+	background-color: #f5f5f5;
+}
+
+/* Radio and Label Layout */
+.shipbubble-option-container {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	width: 100%;
+}
+
+.shipbubble-radio-label {
+	display: flex;
+	align-items: flex-start;
+	gap: 10px;
+}
+
+/* Radio Button Styles */
+.shipbubble-radio-label input[type="radio"] {
+	accent-color: var(--shipbubble-btn-color);;
+	margin: 0.125rem 0 0;
+	width: 20px;
+	height: 20px;
+}
+
+/* Label Styles */
+.shipbubble-radio-label label {
+	font-weight: 500;
+	font-size: 14px;
+	line-height: 16px;
+	color: #241D1E;
+	margin: 0 0 8px;
+	cursor: pointer;
+}
+
+/* Icon Styles */
+.shipbubble-option-icon {
+	color: #999;
+	font-size: 20px;
+	line-height: 1;
+	display: flex;
+	align-items: center;
+}
+
+/* Selected State Styles */
+.shipbubble-delivery-option:has(input[type="radio"]:checked) {
+	border: 1px solid var(--shipbubble-btn-color);;
+}
+
+.shipbubble-delivery-option:has(input[type="radio"]:checked) .shipbubble-option-icon,
+.shipbubble-delivery-option:has(input[type="radio"]:checked) label {
+	color: var(--shipbubble-btn-color);;
+}
+
+/* Fallback for browsers that don't support :has() */
+.shipbubble-delivery-option.selected {
+	border: 1px solid var(--shipbubble-btn-color);;
+}
+
+.shipbubble-delivery-option.selected .shipbubble-option-icon,
+.shipbubble-delivery-option.selected label {
+	color: var(--shipbubble-btn-color);;
+}
+
+.shipbubble-pickup-text-container {
+	display: flex;
+	flex-direction: column;
+}
+
+.shipbubble-pickup-address {
+	margin-top: 4px;
+	font-weight: 400;
+	font-size: 14px;
+	line-height: 16px;
+	color: #5D5758;
+}
