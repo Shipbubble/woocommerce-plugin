@@ -184,6 +184,15 @@ function shipbubble_package_dimensions(): array
     );
 }
 
+/**
+ * Processes shipping rates based on the address code, products, and service codes.
+ *
+ * @param string $addressCode  The address code used to fetch the shipping rates.
+ * @param array  $products     The list of products for which shipping rates are to be calculated.
+ * @param array  $serviceCodes Optional. An array of specific service codes for which rates should be calculated. Defaults to an empty array.
+ *
+ * @return array An array containing the shipping rates, request token, extra charges, couriers, and the currency symbol. In case of errors, it will return an error message.
+ */
 function shipbubble_process_shipping_rates($addressCode, $products, $serviceCodes = array())
 {
     $options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
@@ -460,7 +469,7 @@ function generate_shipbubble_notice() {
 	$message = '';
 	$notice_type = 'notice-error';
 
-	$link = '<a href="admin.php?page=wc-settings&tab=shipping&section=shipbubble_shipping_services" style="text-decoration: underline; font-weight: bold;">%s</a>';
+	$link = '<a href="admin.php?page=shipbubble-settings" style="text-decoration: underline; font-weight: bold;">%s</a>';
 
 	if (false == $shipbubble_init['account_status']) {
 		$message = sprintf(
@@ -502,6 +511,11 @@ function generate_shipbubble_notice() {
 	} else {
 		return '';
 	}
+}
+
+
+function shipbubble_is_local_pickup_active() {
+	return shipbubble_is_option_active('local_pickup');
 }
 
 /**
@@ -577,4 +591,30 @@ function shipbubble_is_order_migrated($order) {
 	} else {
 		return false; // Order is not migrated
 	}
+}
+
+/**
+ * Checks if a specific Shipbubble option is active.
+ *
+ * @param string $option The key of the option to check.
+ * @return bool Returns true if the option is set to 'yes', false otherwise.
+ */
+function shipbubble_is_option_active($option) {
+	// Retrieve the Shipbubble options or the default options if not set.
+	$options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
+
+	// If the specified option is not set, default it to 'no' and update the option.
+	if (!isset($options[$option])) {
+		$options[$option] = 'no';
+		update_option(WC_SHIPBUBBLE_ID, $options);
+	}
+
+	// Return true if the option is set to 'yes', false otherwise.
+	return 'yes' === $options[$option];
+}
+
+function shipbubble_get_option($key) {
+	$options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
+
+    return $options[$key] ?? '';
 }
