@@ -56,7 +56,8 @@
                 sanitize_text_field($data['name']), 
                 sanitize_email($data['email']), 
                 sanitize_text_field($data['phone']), 
-                sanitize_text_field($data['address'])
+                sanitize_text_field($data['address']),
+	            isset($data['postcode']) ? sanitize_text_field($data['postcode']) : ''
             );
 
             // successful

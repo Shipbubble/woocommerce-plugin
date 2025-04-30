@@ -249,13 +249,16 @@ function shipbubble_regenerate_rate_token($order, $shipment, $reason = '')
         'email' => $order->data['billing']['email'],
     );
 
-    // Generate Address Code
+    $postalCode = $order->get_shipping_postcode() ?? '';
+
+	// Generate Address Code
     
     $addressResponse = shipbubble_validate_address(
         $shipping['name'],
         $shipping['email'],
         $shipping['phone'],
-        $shipping['address']
+        $shipping['address'],
+        $postalCode
     );
 
     $rates = array();
