@@ -618,3 +618,21 @@ function shipbubble_get_option($key) {
 
     return $options[$key] ?? '';
 }
+
+
+function is_shipbubble_multivendor_active() {
+    return shipbubble_is_option_active('multi_vendor');
+
+}
+
+function shipbubble_get_vendor_info($current_user)
+{
+    $vendor_info = get_user_meta($current_user, 'shipbubble_vendor_info', true);
+
+    if (empty($vendor_info)) {
+        $vendor_info = shipbubble_vendor_info_default();
+        update_user_meta($current_user, 'shipbubble_vendor_info', $vendor_info);
+    }
+
+    return $vendor_info;
+}

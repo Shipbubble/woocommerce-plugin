@@ -43,6 +43,7 @@ require_once plugin_dir_path(__FILE__) . 'includes/core-methods.php';
 
 // public
 require_once plugin_dir_path(__FILE__) . 'public/async-checkout-couriers.php';
+require_once plugin_dir_path(__FILE__) . 'multi-vendor/frontend.php';
 
 define('SHIPBUBBLE_PLUGIN_URL', plugins_url('', __FILE__));
 define('SHIPBUBBLE_LOGO_URL', SHIPBUBBLE_PLUGIN_URL . '/public/images/logo.svg');
@@ -96,7 +97,24 @@ function shipbubble_wc_options_default(): array
 		'sandbox_api_key' => '',
 		'live_mode' => 'yes',
 		'local_pickup' => 'no',
-		'local_pickup_text' => ''
+		'local_pickup_text' => '',
+		'multi_vendor' => 'no'
+	);
+}
+
+function shipbubble_vendor_info_default(): array
+{
+	return array(
+		'sender_name' => '',
+		'sender_email' => '',
+		'sender_phone' => '',
+		'store_category' => '',
+		'address_code' => '',
+		'sandbox_address_code' => '',
+		'pickup_address' => '',
+		'pickup_state' => '',
+		'pickup_country' => '',
+		'address_validated' => 'no'
 	);
 }
 
