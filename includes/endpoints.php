@@ -189,9 +189,11 @@ function shipbubble_get_couriers()
  * @param string $email
  * @param string $phone
  * @param string $address
+ * @param string $postal_code
+ * @param string $token
  * @return mixed addressCode
  */
-function shipbubble_validate_address(string $name, string $email, string $phone, string $address, string $token = '')
+function shipbubble_validate_address(string $name, string $email, string $phone, string $address, string $postal_code = '', string $token = '')
 {
     $url = SHIPBUBBLE_BASE_URL . '/address/validate';
 
@@ -227,6 +229,8 @@ function shipbubble_validate_address(string $name, string $email, string $phone,
         'phone' => $phone,
         'address' => $address
     );
+
+	if (!empty($postal_code)) $payload['postal_code'] = $postal_code;
 
     $args['body'] = $payload;
 
