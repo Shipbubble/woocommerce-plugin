@@ -69,6 +69,9 @@ Please visit our website - https://shipbubble.com
 5. Performance based analytics.
 
 == Changelog ==
+= 2.8.1 =
+* Added postal code verification for submitted postal codes
+
 = 2.8 =
 * Added local pickup to store shipping options.
 
