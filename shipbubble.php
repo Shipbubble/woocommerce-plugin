@@ -608,3 +608,16 @@ function shipbubble_couriers_methods( $methods )
 }
 
 add_filter( 'woocommerce_shipping_methods', 'shipbubble_couriers_methods' );
+
+add_action('admin_init', function () {
+	if (
+		is_admin() &&
+		isset($_GET['page'], $_GET['tab'], $_GET['section']) &&
+		$_GET['page'] === 'wc-settings' &&
+		$_GET['tab'] === 'shipping' &&
+		$_GET['section'] === 'shipbubble_shipping_services'
+	) {
+		wp_redirect(admin_url('admin.php?page=shipbubble-settings'));
+		exit;
+	}
+});
