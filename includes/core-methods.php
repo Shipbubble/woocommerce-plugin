@@ -635,11 +635,18 @@ function shipbubble_get_local_pickup_address() {
 	return apply_filters('shipbubble_get_pickup_address', $full_address);
 }
 
+function shipbubble_get_local_pickup_text() {
+	$options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
+
+	$pickup_text = $options['local_pickup_text'] ?: 'Pickup in store';
+
+	return apply_filters('shipbubble_get_local_pickup_text', $pickup_text);
+}
+
 
 function is_shipbubble_dokan_multivendor_active(): bool
 {
-	return function_exists('dokan')
-		&& shipbubble_is_option_active('multi_vendor')
+	return function_exists('dokan_pro')
 		&& is_callable('dokan_is_single_seller_mode_enable')
 		&& dokan_is_single_seller_mode_enable();
 }

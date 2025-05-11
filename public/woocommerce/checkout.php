@@ -44,7 +44,7 @@ function shipbubble_courier_list_container()
 				<?php
 			}
 			$is_local_pickup_enabled = shipbubble_is_local_pickup_active();
-			$local_pickup_text = shipbubble_get_option('local_pickup_text') ?: 'Pickup in store';
+			$local_pickup_text = shipbubble_get_local_pickup_text();
 			$pickup_address = shipbubble_get_local_pickup_address();
 
 			$container = '<div class="shipbubble-delivery-method-container">';
