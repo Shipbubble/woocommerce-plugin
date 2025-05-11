@@ -8,6 +8,7 @@ if (is_shipbubble_dokan_multivendor_active()) {
 	add_filter('shipbubble_get_pickup_address', 'shipbubble_get_vendor_pickup_address');
 	add_filter('shipbubble_is_local_pickup_active', 'shipbubble_is_vendor_local_pickup_active');
 	add_filter('is_shipbubble_active', 'is_vendor_shipbubble_active');
+	add_filter('shipbubble_get_address_code', 'get_vendor_address_code', 10, 2);
 
 
 	/**
@@ -280,5 +281,30 @@ if (is_shipbubble_dokan_multivendor_active()) {
 
 	    return shipbubble_get_vendor_info($vendor_id);
     }
+
+	/**
+	 * Retrieves the validated address code for a vendor.
+	 *
+	 * This function fetches the vendor's address code based on the environment (live or sandbox).
+	 * It first checks if a valid vendor exists and whether their address has been validated.
+	 *
+	 * @param string $address_code Default fallback address code.
+	 * @param bool   $is_live Optional. Whether to return the live address code. Default is true.
+	 *
+	 * @return string The vendor's address code (live or sandbox), or an empty string if not validated.
+	 */
+	function get_vendor_address_code(string $address_code, bool $is_live = true): string
+	{
+		$vendor_info = get_dokan_vendor();
+
+		if (!$vendor_info) return $address_code;
+
+		if ($vendor_info['address_validated'] != 'yes') return '';
+
+		if ($is_live) return $vendor_info['address_code'];
+
+		return $vendor_info['sandbox_address_code'];
+	}
+
 
 }

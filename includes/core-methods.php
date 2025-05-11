@@ -452,9 +452,9 @@ function shipbubble_sandbox_address_validated() {
 
 function shipbubble_get_address_code() {
 	if (shipbubble_is_live_mode()) {
-		return get_option(WC_SHIPBUBBLE_ID)['address_code'] ?? '';
+		return apply_filters('shipbubble_get_address_code', get_option(WC_SHIPBUBBLE_ID)['address_code'] ?? '', true);
 	} else {
-		return get_option(WC_SHIPBUBBLE_ID)['sandbox_address_code'] ?? '';
+		return apply_filters('shipbubble_get_address_code', get_option(WC_SHIPBUBBLE_ID)['sandbox_address_code'] ?? '', false);
 	}
 }
 
@@ -646,7 +646,7 @@ function shipbubble_get_local_pickup_text() {
 
 function is_shipbubble_dokan_multivendor_active(): bool
 {
-	return function_exists('dokan_pro')
+	return function_exists('dokan')
 		&& is_callable('dokan_is_single_seller_mode_enable')
 		&& dokan_is_single_seller_mode_enable();
 }
