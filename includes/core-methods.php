@@ -515,7 +515,7 @@ function generate_shipbubble_notice() {
 
 
 function shipbubble_is_local_pickup_active() {
-	return shipbubble_is_option_active('local_pickup');
+	return apply_filters('shipbubble_is_local_pickup_active', shipbubble_is_option_active('local_pickup'));
 }
 
 /**
@@ -619,10 +619,29 @@ function shipbubble_get_option($key) {
     return $options[$key] ?? '';
 }
 
+function shipbubble_get_local_pickup_address() {
+	$options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
 
-function is_shipbubble_multivendor_active() {
-    return shipbubble_is_option_active('multi_vendor');
+	$full_address = $options['pickup_address'];
 
+	if (!empty($options['pickup_state'])) {
+		$full_address .= ', ' . $options['pickup_state'];
+	}
+
+	if (!empty($options['pickup_country'])) {
+		$full_address .= ', ' . $options['pickup_country'];
+	}
+
+	return apply_filters('shipbubble_get_pickup_address', $full_address);
+}
+
+
+function is_shipbubble_dokan_multivendor_active(): bool
+{
+	return function_exists('dokan')
+		&& shipbubble_is_option_active('multi_vendor')
+		&& is_callable('dokan_is_single_seller_mode_enable')
+		&& dokan_is_single_seller_mode_enable();
 }
 
 function shipbubble_get_vendor_info($current_user)

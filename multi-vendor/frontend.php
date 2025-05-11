@@ -1,15 +1,15 @@
 <?php
 
-//if (is_shipbubble_multivendor_active()) {
+//if (is_shipbubble_dokan_multivendor_active()) {
     add_action('dokan_settings_after_store_phone', 'add_shipbubble_multivendor_form', 10, 2);
-
     function add_shipbubble_multivendor_form($current_user, $profile_info) {
         $info = shipbubble_get_vendor_info($current_user);
 		$category = $info['store_category'];
 		$categories_options = shipbubble_get_order_categories();
+        $local_pickup = $info['local_pickup'] ?? 'no'
 		?>
-
-		<div class="dokan-form-group">
+            <fieldset id="shipbubble_dokan_vendor_settings">
+            <div class="dokan-form-group">
 			<label class="dokan-w3 dokan-control-label" for="shipbubble_category">
                 <?php esc_html_e( 'Shipping Category ', 'shipbubble' ); ?>
             </label>
@@ -23,8 +23,19 @@
 			</select>
 			</div>
 		</div>
+		    <div class="dokan-form-group">
+            <label class="dokan-w3 dokan-control-label"><?php esc_html_e( 'Local Pickup', 'shipbubble' ); ?></label>
+            <div class="dokan-w5 dokan-text-left dokan_tock_check">
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" id="shipbubble_local_pickup" value="on" <?php echo $local_pickup === 'yes' ? 'checked' : ''; ?> name="shipbubble_local_pickup"> <?php esc_html_e( 'Allow local pickup', 'shipbubble' ); ?>
+                    </label>
+                </div>
+            </div>
+        </div>
+            </fieldset>
 
-		<?php
+	    <?php
 	}
 
     add_action('dokan_store_profile_saved', 'shipbubble_handle_saved_profile', 10, 2);
@@ -34,6 +45,7 @@
 
         $info = shipbubble_get_vendor_info($store_id);
         $category = sanitize_text_field($_POST['shipbubble_category'] ?? '');
+        $local_pickup = isset($_POST['shipbubble_local_pickup']) ? 'yes' : 'no';
 
         $address_settings = $dokan_settings['address'] ?? [];
 
@@ -92,6 +104,7 @@
                 'address_code'         => '',
                 'sandbox_address_code' => '',
                 'address_validated'    => 'no',
+                'local_pickup'         => $local_pickup
             ];
 
             $keys = shipbubble_get_keys();
@@ -133,5 +146,68 @@
         }
     }
 
-//	add_filter('dokan_ajax_settings_response', 'check_ajax_settings_response', 10, 1);
+    add_filter('shipbubble_get_pickup_address', 'shipbubble_get_vendor_pickup_address');
+    function shipbubble_get_vendor_pickup_address($pickup_address) {
+        $vendor_info = get_dokan_vendor();
+	if (!$vendor_info) {
+		return $pickup_address;
+	}
+
+    if ($vendor_info['address_validated']  == 'no') return $pickup_address;
+
+	$local_pickup_enabled = $vendor_info['local_pickup'] ?? 'no';
+
+	if ($local_pickup_enabled === 'yes' && !empty($vendor_info['pickup_address'])) {
+		$full_address = $vendor_info['pickup_address'];
+
+		if (!empty($vendor_info['pickup_state'])) {
+			$full_address .= ', ' . $vendor_info['pickup_state'];
+		}
+
+		if (!empty($vendor_info['pickup_country'])) {
+			$full_address .= ', ' . $vendor_info['pickup_country'];
+		}
+
+		return $full_address;
+	}
+
+	return $pickup_address;
+}
+
+    add_filter('shipbubble_is_local_pickup_active', 'shipbubble_is_vendor_local_pickup_active');
+    function shipbubble_is_vendor_local_pickup_active($is_active) {
+	    $vendor_info = get_dokan_vendor();
+
+	    if (!$vendor_info) return $is_active;
+
+        if ($vendor_info['address_validated']  == 'no' || !isset($vendor_info['local_pickup'])) return false;
+
+        return $vendor_info['local_pickup'] === 'yes';
+    }
+
+    add_filter('is_shipbubble_active', 'is_vendor_shipbubble_active');
+    function is_vendor_shipbubble_active($is_active) {
+	    $vendor_info = get_dokan_vendor();
+
+	    if (!$vendor_info) return $is_active;
+
+        return $is_active == 'yes' && $vendor_info['address_validated'] == 'yes';
+    }
+
+
+    function get_dokan_vendor()
+    {
+        $vendor_id = 0;
+
+	    foreach (WC()->cart->get_cart() as $cart_item) {
+		    $product_id = $cart_item['product_id'];
+		    $vendor     = dokan_get_vendor_by_product( $product_id );
+		    $vendor_id  = $vendor && $vendor->get_id() ? $vendor->get_id() : 0;
+	    }
+
+        if (!$vendor_id) return false;
+
+	    return shipbubble_get_vendor_info($vendor_id);
+    }
+
 //}

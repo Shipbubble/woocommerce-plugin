@@ -114,7 +114,9 @@ function shipbubble_vendor_info_default(): array
 		'pickup_address' => '',
 		'pickup_state' => '',
 		'pickup_country' => '',
-		'address_validated' => 'no'
+		'address_validated' => 'no',
+		'local_pickup' => 'no',
+		'local_pickup_text' => ''
 	);
 }
 

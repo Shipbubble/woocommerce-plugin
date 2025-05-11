@@ -14,6 +14,7 @@ function shipbubble_courier_list_container()
 	$cartItemCount = WC()->cart->get_cart_contents_count();
 	$isPhysicalProduct = false;
 	$isVirtualProduct = false;
+    $isShipbubbleActive = apply_filters('is_shipbubble_active', $isShipbubbleActive);
 
 	// Check if any product in the cart is virtual
     foreach (WC()->cart->get_cart() as $cart_item) {
@@ -28,25 +29,23 @@ function shipbubble_courier_list_container()
 		}
     }
 	
-	if ($isPhysicalProduct) {
-		$response = shipbubble_get_color_code();
-		if (isset($response->response_code) && $response->response_code == SHIPBUBBLE_RESPONSE_IS_OK) {
-			$btnColor = strlen($response->data->brand_color) > 1 ? $response->data->brand_color . ' !important' : '';
-			$showLabel = (bool) $response->data->powered_by_label;
+	if ($isPhysicalProduct && $isShipbubbleActive == 'yes') {
+			$response = shipbubble_get_color_code();
+			if (isset($response->response_code) && $response->response_code == SHIPBUBBLE_RESPONSE_IS_OK) {
+				$btnColor = strlen($response->data->brand_color) > 1 ? $response->data->brand_color . ' !important' : '';
+				$showLabel = (bool) $response->data->powered_by_label;
 
-            ?>
-            <style>
-                :root {
-                    --shipbubble-btn-color: <?= htmlspecialchars($btnColor) ?>;
-                }
-            </style>
-            <?php
-		}
-
-		if ($isShipbubbleActive == 'yes') {
+				?>
+                <style>
+					:root {
+						--shipbubble-btn-color: <?= htmlspecialchars($btnColor) ?>;
+					}
+                </style>
+				<?php
+			}
 			$is_local_pickup_enabled = shipbubble_is_local_pickup_active();
-			$local_pickup_text = shipbubble_get_option('local_pickup_text') ?: 'Pickup in store'; // Assuming this is how the text is stored
-			$pickup_address = shipbubble_get_option('pickup_address'); // Assuming this is how the address is stored
+			$local_pickup_text = shipbubble_get_option('local_pickup_text') ?: 'Pickup in store';
+			$pickup_address = shipbubble_get_local_pickup_address();
 
 			$container = '<div class="shipbubble-delivery-method-container">';
 
@@ -112,7 +111,6 @@ function shipbubble_courier_list_container()
 
 			$container .= '</div>';
 		}
-	}
 
 
 	echo $container;
