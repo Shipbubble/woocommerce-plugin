@@ -683,6 +683,15 @@ function is_shipbubble_dokan_multivendor_active(): bool
         && $dokan_options['enable_single_seller_mode'] === 'on';
 }
 
+/**
+ * Retrieve vendor information for a given user.
+ *
+ * This function retrieves vendor information from user meta data. If the information is not found,
+ * it initializes the vendor info with default values and saves it to the user meta.
+ *
+ * @param int $current_user The ID of the current user.
+ * @return array The vendor information array.
+ */
 function shipbubble_get_vendor_info($current_user)
 {
     $vendor_info = get_user_meta($current_user, 'shipbubble_vendor_info', true);
