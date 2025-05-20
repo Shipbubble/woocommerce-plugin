@@ -9,6 +9,7 @@ if (is_shipbubble_dokan_multivendor_active()) {
 	add_filter('shipbubble_is_local_pickup_active', 'shipbubble_is_vendor_local_pickup_active');
 	add_filter('is_shipbubble_active', 'is_vendor_shipbubble_active');
 	add_filter('shipbubble_get_address_code', 'get_vendor_address_code', 10, 2);
+	add_filter('shipbubble_checkout_has_multi_vendor', 'shipbubble_checkout_has_multi_vendor');
 
 
 	/**
@@ -107,16 +108,6 @@ if (is_shipbubble_dokan_multivendor_active()) {
             $revalidate_address = false;
         }
 
-    //	if (
-    //		$info['pickup_address'] === $address &&
-    //		$info['pickup_state'] === $state &&
-    //		$info['pickup_country'] === $country &&
-    //		$info['sender_name'] === $store_name &&
-    //		$info['sender_email'] === $email &&
-    //		$info['sender_phone'] === $phone
-    //	) {
-    //		$revalidate_address = false;
-    //	}
 
         if ($revalidate_address) {
             $store_name = trim($store_name);
@@ -226,11 +217,9 @@ if (is_shipbubble_dokan_multivendor_active()) {
     {
 	    $vendor_info = get_dokan_vendor();
 
-	    if (!$vendor_info) return $is_active;
+        if (!$vendor_info || $vendor_info['address_validated']  == 'no' || !isset($vendor_info['local_pickup'])) return false;
 
-        if ($vendor_info['address_validated']  == 'no' || !isset($vendor_info['local_pickup'])) return false;
-
-        return $vendor_info['local_pickup'] === 'yes';
+        return $is_active && $vendor_info['local_pickup'] === 'yes';
     }
 
 	/**
@@ -307,4 +296,31 @@ if (is_shipbubble_dokan_multivendor_active()) {
 	}
 
 
+	/**
+     * Check if the cart has multiple vendors.
+	 * @param $has_multi_vendor
+	 * @return bool
+	 */
+    function shipbubble_checkout_has_multi_vendor($has_multi_vendor): bool
+    {
+        $vendors = [];
+
+	    foreach (WC()->cart->get_cart() as $cart_item) {
+		    $product_id = $cart_item['product_id'];
+		    $vendor     = dokan_get_vendor_by_product($product_id);
+            if ($vendor && $vendor->get_id()) {
+                $vendors[] = $vendor->get_id();
+            }
+	    }
+
+        $vendors = array_unique($vendors);
+
+        if (count($vendors) > 1) {
+            $has_multi_vendor = true;
+        } else {
+            $has_multi_vendor = false;
+        }
+
+        return $has_multi_vendor;
+    }
 }

@@ -613,12 +613,25 @@ function shipbubble_is_option_active($option) {
 	return 'yes' === $options[$option];
 }
 
+/**
+ * Retrieve a specific Shipbubble option value.
+ * @param $key
+ * @return mixed|string
+ */
 function shipbubble_get_option($key) {
 	$options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
 
     return $options[$key] ?? '';
 }
 
+/**
+ * Retrieve the local pickup address from the Shipbubble options.
+ *
+ * This function constructs a full address string based on the pickup address, state, and country
+ * stored in the Shipbubble options. It also applies a filter to allow for customization.
+ *
+ * @return string The full pickup address.
+ */
 function shipbubble_get_local_pickup_address() {
 	$options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
 
@@ -635,6 +648,14 @@ function shipbubble_get_local_pickup_address() {
 	return apply_filters('shipbubble_get_pickup_address', $full_address);
 }
 
+/**
+ * Retrieve the local pickup text from the Shipbubble options.
+ *
+ * This function retrieves the local pickup text from the Shipbubble options. If not set, it defaults to 'Pickup in store'.
+ * It also applies a filter to allow for customization.
+ *
+ * @return string The local pickup text.
+ */
 function shipbubble_get_local_pickup_text() {
 	$options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
 
@@ -644,11 +665,22 @@ function shipbubble_get_local_pickup_text() {
 }
 
 
+/**
+ * Check if the Dokan Multivendor plugin is active and in single seller mode.
+ *
+ * This function checks if the Dokan Multivendor plugin is active and if it is configured
+ * to operate in single seller mode. It returns true if both conditions are met, false otherwise.
+ *
+ * @return bool True if Dokan is active and in single seller mode, false otherwise.
+ */
 function is_shipbubble_dokan_multivendor_active(): bool
 {
+    $dokan_options = get_option('dokan_general', []);
+
 	return function_exists('dokan')
-		&& is_callable('dokan_is_single_seller_mode_enable')
-		&& dokan_is_single_seller_mode_enable();
+		&& !empty($dokan_options)
+        && isset($dokan_options['enable_single_seller_mode'])
+        && $dokan_options['enable_single_seller_mode'] === 'on';
 }
 
 function shipbubble_get_vendor_info($current_user)

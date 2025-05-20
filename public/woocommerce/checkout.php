@@ -28,6 +28,19 @@ function shipbubble_courier_list_container()
 			$isPhysicalProduct = true;
 		}
     }
+
+    $hasMultiVendor = apply_filters('shipbubble_checkout_has_multi_vendor', false);
+
+	if ($hasMultiVendor) {
+		$container = '
+        <div class="shipbubble-multivendor-message" style="padding: 1rem; border: 1px solid #ccc; background-color: #fff3cd; color: #856404; border-radius: 6px; margin-bottom: 1rem;">
+            <strong>Note:</strong> Shipbubble does not support multiple vendors yet. Please remove items from different vendors to proceed with shipping.
+        </div>';
+
+		echo $container;
+		return;
+	}
+
 	
 	if ($isPhysicalProduct && $isShipbubbleActive == 'yes') {
 			$response = shipbubble_get_color_code();
