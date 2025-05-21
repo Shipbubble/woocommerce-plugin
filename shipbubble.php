@@ -43,7 +43,7 @@ require_once plugin_dir_path(__FILE__) . 'includes/core-methods.php';
 
 // public
 require_once plugin_dir_path(__FILE__) . 'public/async-checkout-couriers.php';
-require_once plugin_dir_path(__FILE__) . 'multi-vendor/frontend.php';
+require_once plugin_dir_path(__FILE__) . 'multi-vendor/dokan.php';
 
 define('SHIPBUBBLE_PLUGIN_URL', plugins_url('', __FILE__));
 define('SHIPBUBBLE_LOGO_URL', SHIPBUBBLE_PLUGIN_URL . '/public/images/logo.svg');
