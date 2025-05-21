@@ -191,9 +191,6 @@ function shipbubble_courier_setup_on_change()
 							shippingRadio.prop('checked', false);
 						}
 
-                        $('html, body').animate({
-                            scrollTop: $(".woocommerce-shipping-totals.shipping").offset().top
-                        }, 1000);
 						$(document.body).trigger('update_checkout');
                     })
 				}
