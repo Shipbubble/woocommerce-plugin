@@ -1610,9 +1610,6 @@
 				sbSlogan.hide();
 			}
 
-			$('html, body').animate({
-				scrollTop: $(".woocommerce-shipping-totals.shipping").offset().top
-			}, 1000);
 			$(document.body).trigger('update_checkout');
 		}
 

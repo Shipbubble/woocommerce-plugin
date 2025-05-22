@@ -186,9 +186,11 @@ function shipbubble_courier_setup_on_change()
                             sbSlogan.hide();
                         }
 
-                        $('html, body').animate({
-                        scrollTop: $(".woocommerce-shipping-totals.shipping").offset().top
-                    }, 1000);
+						const shippingRadio = $('input[name="delivery_method"]');
+						if (shippingRadio.length > 0) {
+							shippingRadio.prop('checked', false);
+						}
+
 						$(document.body).trigger('update_checkout');
                     })
 				}
