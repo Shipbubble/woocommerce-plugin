@@ -421,10 +421,10 @@ function shipbubble_get_currency_code() {
 			'get_currency' => function() { return yith_wcmcs_get_current_currency_id(); }
 		),
 		array(
-			'check' => function() { return is_plugin_active('yaycurrency/yay-currency.php') && class_exists('Yay_Currency\Helpers\YayCurrencyHelper'); },
+			'check' => function() { return (is_plugin_active('yaycurrency/yay-currency.php') || is_plugin_active('yaycurrency-pro/yay-currency.php')) && class_exists('Yay_Currency\Helpers\YayCurrencyHelper'); },
 			'get_currency' => function() {
 				$currency_data = YayCurrencyHelper::get_current_currency();
-				return is_array($currency_data) ? isset($currency_data['currency']) ? $currency_data['currency'] : '' : '';
+				return is_array($currency_data) ? $currency_data['currency'] ?? '' : '';
 			}
 		),
 	);
