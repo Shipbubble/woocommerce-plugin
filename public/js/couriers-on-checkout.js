@@ -109,6 +109,12 @@
 					phone,
 					address: streetAddress + ', ' + city + ', ' + selectedState + ', ' + selectedCountry,
 					comments: orderComments,
+				};
+
+				if ($('input#billing_postcode').val()) {
+					addressPayload.postcode = $('input#billing_postcode').val();
+				} else if ($('input#shipping_postcode').val()) {
+					addressPayload.postcode = $('input#shipping_postcode').val();
 				}
 
 				let sbSlogan = $('.sb-slogan-container');
@@ -1604,9 +1610,6 @@
 				sbSlogan.hide();
 			}
 
-			$('html, body').animate({
-				scrollTop: $(".woocommerce-shipping-totals.shipping").offset().top
-			}, 1000);
 			$(document.body).trigger('update_checkout');
 		}
 
