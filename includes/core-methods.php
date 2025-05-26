@@ -706,3 +706,17 @@ function shipbubble_get_vendor_info($current_user)
 
     return $vendor_info;
 }
+
+/**
+ * Check if the current page is a Shipbubble admin page.
+ *
+ * This function checks if the current admin screen ID contains 'shipbubble-settings',
+ * indicating that it is a Shipbubble settings page.
+ *
+ * @return bool True if the current page is a Shipbubble admin page, false otherwise.
+ */
+function is_shipbubble_admin_page() : bool {
+    $page = $_GET['page'] ?? '';
+
+	return strpos($page, 'shipbubble-settings') !== false;
+}
