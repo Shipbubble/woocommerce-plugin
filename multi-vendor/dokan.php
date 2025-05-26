@@ -4,12 +4,15 @@ if (is_shipbubble_dokan_multivendor_active() && !is_shipbubble_admin_page()) {
     add_action('dokan_settings_after_store_phone', 'add_shipbubble_multivendor_form', 10, 2);
 	add_action('dokan_store_profile_saved', 'shipbubble_handle_saved_profile', 10, 2);
 	add_action('dokan_settings_before_form', 'shipbubble_add_address_validate_notice', 10, 2);
-	add_filter('shipbubble_get_local_pickup_text', 'shipbubble_get_vendor_local_pickup_text');
-	add_filter('shipbubble_get_pickup_address', 'shipbubble_get_vendor_pickup_address');
-	add_filter('shipbubble_is_local_pickup_active', 'shipbubble_is_vendor_local_pickup_active');
 	add_filter('is_shipbubble_active', 'is_vendor_shipbubble_active');
 	add_filter('shipbubble_get_address_code', 'get_vendor_address_code', 10, 2);
 	add_filter('shipbubble_checkout_has_multi_vendor', 'shipbubble_checkout_has_multi_vendor');
+
+    if (shipbubble_is_option_active('local_pickup')) {
+	    add_filter('shipbubble_get_local_pickup_text', 'shipbubble_get_vendor_local_pickup_text');
+	    add_filter('shipbubble_get_pickup_address', 'shipbubble_get_vendor_pickup_address');
+	    add_filter('shipbubble_is_local_pickup_active', 'shipbubble_is_vendor_local_pickup_active');
+    }
 
 
 	/**
@@ -41,7 +44,8 @@ if (is_shipbubble_dokan_multivendor_active() && !is_shipbubble_admin_page()) {
                 </select>
                 </div>
             </div>
-                <div class="dokan-form-group">
+               <?php if (shipbubble_is_option_active('local_pickup')) {?>
+                   <div class="dokan-form-group">
                 <label class="dokan-w3 dokan-control-label"><?php esc_html_e( 'Local Pickup', 'shipbubble' ); ?></label>
                 <div class="dokan-w5 dokan-text-left dokan_tock_check">
                     <div class="checkbox">
@@ -51,15 +55,15 @@ if (is_shipbubble_dokan_multivendor_active() && !is_shipbubble_admin_page()) {
                     </div>
                 </div>
             </div>
-                <div class="dokan-form-group">
-                    <label class="dokan-w3 dokan-control-label" for="shipbubble_local_pickup_text"><?php esc_html_e( 'Local Pickup Text', 'shipbubble' ); ?></label>
+                   <div class="dokan-form-group">
+                <label class="dokan-w3 dokan-control-label" for="shipbubble_local_pickup_text"><?php esc_html_e( 'Local Pickup Text', 'shipbubble' ); ?></label>
 
-                    <div class="dokan-w5 dokan-text-left">
-                        <input id="shipbubble_local_pickup_text" required value="<?php echo esc_attr( $pickup_text ); ?>" name="shipbubble_local_pickup_text" placeholder="<?php esc_attr_e( 'Pickup in store', 'shipbubble' ); ?>" class="dokan-form-control" type="text">
-                    </div>
+                <div class="dokan-w5 dokan-text-left">
+                    <input id="shipbubble_local_pickup_text" required value="<?php echo esc_attr( $pickup_text ); ?>" name="shipbubble_local_pickup_text" placeholder="<?php esc_attr_e( 'Pickup in store', 'shipbubble' ); ?>" class="dokan-form-control" type="text">
                 </div>
+            </div>
+               <?php }?>
             </fieldset>
-
 	    <?php
 	}
 
