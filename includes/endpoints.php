@@ -554,3 +554,59 @@ function shipbubble_order_categories()
     // output data
     return json_decode($body);
 }
+
+/**
+ * Get local pickup address
+ *
+ * @param string $address
+ * @return string
+ */
+function shipbubble_get_local_pickup_address(string $address) {
+	$url = SHIPBUBBLE_BASE_URL . '/address/store_pickup_locations';
+	$url = esc_url_raw($url);
+
+	$body = array(
+		'checkout_address' => $address
+	);
+
+	$token = shipbubble_get_token();
+
+	$args = array(
+		'headers' => array(
+			'Authorization' => 'Bearer ' . $token,
+			'x-shipbubble-platform' => 'wordpress'
+		),
+		'timeout'     => SHIPBUBBLE_EP_REQUEST_TIMEOUT,
+		'redirection' => 5,
+		'httpversion' => '1.0',
+		'blocking'    => true,
+		'cookies'     => array(),
+		'compress'    => false,
+		'decompress'  => true,
+		'sslverify'   => true,
+		'stream'      => false,
+		'filename'    => null
+	);
+
+	$args['body'] = $body;
+
+	$result = wp_safe_remote_post($url, $args);
+
+	if (!is_wp_error($result)) {
+		$data = wp_remote_retrieve_body($result);
+		$response_code = wp_remote_retrieve_response_code($result);
+
+		if ($response_code !== 200) {
+			error_log("Error fetching local pickup address: " . $data);
+			return $address;
+		}
+
+		$data = json_decode($data, true);
+		return $data['data']['pickup_address'] ?? $address;
+	} else {
+		$error_message = $result->get_error_message();
+		error_log(print_r($error_message, true));
+
+		return $address;
+	}
+}

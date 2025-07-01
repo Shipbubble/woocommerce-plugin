@@ -1,6 +1,6 @@
 <?php // predefined constants
 
-define('SHIPBUBBLE_BASE_URL', 'https://staging-api.shipbubble.com/v1/shipping');
+define('SHIPBUBBLE_BASE_URL', 'https://api.shipbubble.com/v1/shipping');
 define('SHIPBUBBLE_ID', 'shipbubble_shipping_services');
 define('SHIPBUBBLE_INIT', 'shipbubble_init');
 define('WC_SHIPBUBBLE_ID', 'woocommerce_' . SHIPBUBBLE_ID . '_settings');

@@ -89,3 +89,28 @@
     // ajax hook for logged-in users: wp_ajax_{action}
     add_action( 'wp_ajax_request_shipping_rates', 'shipbubble_request_shipping_rates' );
     add_action( 'wp_ajax_nopriv_request_shipping_rates', 'shipbubble_request_shipping_rates' );
+
+	add_action('wp_ajax_shipbubble_request_pickup_address', 'shipbubble_request_pickup_address');
+	add_action('wp_ajax_nopriv_shipbubble_request_pickup_address', 'shipbubble_request_pickup_address');
+
+	function shipbubble_request_pickup_address() {
+
+		// check nonce
+		check_ajax_referer( 'ajax_public', 'nonce' );
+
+		$data = isset($_POST['data']) ? array_map('sanitize_text_field', $_POST['data']) : array();
+
+		if (empty($data) || !isset($data['address']) || !isset($data['city']) || !isset($data['state']) || !isset($data['country'])) {
+			echo json_encode(array('status' => 'failed', 'message' => 'Please provide all required details for the local pickup address'));
+			wp_die();
+		}
+
+		$address = $data['address'] . ', ' . $data['city'] . ', ' . $data['state'] . ', ' . $data['country'];
+
+		// get local pickup address
+		$address = shipbubble_get_local_pickup_address($address);
+
+		echo json_encode(array('status' => 'success', 'data' => array('address' => $address)));
+
+		wp_die();
+	}
