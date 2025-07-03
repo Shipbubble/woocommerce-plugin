@@ -1716,13 +1716,16 @@ jQuery(document).ready(function($) {
 		};
 
 		$.post(ajax_public.ajaxurl, data).done(
-			function(response) {
-				if (response.success) {
-					console.log('Local pickup address response:', response.data);
-					// You can update a DOM element here, e.g.:
-					// $('#pickup-info').html(response.data.pickup_location);
-				} else {
-					console.warn('Failed to get local pickup address:', response.data || response);
+			function(data) {
+				let response = JSON.parse(data);
+
+				if (response.hasOwnProperty('status')) {
+					if (response.status === 'success') {
+						let address = response['data']['address'];
+						$('#shipbubble-local-pickup-address').text(address);
+					} else {
+						console.warn('Failed to get local pickup address:', response['message']);
+					}
 				}
 			}
 		);

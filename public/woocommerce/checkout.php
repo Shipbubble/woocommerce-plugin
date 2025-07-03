@@ -58,7 +58,7 @@ function shipbubble_courier_list_container()
                         <input type="radio" id="shipbubble-pickup-option" name="delivery_method" value="pickup">
                         <div class="shipbubble-pickup-text-container">
                             <label for="shipbubble-pickup-option">' . esc_html($local_pickup_text) . '</label>
-                            ' . ($pickup_address ? '<div class="shipbubble-pickup-address">' . esc_html($pickup_address) . '</div>' : '') . '
+                            ' . ($pickup_address ? '<div class="shipbubble-pickup-address" id="shipbubble-local-pickup-address">' . esc_html($pickup_address) . '</div>' : '') . '
                         </div>
                     </div>
                 </div>
