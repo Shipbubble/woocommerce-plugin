@@ -1617,13 +1617,65 @@ jQuery(document).ready(function($) {
 	var address_values = {};
 
 	function store_address_values() {
-		let fields = [
-			'shipping_address_1', 'shipping_city', 'shipping_state', 'shipping_country',
-			'billing_address_1', 'billing_city', 'billing_state', 'billing_country'
-		];
-		fields.forEach(function(field) {
-			address_values[field] = $('#' + field).val();
-		});
+		let shipping_address = jQuery('#shipping_address_1').val(),
+			shipping_city = jQuery('#shipping_city').val(),
+			shipping_state = '',
+			shipping_country = '',
+			billing_address = jQuery('#billing_address_1').val(),
+			billing_city = jQuery('#billing_city').val(),
+			billing_state = '',
+			billing_country = '';
+
+		if ($('select#billing_country').length) {
+			billing_country = $('select#billing_country option:selected').text();
+		} else {
+			billing_country = $('input#billing_country').val();
+			billing_country = getCountryCode(selectedCountry);
+		}
+
+		if ($('select#shipping_country').length) {
+			shipping_country = $('select#shipping_country option:selected').text();
+		} else {
+			shipping_country = $('input#shipping_country').val();
+			shipping_country = getCountryCode(selectedCountry);
+		}
+
+		if ($('select#billing_state').length) {
+			billing_state = $('select#billing_state option:selected').text();
+		} else {
+			billing_state = $('input#billing_state').val();
+		}
+
+		if ($('select#shipping_state').length) {
+			shipping_state = $('select#shipping_state option:selected').text();
+		} else {
+			shipping_state = $('input#shipping_state').val();
+		}
+
+		address_values = {
+			'shipping_address': shipping_address,
+			'shipping_city': shipping_city,
+			'shipping_state': shipping_state,
+			'shipping_country': shipping_country,
+			'billing_address': billing_address,
+			'billing_city': billing_city,
+			'billing_state': billing_state,
+			'billing_country': billing_country
+		}
+
+		let useShippingAddress = $('input#ship-to-different-address-checkbox');
+
+		if (useShippingAddress.is(':checked')) {
+			if (shipping_address.length > 0 && shipping_city.length > 0 && shipping_state.length > 0 && shipping_country.length > 0) {
+				update_local_pickup_address('shipping');
+			}
+		} else {
+			if (billing_address.length > 0 && billing_city.length > 0 && billing_state.length > 0 && billing_country.length > 0) {
+				update_local_pickup_address('billing');
+			}
+		}
+
+		console.log('Stored address values:', address_values);
 	}
 
 	function has_address_changed(type) {
@@ -1640,23 +1692,31 @@ jQuery(document).ready(function($) {
 	}
 
 	function handle_address_change(type) {
-		if ($('input[name="delivery_method"]:checked').val() !== 'shipping') {
-			return;
-		}
+		// if ($('input[name="delivery_method"]:checked').val() !== 'shipping') {
+		// 	return;
+		// }
 
 		if (has_address_changed(type)) {
 			console.log(`${type} address changed. Making AJAX call...`);
 
-			let data = {
-				action: 'shipbubble_request_pickup_address',
-				nonce: ajax_public.nonce,
-				address: $(`#${type}_address_1`).val(),
-				city: $(`#${type}_city`).val(),
-				state: $(`#${type}_state`).val(),
-				country: $(`#${type}_country`).val()
-			};
+			update_local_pickup_address(type);
+		}
+	}
 
-			$.post(ajax_public.ajax_url, data, function(response) {
+	function update_local_pickup_address(type) {
+		let data = {
+			nonce: ajax_public.nonce,
+			action: 'shipbubble_request_pickup_address',
+			data: {
+				address: address_values[`${type}_address`],
+				city: address_values[`${type}_city`],
+				state: address_values[`${type}_state`],
+				country: address_values[`${type}_country`],
+			}
+		};
+
+		$.post(ajax_public.ajaxurl, data).done(
+			function(response) {
 				if (response.success) {
 					console.log('Local pickup address response:', response.data);
 					// You can update a DOM element here, e.g.:
@@ -1664,10 +1724,8 @@ jQuery(document).ready(function($) {
 				} else {
 					console.warn('Failed to get local pickup address:', response.data || response);
 				}
-			});
-
-			store_address_values();
-		}
+			}
+		);
 	}
 
 	store_address_values();

@@ -90,9 +90,12 @@
     add_action( 'wp_ajax_request_shipping_rates', 'shipbubble_request_shipping_rates' );
     add_action( 'wp_ajax_nopriv_request_shipping_rates', 'shipbubble_request_shipping_rates' );
 
-	add_action('wp_ajax_shipbubble_request_pickup_address', 'shipbubble_request_pickup_address');
-	add_action('wp_ajax_nopriv_shipbubble_request_pickup_address', 'shipbubble_request_pickup_address');
 
+	/**
+	 * Request local pickup address
+	 *
+	 * @return void
+	 */
 	function shipbubble_request_pickup_address() {
 
 		// check nonce
@@ -114,3 +117,5 @@
 
 		wp_die();
 	}
+	add_action('wp_ajax_shipbubble_request_pickup_address', 'shipbubble_request_pickup_address');
+	add_action('wp_ajax_nopriv_shipbubble_request_pickup_address', 'shipbubble_request_pickup_address');
