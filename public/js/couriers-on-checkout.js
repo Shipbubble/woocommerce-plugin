@@ -1680,14 +1680,34 @@ jQuery(document).ready(function($) {
 
 	function has_address_changed(type) {
 		let changed = false;
-		let fields = [
-			`${type}_address_1`, `${type}_city`, `${type}_state`, `${type}_country`
-		];
-		fields.forEach(function(field) {
-			if ($('#' + field).val() !== address_values[field]) {
-				changed = true;
+
+		let prefix = (type === 'shipping') ? 'shipping' : 'billing';
+
+		// Helper to get correct value from select/input
+		function getFieldValue(field) {
+			const selector = `#${prefix}_${field}`;
+			if ($(`select${selector}`).length) {
+				return $(`select${selector} option:selected`).text().trim();
+			} else {
+				return $(`input${selector}`).val()?.trim() || '';
 			}
-		});
+		}
+
+		let fields = {
+			address: getFieldValue('address_1'),
+			city: getFieldValue('city'),
+			state: getFieldValue('state'),
+			country: getFieldValue('country')
+		};
+
+		for (let key in fields) {
+			let fullKey = `${prefix}_${key}`;
+			if (fields[key] !== address_values[fullKey]) {
+				changed = true;
+				address_values[fullKey] = fields[key]; // update stored value
+			}
+		}
+
 		return changed;
 	}
 

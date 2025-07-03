@@ -595,14 +595,13 @@ function shipbubble_get_local_pickup_address(string $address) {
 	if (!is_wp_error($result)) {
 		$data = wp_remote_retrieve_body($result);
 		$response_code = wp_remote_retrieve_response_code($result);
+		$data = json_decode($data, true);
 
 		if ($response_code !== 200) {
-			error_log("Error fetching local pickup address: " . $data);
-			return $address;
+			return $data;
 		}
 
-		$data = json_decode($data, true);
-		return $data['data']['pickup_address'] ?? $address;
+		return $data['data']['pickup_address'];
 	} else {
 		$error_message = $result->get_error_message();
 		error_log(print_r($error_message, true));

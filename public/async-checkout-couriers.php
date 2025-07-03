@@ -113,6 +113,11 @@
 		// get local pickup address
 		$address = shipbubble_get_local_pickup_address($address);
 
+		if (is_array($address)) {
+			echo json_encode($address);
+			wp_die();
+		}
+
 		echo json_encode(array('status' => 'success', 'data' => array('address' => $address)));
 
 		wp_die();
