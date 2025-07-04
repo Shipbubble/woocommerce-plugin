@@ -1630,14 +1630,14 @@ jQuery(document).ready(function($) {
 			billing_country = $('select#billing_country option:selected').text();
 		} else {
 			billing_country = $('input#billing_country').val();
-			billing_country = getCountryCode(selectedCountry);
+			billing_country = getCountryCode(billing_country);
 		}
 
 		if ($('select#shipping_country').length) {
 			shipping_country = $('select#shipping_country option:selected').text();
 		} else {
 			shipping_country = $('input#shipping_country').val();
-			shipping_country = getCountryCode(selectedCountry);
+			shipping_country = getCountryCode(shipping_country);
 		}
 
 		if ($('select#billing_state').length) {
