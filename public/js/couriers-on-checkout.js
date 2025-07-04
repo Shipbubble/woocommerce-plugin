@@ -1742,7 +1742,8 @@ jQuery(document).ready(function($) {
 				if (response.hasOwnProperty('status')) {
 					if (response.status === 'success') {
 						let address = response['data']['address'];
-						$('#shipbubble-local-pickup-address').text(address);
+						$('#shipbubble-local-pickup-address').val(address);
+						$('#shipbubble-local-pickup-address-text').text(address);
 					} else {
 						console.warn('Failed to get local pickup address:', response['message']);
 					}

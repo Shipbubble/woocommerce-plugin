@@ -45,8 +45,8 @@ function shipbubble_courier_list_container()
 
 		if ($isShipbubbleActive == 'yes') {
 			$is_local_pickup_enabled = shipbubble_is_local_pickup_active();
-			$local_pickup_text = shipbubble_get_option('local_pickup_text') ?: 'Pickup in store'; // Assuming this is how the text is stored
-			$pickup_address = shipbubble_get_option('pickup_address'); // Assuming this is how the address is stored
+			$local_pickup_text = shipbubble_get_option('local_pickup_text') ?: 'Pickup in store';
+			$pickup_address = shipbubble_get_local_pickup();
 
 			$container = '<div class="shipbubble-delivery-method-container">';
 
@@ -56,9 +56,10 @@ function shipbubble_courier_list_container()
                 <div class="shipbubble-option-container">
                     <div class="shipbubble-radio-label">
                         <input type="radio" id="shipbubble-pickup-option" name="delivery_method" value="pickup">
+                        <input type="hidden" name="shippbuble_local_pickup_address" id="shipbubble-local-pickup-address" value="' . esc_attr($pickup_address) . '">
                         <div class="shipbubble-pickup-text-container">
                             <label for="shipbubble-pickup-option">' . esc_html($local_pickup_text) . '</label>
-                            ' . ($pickup_address ? '<div class="shipbubble-pickup-address" id="shipbubble-local-pickup-address">' . esc_html($pickup_address) . '</div>' : '') . '
+                            ' . ($pickup_address ? '<div class="shipbubble-pickup-address" id="shipbubble-local-pickup-address-text">' . esc_html($pickup_address) . '</div>' : '') . '
                         </div>
                     </div>
                 </div>

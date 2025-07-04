@@ -472,6 +472,8 @@ function shipbubble_validate_checkout_order($order_id)
 
 	if ($is_local_pickup) {
 		$order->update_meta_data('shipbubble_local_pickup', true);
+		$pickup_address = $_POST['shippbuble_local_pickup_address'] ?? shipbubble_get_local_pickup();
+		$order->update_meta_data('shipbubble_local_pickup_address', $pickup_address);
 	}
 
 	if ($delete_order) {
