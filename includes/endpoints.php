@@ -559,9 +559,10 @@ function shipbubble_order_categories()
  * Get local pickup address
  *
  * @param string $address
- * @return string
+ * @return string|array
  */
-function shipbubble_get_local_pickup_address(string $address) {
+function shipbubble_get_local_pickup_address(string $address)
+{
 	$url = SHIPBUBBLE_BASE_URL . '/address/store_pickup_locations';
 	$url = esc_url_raw($url);
 
@@ -606,6 +607,9 @@ function shipbubble_get_local_pickup_address(string $address) {
 		$error_message = $result->get_error_message();
 		error_log(print_r($error_message, true));
 
-		return $address;
+		return array(
+			'error' => true,
+			'message' => $error_message
+		);
 	}
 }

@@ -1740,12 +1740,13 @@ jQuery(document).ready(function($) {
 				let response = JSON.parse(data);
 
 				if (response.hasOwnProperty('status')) {
-					if (response.status === 'success') {
-						let address = response['data']['address'];
+					if (response.status !== 'success') {
+						console.warn('Failed to get local pickup address:', response['message']);
+					}
+					let address = response['data']['address'];
+					if (address.length) {
 						$('#shipbubble-local-pickup-address').val(address);
 						$('#shipbubble-local-pickup-address-text').text(address);
-					} else {
-						console.warn('Failed to get local pickup address:', response['message']);
 					}
 				}
 			}
