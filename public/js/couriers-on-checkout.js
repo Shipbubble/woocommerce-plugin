@@ -1739,10 +1739,7 @@ jQuery(document).ready(function($) {
 			function(data) {
 				let response = JSON.parse(data);
 
-				if (response.hasOwnProperty('status')) {
-					if (response.status !== 'success') {
-						console.warn('Failed to get local pickup address:', response['message']);
-					}
+				if (response.hasOwnProperty('data')) {
 					let address = response['data']['address'];
 					if (address.length) {
 						$('#shipbubble-local-pickup-address').val(address);
@@ -1764,5 +1761,21 @@ jQuery(document).ready(function($) {
 		if ($('input[name="delivery_method"]').length === 0) return;
 		handle_address_change('billing');
 	});
+
+
+	function shipbubble_block_ui() {
+		let message = 'Processing';
+		jQuery.blockUI({
+			css: {
+				width: '500px',
+				border: 'none',
+				'border-radius': '10px',
+				left: 'calc(50% - 250px)',
+				top: 'calc(50% - 150px)',
+				padding: '20px'
+			},
+			message: '<div style="margin: 8px; font-size:150%;" class="aios_saving_popup"><img src="' + aios_trans.logo + '" height="80" width="80" style="padding-bottom:10px;"><br>' + message + '</div>'
+		});
+	}
 
 });

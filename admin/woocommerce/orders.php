@@ -28,7 +28,7 @@ function shipbubble_order_data_after_billing_address($order)
 	$order_data = $order->get_data();
 
     if (shipbubble_get_order_meta($order_id, 'shipbubble_local_pickup')) {
-        $local_pickup_address = shipbubble_get_order_meta($order_id, 'shipbubble_local_pickup_address') ?: shipbubble_get_local_pickup();
+        $local_pickup_address = shipbubble_get_order_meta($order_id, 'shipbubble_local_pickup_address') ?: shipbubble_get_local_pickup_default();
         echo '<div class="shipbubble-local-pickup-address">';
         echo '<strong>Local Pickup Address:</strong><br>';
         echo esc_html($local_pickup_address);

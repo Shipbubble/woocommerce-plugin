@@ -630,7 +630,8 @@ function shipbubble_get_option($key) {
  *
  * @return string The formatted local pickup address.
  */
-function shipbubble_get_local_pickup() {
+function shipbubble_get_local_pickup_default(): string
+{
 	$options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
     $address = $options['pickup_address'] ?? '';
     $state = $options['pickup_state'] ?? '';

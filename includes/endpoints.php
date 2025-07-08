@@ -559,7 +559,7 @@ function shipbubble_order_categories()
  * Get local pickup address
  *
  * @param string $address
- * @return string|array
+ * @return string
  */
 function shipbubble_get_local_pickup_address(string $address)
 {
@@ -592,6 +592,7 @@ function shipbubble_get_local_pickup_address(string $address)
 	$args['body'] = $body;
 
 	$result = wp_safe_remote_post($url, $args);
+	$default_address = shipbubble_get_local_pickup_default();
 
 	if (!is_wp_error($result)) {
 		$data = wp_remote_retrieve_body($result);
@@ -599,7 +600,7 @@ function shipbubble_get_local_pickup_address(string $address)
 		$data = json_decode($data, true);
 
 		if ($response_code !== 200) {
-			return $data;
+			return $default_address;
 		}
 
 		return $data['data']['pickup_address'];
@@ -607,9 +608,6 @@ function shipbubble_get_local_pickup_address(string $address)
 		$error_message = $result->get_error_message();
 		error_log(print_r($error_message, true));
 
-		return array(
-			'error' => true,
-			'message' => $error_message
-		);
+		return $default_address;
 	}
 }
