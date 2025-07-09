@@ -1616,6 +1616,11 @@ jQuery(document).ready(function($) {
 
 	var address_values = {};
 
+	/**
+	 * Store address values for shipping and billing addresses.
+	 *
+	 * @returns {void}
+	 */
 	function store_address_values() {
 		let shipping_address = jQuery('#shipping_address_1').val(),
 			shipping_city = jQuery('#shipping_city').val(),
@@ -1678,6 +1683,13 @@ jQuery(document).ready(function($) {
 		console.log('Stored address values:', address_values);
 	}
 
+	/**
+	 * Check if the address has changed since the last stored values.
+	 *
+	 * @param {string} type - 'shipping' or 'billing'
+	 *
+	 * @returns {boolean}
+	 */
 	function has_address_changed(type) {
 		let changed = false;
 
@@ -1711,19 +1723,42 @@ jQuery(document).ready(function($) {
 		return changed;
 	}
 
+	/**
+	 * Handle address change for shipping or billing.
+	 *
+	 * @param {string} type - 'shipping' or 'billing'
+	 *
+	 * @returns {void}
+	 */
 	function handle_address_change(type) {
-		// if ($('input[name="delivery_method"]:checked').val() !== 'shipping') {
-		// 	return;
-		// }
-
 		if (has_address_changed(type)) {
-			console.log(`${type} address changed. Making AJAX call...`);
+			let required_fields = [
+				address_values[`${type}_address`],
+				address_values[`${type}_city`],
+				address_values[`${type}_state`],
+				address_values[`${type}_country`]
+			];
 
+			// If any field is missing or empty, do not proceed
+			if (required_fields.some(val => !val || val.trim() === '')) {
+				console.warn(`${type} address is incomplete. Skipping AJAX.`);
+				return;
+			}
+
+			console.log(`${type} address changed. Making AJAX call...`);
 			update_local_pickup_address(type);
 		}
 	}
 
+	/**
+	 * Update the local pickup address via AJAX.
+	 *
+	 * @param {string} type - 'shipping' or 'billing'
+	 *
+	 * @returns {void}
+	 */
 	function update_local_pickup_address(type) {
+		showLoadingScreen()
 		let data = {
 			nonce: ajax_public.nonce,
 			action: 'shipbubble_request_pickup_address',
@@ -1746,6 +1781,8 @@ jQuery(document).ready(function($) {
 						$('#shipbubble-local-pickup-address-text').text(address);
 					}
 				}
+
+				jQuery.unblockUI()
 			}
 		);
 	}
@@ -1762,19 +1799,25 @@ jQuery(document).ready(function($) {
 		handle_address_change('billing');
 	});
 
-
-	function shipbubble_block_ui() {
-		let message = 'Processing';
-		jQuery.blockUI({
+	/**
+	 * Display a loading screen with a message.
+	 *
+	 * @param {string} [message='Processing...']
+	 */
+	function showLoadingScreen(message = '') {
+		if (!message) {
+			message = 'Processing...';
+		}
+		$.blockUI({
 			css: {
-				width: '500px',
+				width: '300px',
 				border: 'none',
 				'border-radius': '10px',
-				left: 'calc(50% - 250px)',
+				left: 'calc(50% - 150px)',
 				top: 'calc(50% - 150px)',
 				padding: '20px'
 			},
-			message: '<div style="margin: 8px; font-size:150%;" class="aios_saving_popup"><img src="' + aios_trans.logo + '" height="80" width="80" style="padding-bottom:10px;"><br>' + message + '</div>'
+			message: '<div style="margin: 8px; font-size:150%;" class="shipbubble_saving_popup"><img src="'+ajax_public.logo+'" height="80" width="80" style="padding-bottom:10px;"><br>'+ message +'</div>'
 		});
 	}
 

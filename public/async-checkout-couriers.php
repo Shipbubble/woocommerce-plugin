@@ -20,7 +20,7 @@
         $ajax_url = admin_url( 'admin-ajax.php' );
 
         // define script
-        $script = array( 'nonce' => $nonce, 'ajaxurl' => $ajax_url );
+        $script = array( 'nonce' => $nonce, 'ajaxurl' => $ajax_url, 'logo' => SHIPBUBBLE_LOGO_URL );
 
         // localize script
         wp_localize_script( 'ajax-public', 'ajax_public', $script );
