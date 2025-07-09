@@ -1679,8 +1679,6 @@ jQuery(document).ready(function($) {
 				update_local_pickup_address('billing');
 			}
 		}
-
-		console.log('Stored address values:', address_values);
 	}
 
 	/**
@@ -1745,7 +1743,6 @@ jQuery(document).ready(function($) {
 				return;
 			}
 
-			console.log(`${type} address changed. Making AJAX call...`);
 			update_local_pickup_address(type);
 		}
 	}

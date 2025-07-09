@@ -11,7 +11,7 @@
         $script_url = plugins_url( '/js/couriers-on-checkout.js', __FILE__ );
 
         // enqueue script
-        wp_enqueue_script( 'ajax-public', $script_url, array( 'jquery' ) );
+        wp_enqueue_script( 'ajax-public', $script_url, array( 'jquery' ), rand(1000, 9999), true );
 
         // create nonce
         $nonce = wp_create_nonce( 'ajax_public' );
