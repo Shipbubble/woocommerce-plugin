@@ -15,7 +15,7 @@ function shipbubble_enqueue_style_public() {
 	
 	$src = plugins_url( '/css/styles-wc.css', plugin_dir_path( __FILE__ ) );
 
-	wp_enqueue_style( 'shipbubble-public', $src, array(), null, 'all' );
+	wp_enqueue_style( 'shipbubble-public', $src, array(), rand(1000, 9999), 'all' );
 
 }
 add_action( 'wp_enqueue_scripts', 'shipbubble_enqueue_style_public' );

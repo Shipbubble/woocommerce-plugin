@@ -1693,21 +1693,11 @@ jQuery(document).ready(function($) {
 
 		let prefix = (type === 'shipping') ? 'shipping' : 'billing';
 
-		// Helper to get correct value from select/input
-		function getFieldValue(field) {
-			const selector = `#${prefix}_${field}`;
-			if ($(`select${selector}`).length) {
-				return $(`select${selector} option:selected`).text().trim();
-			} else {
-				return $(`input${selector}`).val()?.trim() || '';
-			}
-		}
-
 		let fields = {
-			address: getFieldValue('address_1'),
-			city: getFieldValue('city'),
-			state: getFieldValue('state'),
-			country: getFieldValue('country')
+			address: getFieldValue(type, 'address_1'),
+			city: getFieldValue(type, 'city'),
+			state: getFieldValue(type, 'state'),
+			country: getFieldValue(type, 'country')
 		};
 
 		for (let key in fields) {
@@ -1746,6 +1736,46 @@ jQuery(document).ready(function($) {
 			update_local_pickup_address(type);
 		}
 	}
+
+	$('#ship-to-different-address-checkbox').on('change', function () {
+		let useShippingAddress = $(this).is(':checked');
+
+		let shippingValues = {
+			address: getFieldValue('shipping', 'address_1'),
+			city: getFieldValue('shipping', 'city'),
+			state: getFieldValue('shipping', 'state'),
+			country: getFieldValue('shipping', 'country')
+		};
+
+		let billingValues = {
+			address: getFieldValue('billing', 'address_1'),
+			city: getFieldValue('billing', 'city'),
+			state: getFieldValue('billing', 'state'),
+			country: getFieldValue('billing', 'country')
+		};
+
+		let isDifferent = Object.keys(shippingValues).some(key => {
+			return shippingValues[key] !== billingValues[key];
+		});
+
+		if (isDifferent) {
+			const type = useShippingAddress ? 'shipping' : 'billing';
+			update_local_pickup_address(type);
+		}
+
+		// Update stored values to reflect current selection
+		store_address_values();
+	});
+
+	function getFieldValue(type, field) {
+		const selector = `#${type}_${field}`;
+		if ($(`select${selector}`).length) {
+			return $(`select${selector} option:selected`).text().trim();
+		} else {
+			return $(`input${selector}`).val()?.trim() || '';
+		}
+	}
+
 
 	/**
 	 * Update the local pickup address via AJAX.
@@ -1803,7 +1833,7 @@ jQuery(document).ready(function($) {
 	 */
 	function showLoadingScreen(message = '') {
 		if (!message) {
-			message = 'Processing...';
+			message = 'Fetching pickup address...';
 		}
 		$.blockUI({
 			css: {
@@ -1814,7 +1844,7 @@ jQuery(document).ready(function($) {
 				top: 'calc(50% - 150px)',
 				padding: '20px'
 			},
-			message: '<div style="margin: 8px; font-size:150%;" class="shipbubble_saving_popup"><img src="'+ajax_public.logo+'" height="80" width="80" style="padding-bottom:10px;"><br>'+ message +'</div>'
+			message: '<div style="margin: 8px; font-size:100%;" class="shipbubble_saving_popup"><img src="'+ajax_public.logo+'" height="80" width="80" style="padding-bottom:10px;"><br>'+ message +'</div>'
 		});
 	}
 
