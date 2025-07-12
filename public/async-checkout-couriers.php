@@ -11,7 +11,7 @@
         $script_url = plugins_url( '/js/couriers-on-checkout.js', __FILE__ );
 
         // enqueue script
-        wp_enqueue_script( 'ajax-public', $script_url, array( 'jquery' ) );
+        wp_enqueue_script( 'ajax-public', $script_url, array( 'jquery' ), rand(1000, 9999), true );
 
         // create nonce
         $nonce = wp_create_nonce( 'ajax_public' );
@@ -20,7 +20,7 @@
         $ajax_url = admin_url( 'admin-ajax.php' );
 
         // define script
-        $script = array( 'nonce' => $nonce, 'ajaxurl' => $ajax_url );
+        $script = array( 'nonce' => $nonce, 'ajaxurl' => $ajax_url, 'logo' => SHIPBUBBLE_LOGO_URL );
 
         // localize script
         wp_localize_script( 'ajax-public', 'ajax_public', $script );
@@ -89,3 +89,33 @@
     // ajax hook for logged-in users: wp_ajax_{action}
     add_action( 'wp_ajax_request_shipping_rates', 'shipbubble_request_shipping_rates' );
     add_action( 'wp_ajax_nopriv_request_shipping_rates', 'shipbubble_request_shipping_rates' );
+
+
+	/**
+	 * Request local pickup address
+	 *
+	 * @return void
+	 */
+	function shipbubble_request_pickup_address() {
+
+		// check nonce
+		check_ajax_referer( 'ajax_public', 'nonce' );
+
+		$data = isset($_POST['data']) ? array_map('sanitize_text_field', $_POST['data']) : array();
+
+		if (empty($data) || !isset($data['address']) || !isset($data['city']) || !isset($data['state']) || !isset($data['country'])) {
+			echo json_encode(array('status' => 'failed', 'message' => 'Please provide all required details for the local pickup address'));
+			wp_die();
+		}
+
+		$address = $data['address'] . ', ' . $data['city'] . ', ' . $data['state'] . ', ' . $data['country'];
+
+		// get local pickup address
+		$address = shipbubble_get_local_pickup_address($address);
+
+		echo json_encode(array('status' => 'success', 'data' => array('address' => $address)));
+
+		wp_die();
+	}
+	add_action('wp_ajax_shipbubble_request_pickup_address', 'shipbubble_request_pickup_address');
+	add_action('wp_ajax_nopriv_shipbubble_request_pickup_address', 'shipbubble_request_pickup_address');

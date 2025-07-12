@@ -66,7 +66,7 @@
 }
 
 .shipbubble_saving_popup img {
-    animation-name: aios_blink;
+    animation-name: shipbubble_blink;
     animation-duration: 610ms;
     animation-iteration-count: infinite;
     animation-direction: alternate;
@@ -74,7 +74,7 @@
 }
 
 
-@keyframes aios_blink {
+@keyframes shipbubble_blink {
 
     from {
         opacity: 1;
