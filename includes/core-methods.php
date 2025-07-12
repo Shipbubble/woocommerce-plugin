@@ -621,3 +621,22 @@ function shipbubble_get_option($key) {
 
     return $options[$key] ?? '';
 }
+
+/**
+ * Retrieves the local pickup address from the Shipbubble options.
+ *
+ * This function fetches the local pickup address, state, and country from the Shipbubble options
+ * and returns them as a formatted string.
+ *
+ * @return string The formatted local pickup address.
+ */
+function shipbubble_get_local_pickup_default(): string
+{
+	$options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
+    $address = $options['pickup_address'] ?? '';
+    $state = $options['pickup_state'] ?? '';
+    $country = $options['pickup_country'] ?? '';
+
+
+    return $address . ', ' . $state . ', ' . $country;
+}

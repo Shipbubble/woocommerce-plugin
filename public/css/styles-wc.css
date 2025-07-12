@@ -425,3 +425,26 @@
 	line-height: 16px;
 	color: #5D5758;
 }
+
+.shipbubble_saving_popup img {
+	animation-name: shipbubble_blink;
+	animation-duration: 610ms;
+	animation-iteration-count: infinite;
+	animation-direction: alternate;
+	animation-timing-function: ease-out;
+}
+
+
+@keyframes shipbubble_blink {
+
+	from {
+		opacity: 1;
+		transform: scale(1);
+	}
+
+	to {
+		opacity: 0.4;
+		transform: scale(0.85);
+	}
+
+}
