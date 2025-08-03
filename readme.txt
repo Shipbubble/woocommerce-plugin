@@ -4,7 +4,7 @@ Donate link: https://www.shipbubble.com/
 Tags: logistics, deliveries, shipping rates, multiple couriers, post-purchase experience
 Requires at least: 4.0
 Tested up to: 6.5
-Stable tag: 2.9
+Stable tag: 2.9.1
 Requires PHP: 5.6
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
@@ -69,6 +69,9 @@ Please visit our website - https://shipbubble.com
 5. Performance based analytics.
 
 == Changelog ==
+= 2.9.1 =
+* Pickup location JS fix
+
 = 2.9 =
 * Support for custom store pickup locations at checkout
 
