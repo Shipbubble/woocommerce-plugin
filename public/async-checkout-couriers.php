@@ -3,9 +3,11 @@
     // enqueue scripts
     function ajax_public_enqueue_scripts( $hook ) {
 
-        // check if our page
+	    $options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
 
-        if ( '' !== $hook ) return;
+	    $isShipbubbleActive = $options['activate_shipbubble'] ?? 'no';
+
+	    if ( '' !== $hook || 'yes' != $isShipbubbleActive || !is_checkout()) return;
 
         // define script url
         $script_url = plugins_url( '/js/couriers-on-checkout.js', __FILE__ );
