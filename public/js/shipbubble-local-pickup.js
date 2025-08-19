@@ -196,7 +196,10 @@ jQuery(document).ready(function($) {
 
 				jQuery.unblockUI()
 			}
-		);
+		).fail(function () {
+			console.error('Failed to update local pickup address.');
+			jQuery.unblockUI();
+		})
 	}
 
 	store_address_values();
