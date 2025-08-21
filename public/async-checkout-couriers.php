@@ -45,9 +45,11 @@
 	function enqueue_shipbubble_checkout_script() {
 		// define script url
 		$script_url = plugins_url( '/js/couriers-on-checkout.js', __FILE__ );
+		$checkout_url = plugins_url( '/js/checkout.js', __FILE__);
 
 		// enqueue script
 		wp_enqueue_script( 'ajax-public', $script_url, array( 'jquery' ), rand(1000, 9999), true );
+		wp_enqueue_script( 'shipbubble-checkout', $checkout_url, array( 'jquery' ), rand(1000, 9999), true );
 
 		// create nonce
 		$nonce = wp_create_nonce( 'ajax_public' );
@@ -60,6 +62,7 @@
 
 		// localize script
 		wp_localize_script( 'ajax-public', 'ajax_public', $script );
+		wp_localize_script( 'shipbubble-checkout', 'ajax_public', $script);
 	}
 
 
