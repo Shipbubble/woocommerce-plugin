@@ -91,8 +91,6 @@ jQuery(document).ready(function($) {
 		if ( $('.iti__selected-dial-code').text().length !== 0 ) {
 			let phoneDialCode = $('.iti__selected-dial-code').text();
 			phone = phoneDialCode + phone;
-
-			alert(phone);
 		}
 
 		// check requirements are met
