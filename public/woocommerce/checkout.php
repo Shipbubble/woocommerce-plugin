@@ -168,7 +168,7 @@ function shipbubble_courier_setup_on_change()
 					});
 
 					// Original handler for billing/shipping changes
-					$('div#customer_details').on('change', 'input[name^="billing"], input[name^="shipping"], select[name^="billing"], select[name^="shipping"]', function handleShippingChanges() {
+					$('form').on('change', 'input[name^="billing"], input[name^="shipping"], select[name^="billing"], select[name^="shipping"]', function handleShippingChanges() {
 						let list = $('#courier-list')
                         sbSlogan = $('.sb-slogan-container');
 
