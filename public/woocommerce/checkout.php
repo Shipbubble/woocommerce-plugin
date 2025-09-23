@@ -122,7 +122,11 @@ function shipbubble_courier_list_container()
 add_action('wp_footer', 'shipbubble_courier_setup_on_change');
 function shipbubble_courier_setup_on_change()
 {
-	if (is_checkout()) {
+	$options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
+
+	$isShipbubbleActive = isset($options['activate_shipbubble']) ? sanitize_text_field($options['activate_shipbubble']) : 'no';
+    $isShipbubbleActive = $isShipbubbleActive == 'yes';
+	if (is_checkout() && $isShipbubbleActive) {
 ?>
 
 		<script type="text/javascript">
