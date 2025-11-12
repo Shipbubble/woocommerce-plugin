@@ -161,9 +161,12 @@ function shipbubble_courier_setup_on_change()
 								// set flag that courier has been set
 								$('#shipbubble_courier_set').val('true');
 
-								$('html, body').animate({
-									scrollTop: $(".woocommerce-shipping-totals.shipping").offset().top
-								}, 1000);
+                                let shippingTotals = $(".woocommerce-shipping-totals.shipping");
+                                if (shippingTotals.length) {
+                                    $('html, body').animate({
+                                        scrollTop: $(".woocommerce-shipping-totals.shipping").offset().top
+                                    }, 1000);
+                                }
 
 								jQuery('body').trigger('update_checkout');
 

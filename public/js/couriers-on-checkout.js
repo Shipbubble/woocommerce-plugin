@@ -98,9 +98,12 @@ jQuery(document).ready(function($) {
 			// hide notice
 			$('#shipping-notice').remove();
 
-			if ( $('.iti__selected-dial-code').text().length !== 0 ) {
-				let phoneDialCode = $('.iti__selected-dial-code').text();
-				phone = phoneDialCode + phone;
+			if ( $('.iti__selected-dial-code').length !== 0 ) {
+				let phoneDialCode = $('.iti__selected-dial-code').first().text();
+
+				if (!phone.startsWith('+')) {
+					phone = phoneDialCode + phone;
+				}
 			}
 
 			// Assemble payload

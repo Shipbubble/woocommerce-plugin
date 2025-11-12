@@ -8,7 +8,7 @@ if (is_plugin_active('funnel-builder/funnel-builder.php')) {
 	add_action('wfacp_before_process_checkout_template_loader', 'wfacp_actions');
 	add_action('wfacp_after_checkout_page_found', 'wfacp_actions');
 
-	add_action( 'wfacp_internal_css', 'wfacp_actions_add_css');
+	add_action('wfacp_internal_css', 'wfacp_actions_add_css');
 
 	function wfacp_actions() {
 		if (!function_exists('shipbubble_courier_list_container')) return;
