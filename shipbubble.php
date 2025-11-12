@@ -40,6 +40,7 @@ if (is_admin()) {
 require_once plugin_dir_path(__FILE__) . 'includes/constants.php';
 require_once plugin_dir_path(__FILE__) . 'includes/endpoints.php';
 require_once plugin_dir_path(__FILE__) . 'includes/core-methods.php';
+require_once plugin_dir_path(__FILE__) . 'includes/compatibilities.php';
 
 // public
 require_once plugin_dir_path(__FILE__) . 'public/async-checkout-couriers.php';

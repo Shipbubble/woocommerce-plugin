@@ -98,6 +98,14 @@ jQuery(document).ready(function($) {
 			// hide notice
 			$('#shipping-notice').remove();
 
+			if ( $('.iti__selected-dial-code').length !== 0 ) {
+				let phoneDialCode = $('.iti__selected-dial-code').first().text();
+
+				if (!phone.startsWith('+')) {
+					phone = phoneDialCode + phone;
+				}
+			}
+
 			// Assemble payload
 			let addressPayload = {
 				name: firstName + ' ' + lastName,
@@ -144,11 +152,18 @@ jQuery(document).ready(function($) {
 				}
 			}
 
-			$('<div>', {
+			let shippingNotice = $('<div>', {
 				id: 'shipping-notice',
 				class: 'woocommerce-error',
 				style: 'font-size:16px',
-			}).text(`Ensure that you have filled your ${errorBox.join(', ')}`).appendTo('#order_review_heading').show();
+			}).text(`Ensure that you have filled your ${errorBox.join(', ')}`);
+
+			if ($('#order_review_heading').length === 0) {
+				// put shipping notice before the div with class .shipbubble-delivery-method-container
+				shippingNotice.prependTo('.shipbubble-delivery-method-container').show();
+			} else {
+				shippingNotice.appendTo('#order_review_heading').show();
+			}
 
 			$(requestRatesBtn).prop('checked', false)
 		}
@@ -296,7 +311,6 @@ jQuery(document).ready(function($) {
 					});
 
 					$(requestRatesBtn).prop('checked', false)
-
 				}
 			}
 
