@@ -122,7 +122,11 @@ function shipbubble_courier_list_container()
 add_action('wp_footer', 'shipbubble_courier_setup_on_change');
 function shipbubble_courier_setup_on_change()
 {
-	if (is_checkout()) {
+	$options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
+
+	$isShipbubbleActive = isset($options['activate_shipbubble']) ? sanitize_text_field($options['activate_shipbubble']) : 'no';
+    $isShipbubbleActive = $isShipbubbleActive == 'yes';
+	if (is_checkout() && $isShipbubbleActive) {
 ?>
 
 		<script type="text/javascript">
@@ -157,9 +161,12 @@ function shipbubble_courier_setup_on_change()
 								// set flag that courier has been set
 								$('#shipbubble_courier_set').val('true');
 
-								$('html, body').animate({
-									scrollTop: $(".woocommerce-shipping-totals.shipping").offset().top
-								}, 1000);
+                                let shippingTotals = $(".woocommerce-shipping-totals.shipping");
+                                if (shippingTotals.length) {
+                                    $('html, body').animate({
+                                        scrollTop: $(".woocommerce-shipping-totals.shipping").offset().top
+                                    }, 1000);
+                                }
 
 								jQuery('body').trigger('update_checkout');
 
@@ -168,7 +175,7 @@ function shipbubble_courier_setup_on_change()
 					});
 
 					// Original handler for billing/shipping changes
-					$('div#customer_details').on('change', 'input[name^="billing"], input[name^="shipping"], select[name^="billing"], select[name^="shipping"]', function handleShippingChanges() {
+					$('form').on('change', 'input[name^="billing"], input[name^="shipping"], select[name^="billing"], select[name^="shipping"]', function handleShippingChanges() {
 						let list = $('#courier-list')
                         sbSlogan = $('.sb-slogan-container');
 
