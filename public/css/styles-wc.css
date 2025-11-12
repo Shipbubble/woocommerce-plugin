@@ -1,17 +1,17 @@
 .container-card > button {
-    font-weight: 400;
-    font-size: 16px;
-    line-height: 20px;
-    color: #FFFFFF;
+    font-weight: 400 !important;
+    font-size: 16px !important;
+    line-height: 20px !important;
+    color: #FFFFFF !important;
     background: #D83854;
-    border-radius: 8px;
-    border: none;
-    box-shadow: none;
-    padding: 10px 16px;
-    margin-bottom: 24px;
-    height: 40px;
-    outline: none;
-    cursor: pointer;
+    border-radius: 8px !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 10px 16px !important;
+    margin-bottom: 24px !important;
+    height: 40px !important;
+    outline: none !important;
+    cursor: pointer !important;
 }
 
 .container-delivery-card-list-item:last-of-type {
@@ -28,8 +28,8 @@
 
 .container-delivery-card {
     background: white;
-    width: 100%;
-    max-width: 549px;
+    /*width: 100%;*/
+    /*max-width: 40%;*/
     border-radius: 12px
 }
 
@@ -51,7 +51,7 @@
 .sb-slogan-container {
     display: flex;
     align-items: center;
-    justify-content: center;
+    /*justify-content: center;*/
     margin-top: 12px;
 }
 
@@ -331,8 +331,8 @@
 }
 
 .shipbubble-delivery-method-container {
-	width: 100%;
-	max-width: 549px;
+	/*width: 100%;*/
+	max-width: 100%;
 }
 
 .shipbubble-delivery-options-card {
