@@ -152,18 +152,23 @@ jQuery(document).ready(function($) {
 				}
 			}
 
-			let shippingNotice = $('<div>', {
-				id: 'shipping-notice',
-				class: 'woocommerce-error',
-				style: 'font-size:16px',
-			}).text(`Ensure that you have filled your ${errorBox.join(', ')}`);
+			Swal.fire({
+				title: '',
+				text: `Ensure that you have filled your ${errorBox.join(', ')}`,
+				showConfirmButton: false,
+				showCloseButton: true,
+				width: 400,
+				customClass: {
+					closeButton: "shipbubble-close-button"
+				}
+			});
 
-			if ($('#order_review_heading').length === 0) {
-				// put shipping notice before the div with class .shipbubble-delivery-method-container
-				shippingNotice.prependTo('.shipbubble-delivery-method-container').show();
-			} else {
-				shippingNotice.appendTo('#order_review_heading').show();
-			}
+			// if ($('#order_review_heading').length === 0) {
+			// 	// put shipping notice before the div with class .shipbubble-delivery-method-container
+			// 	shippingNotice.prependTo('.shipbubble-delivery-method-container').show();
+			// } else {
+			// 	shippingNotice.appendTo('#order_review_heading').show();
+			// }
 
 			$(requestRatesBtn).prop('checked', false)
 		}
@@ -293,12 +298,6 @@ jQuery(document).ready(function($) {
 						responseMessage = 'unable to fetch rates, contact admin';
 					}
 
-					$('<div>', {
-						id: 'shipping-notice',
-						class: 'woocommerce-info',
-						style: 'font-size:16px',
-					}).text(`${responseMessage}`).appendTo('#order_review_heading').show();
-
 					Swal.fire({
 						title: '',
 						text: responseMessage,
@@ -324,11 +323,16 @@ jQuery(document).ready(function($) {
 
 			list.empty();
 
-			$('<div>', {
-				id: 'shipping-notice',
-				class: 'woocommerce-error',
-				style: 'font-size:16px',
-			}).text(`unable to display couriers list, please try again later`).appendTo('#order_review_heading').show();
+			Swal.fire({
+				title: '',
+				text: `Unable to display couriers list, please try again later`,
+				showConfirmButton: false,
+				showCloseButton: true,
+				width: 400,
+				customClass: {
+					closeButton: "shipbubble-close-button"
+				}
+			});
 
 		});
 		$(requestBtn).prop('disabled', false);
