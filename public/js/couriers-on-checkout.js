@@ -274,9 +274,19 @@ jQuery(document).ready(function($) {
 					});
 
 					// Make entire div clickable
-					$('.container-delivery-card-list-item').on('click', function() {
+					$('.container-delivery-card-list-item').on('click', function(e) {
+						// Don't trigger if clicking directly on the radio button or label
+						if ($(e.target).is('input[type="radio"]') || $(e.target).is('label')) {
+							return;
+						}
+
 						const radioId = $(this).data('radio-id');
 						const radioBtn = $(`#${radioId}`);
+
+						// Check if already selected
+						if (radioBtn.is(':checked')) {
+							return;
+						}
 
 						// Uncheck all and remove active class
 						$('input[name="delivery_option"]').prop('checked', false);
@@ -285,13 +295,13 @@ jQuery(document).ready(function($) {
 						// Check clicked radio and add active class
 						radioBtn.prop('checked', true);
 						$(this).addClass('active');
+
+						// Trigger change event to update checkout
+						radioBtn.trigger('change');
 					});
 
-					// Handle direct radio button clicks
-					const courier_radio_btn = $('input[name="delivery_option"]');
-					courier_radio_btn.on('change', function(e) {
-						e.stopPropagation(); // Prevent double triggering
-
+					// Update visual state when radio changes (from any source)
+					$('input[name="delivery_option"]').on('change', function() {
 						// Remove active class from all
 						$('.container-delivery-card-list-item').removeClass('active');
 

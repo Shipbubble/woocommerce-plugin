@@ -133,46 +133,81 @@ function shipbubble_courier_setup_on_change()
 			jQuery(document).ready(
 				function($) {
 
-					$('#courier-section').click(function() {
+                    // Use event delegation on the courier section or document
+// This ensures the handler is always attached even for dynamically added radio buttons
+                    $(document).on('change', '#courier-section input[name="delivery_option"]', function() {
+                        if ($(this).is(':checked')) {
+                            const checked_courier = $(this);
+                            const courier_name = checked_courier.attr('data-courier_name');
+                            const total = checked_courier.attr('data-cost');
+                            const courier_id = checked_courier.attr('data-courier_id');
+                            const service_code = checked_courier.attr('data-service_code');
+                            const request_token = checked_courier.attr('data-request_token');
 
-						const courier_radio_btn = $('input[name="delivery_option"]');
-						courier_radio_btn.change(function() {
-							if (courier_radio_btn.is(':checked')) {
-								const checked_courier = $('input[type="radio"][name="delivery_option"]:checked');
-								const courier_name = checked_courier.attr('data-courier_name');
-								const total = checked_courier.attr('data-cost');
-								const courier_id = checked_courier.attr('data-courier_id');
-								const service_code = checked_courier.attr('data-service_code');
+                            const request_datetime = $('#shipbubble_rate_datetime').val();
 
-								const request_datetime = $('#shipbubble_rate_datetime').val();
+                            // console.log(request_datetime);
 
-								// console.log(request_datetime);
+                            // Update hidden fields
+                            // $('#shipbubble_shipment_details').val(JSON.stringify(shipment));
+                            $('#shipbubble_selected_courier').val(courier_name);
+                            $('#shipbubble_cost').val(total);
+                            $('#request_token').val(request_token);
+                            $('#shipbubble_service_code').val(service_code);
+                            $('#shipbubble_courier_id').val(courier_id);
 
-								// $('#shipbubble_shipment_details').val(JSON.stringify(shipment));
-								$('#shipbubble_selected_courier').val(courier_name);
-								$('#shipbubble_cost').val(total);
+                            // $('#shipbubble_reset_cost').val('no');
 
-								$('#request_token').val(checked_courier.attr('data-request_token'));
-								$('#shipbubble_service_code').val(service_code);
-								$('#shipbubble_courier_id').val(courier_id);
+                            // Set flag that courier has been set
+                            $('#shipbubble_courier_set').val('true');
 
-								// $('#shipbubble_reset_cost').val('no');
+                            // Scroll to shipping totals if exists
+                            let shippingTotals = $(".woocommerce-shipping-totals.shipping");
 
-								// set flag that courier has been set
-								$('#shipbubble_courier_set').val('true');
+                            if (shippingTotals.length) {
+                                $('html, body').animate({
+                                    scrollTop: shippingTotals.offset().top
+                                }, 1000);
+                            }
 
-                                let shippingTotals = $(".woocommerce-shipping-totals.shipping");
-                                if (shippingTotals.length) {
-                                    $('html, body').animate({
-                                        scrollTop: $(".woocommerce-shipping-totals.shipping").offset().top
-                                    }, 1000);
-                                }
+                            // Trigger WooCommerce checkout update
+                            jQuery('body').trigger('update_checkout');
+                        }
+                    });// Remove the click wrapper and use event delegation
+                    $(document).on('change', 'input[name="delivery_option"]', function() {
+                        if ($(this).is(':checked')) {
+                            const checked_courier = $(this);
+                            const courier_name = checked_courier.attr('data-courier_name');
+                            const total = checked_courier.attr('data-cost');
+                            const courier_id = checked_courier.attr('data-courier_id');
+                            const service_code = checked_courier.attr('data-service_code');
+                            const request_token = checked_courier.attr('data-request_token');
 
-								jQuery('body').trigger('update_checkout');
+                            const request_datetime = $('#shipbubble_rate_datetime').val();
 
-							}
-						});
-					});
+                            // Update hidden fields
+                            $('#shipbubble_selected_courier').val(courier_name);
+                            $('#shipbubble_cost').val(total);
+                            $('#request_token').val(request_token);
+                            $('#shipbubble_service_code').val(service_code);
+                            $('#shipbubble_courier_id').val(courier_id);
+
+                            // Set flag that courier has been set
+                            $('#shipbubble_courier_set').val('true');
+
+                            // Scroll to shipping totals if exists
+                            let shippingTotals = $(".woocommerce-shipping-totals.shipping");
+
+                            if (shippingTotals.length) {
+                                $('html, body').animate({
+                                    scrollTop: shippingTotals.offset().top
+                                }, 1000);
+                            }
+
+                            // Trigger WooCommerce checkout update
+                            jQuery('body').trigger('update_checkout');
+                        }
+                    });
 
 					// Original handler for billing/shipping changes
 					$('form').on('change', 'input[name^="billing"], input[name^="shipping"], select[name^="billing"], select[name^="shipping"]', function handleShippingChanges() {
