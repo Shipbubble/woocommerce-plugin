@@ -231,52 +231,129 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 12px;
+    padding: 16px;
+    transition: border-color 0.2s, background-color 0.2s;
+}
+
+.container-delivery-card-list-item:hover {
+    border-color: #D0D0D0;
+    background-color: #FAFAFA;
 }
 
 .container-delivery-card-list-item-top {
     display: flex;
     align-items: center;
+    flex: 1;
+    min-width: 0; /* Allows text to truncate if needed */
 }
 
-.container-delivery-card-list-item-top>img {
-    max-width: 32px;
-    max-height: 32px;
+.container-delivery-card-list-item-top img {
+    max-width: 48px;
+    max-height: 48px;
+    min-width: 48px;
     border-radius: 4px;
-    margin-right: 16px;
+    margin-right: 12px;
+    object-fit: contain;
 }
 
-.container-delivery-card-list-item-top>div>p {
+.container-delivery-card-list-item .message {
+    flex: 1;
+    min-width: 0;
+}
 
-    font-weight: 500;
-    font-size: 14px;
-    line-height: 16px;
+.container-delivery-card-list-item .radio-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+}
+
+.container-delivery-card-list-item .radio-info .title {
+    font-weight: 600;
+    font-size: 15px;
+    line-height: 20px;
     color: #241D1E;
     margin: 0;
-    margin-bottom: 8px;
-
+    flex: 1;
 }
 
-.container-delivery-card-list-item-top>div>span {
-
+.container-delivery-card-list-item-top > div > span {
     font-weight: 400;
-    font-size: 14px;
-    line-height: 16px;
+    font-size: 13px;
+    line-height: 18px;
     color: #7A7676;
-
+    display: block;
+    margin-top: 2px;
 }
 
-
-.container-delivery-card-list-item-top>div>span>span {
-
+.container-delivery-card-list-item-top span {
     font-weight: 400;
-    font-size: 14px;
-    line-height: 16px;
+    font-size: 13px;
+    line-height: 18px;
     color: #5D5758;
 }
 
-.container-delivery-card-list.shipbubble-loading {
-    display: none;
+/* Radio button container */
+.container-delivery-card-list-item .radio-item {
+    display: flex;
+    align-items: center;
+    margin-left: auto;
+    padding-left: 16px;
+}
+
+.container-delivery-card-list-item .radio-item input[type="radio"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    margin: 0;
+    accent-color: #D83854;
+}
+
+.container-delivery-card-list-item .radio-item label {
+    display: none; /* Hide the label since we're showing price in the main content */
+}
+
+/* Active state */
+.container-delivery-card-list-item.active,
+.container-delivery-card-list-item .radio-info.active {
+    border-color: #007AFF;
+    background-color: #F0F7FF;
+}
+
+/* Price styling */
+.container-delivery-card-list-item .price {
+    font-weight: 600;
+    font-size: 15px;
+    line-height: 20px;
+    color: #241D1E;
+    margin: 0;
+    white-space: nowrap;
+}
+
+/* Delivery time below */
+.container-delivery-card-list-item .delivery-time {
+    font-weight: 400;
+    font-size: 13px;
+    line-height: 18px;
+    color: #7A7676;
+    display: block;
+    margin-top: 4px;
+}
+
+/* Pickup info styling */
+.container-delivery-card-list-item .pickup-info {
+    font-style: italic;
+    font-size: 12px;
+    color: #7A7676;
+    margin-top: 4px;
+}
+
+.container-delivery-card-list-item .radio-item input[type="radio"]:focus {
+    outline: none; /* Remove focus outline on focus state */
+}
+
+.container-delivery-card-list-item .radio-item input[type="radio"]:focus-visible {
+    outline: none; /* Remove focus outline for keyboard navigation */
 }
 
 .shipbubble-loading {
@@ -368,7 +445,7 @@
 
 /* Radio Button Styles */
 .shipbubble-radio-label input[type="radio"] {
-	accent-color: var(--shipbubble-btn-color);;
+	accent-color: var(--shipbubble-btn-color);
 	margin: 0.125rem 0 0;
 	width: 20px;
 	height: 20px;

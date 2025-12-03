@@ -191,21 +191,21 @@ jQuery(document).ready(function($) {
 		list.empty();
 
 		list.append(`
-			<div class="container-delivery-card-header">
-				<p id="sb-status-text">Fetching delivery prices...</p>
-			</div>
-		`);
+        <div class="container-delivery-card-header">
+            <p id="sb-status-text">Fetching delivery prices...</p>
+        </div>
+    `);
 
 		let newCourierList = $('<div class="container-delivery-card-list shipbubble-loading"></div');
 
 		list.append(newCourierList);
 
 		let loaders = $(`<div class="shipbubble-loading">
-			<span></span>
-			<span></span>
-			<span></span>
-			<span></span>
-		</div>`);
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+    </div>`);
 
 		$(loaders).insertAfter(newCourierList);
 
@@ -235,50 +235,80 @@ jQuery(document).ready(function($) {
 
 					$.each(output.couriers, function (i, value) {
 						// set total charge
-
 						let total = parseFloat(value.rate_card_amount) + parseFloat(output.extra_charges);
 
-						newCourierList.append(`
-							<div class="container-delivery-card-list-item">
-								<div class="container-delivery-card-list-item-top">
-									<img
-										src="${value.courier_image}" />
-									<div class="message">
-										<p class="title">${value.courier_name}</p>
-										<span>
-											<span>${value.delivery_eta}</span>
-										</span>
-									</div>
-								</div>
-		
-								<div class='radio-item special-radio'>
-									<input type='radio' id="${value.courier_id}_${i}" name="delivery_option" 
-									data-request_token="${output.request_token}" data-courier_name="${value.courier_name}" data-cost="${total}" data-service_code="${value.service_code}" data-courier_id="${value.courier_id}"
-									/>
-									<label for='${value.courier_id}_${i}'>
-										<p>
-											${output.currency_symbol} ${total.toLocaleString()}
-										</p>
-										<span class='address-span'></span>
-		
-									</label>
-								</div>
-							</div>
-						`);
+						// check if pickup station exists
+						let pickupInfo = '';
+						if (value.pickup_station && value.pickup_station.address) {
+							pickupInfo = `<p class="pickup-info">Pickup at ${value.pickup_station.address}</p>`;
+						}
 
+						newCourierList.append(`
+                        <div class="container-delivery-card-list-item" data-radio-id="${value.courier_id}_${i}">
+                            <div class="container-delivery-card-list-item-top">
+                                <img src="${value.courier_image}" alt="${value.courier_name}" />
+                                <div class="message">
+                                    <div class="radio-info">
+                                        <p class="title">${value.courier_name}</p>
+                                        <p class="price">${output.currency_symbol} ${total.toLocaleString()}</p>
+                                    </div>
+                                    <span class="delivery-time">${value.delivery_eta}</span>
+                                    ${pickupInfo}
+                                </div>
+                            </div>
+                            <div class="radio-item">
+                                <input 
+                                    type="radio" 
+                                    id="${value.courier_id}_${i}" 
+                                    name="delivery_option"
+                                    data-request_token="${output.request_token}" 
+                                    data-courier_name="${value.courier_name}" 
+                                    data-cost="${total}" 
+                                    data-service_code="${value.service_code}" 
+                                    data-courier_id="${value.courier_id}"
+                                />
+                                <label for="${value.courier_id}_${i}"></label>
+                            </div>
+                        </div>
+                    `);
 					});
 
-					const courier_radio_btn = $('input[name="delivery_option"]');
+					// Make entire div clickable
+					$('.container-delivery-card-list-item').on('click', function(e) {
+						// Don't trigger if clicking directly on the radio button or label
+						if ($(e.target).is('input[type="radio"]') || $(e.target).is('label')) {
+							return;
+						}
 
-					courier_radio_btn.change(function () {
-						//first remove class from all
-						courier_radio_btn.parent().parent().removeClass('active');
+						const radioId = $(this).data('radio-id');
+						const radioBtn = $(`#${radioId}`);
+
+						// Check if already selected
+						if (radioBtn.is(':checked')) {
+							return;
+						}
+
+						// Uncheck all and remove active class
+						$('input[name="delivery_option"]').prop('checked', false);
+						$('.container-delivery-card-list-item').removeClass('active');
+
+						// Check clicked radio and add active class
+						radioBtn.prop('checked', true);
+						$(this).addClass('active');
+
+						// Trigger change event to update checkout
+						radioBtn.trigger('change');
+					});
+
+					// Update visual state when radio changes (from any source)
+					$('input[name="delivery_option"]').on('change', function() {
+						// Remove active class from all
+						$('.container-delivery-card-list-item').removeClass('active');
 
 						if ($(this).is(':checked')) {
-							$(this).parent().parent().addClass('active')
+							$(this).closest('.container-delivery-card-list-item').addClass('active');
 						}
 					});
-
 
 				} else {
 					let sbSlogan = $('.sb-slogan-container');
@@ -313,9 +343,7 @@ jQuery(document).ready(function($) {
 				}
 			}
 
-			// var requestRatesBtn = $('#request_courier_rates');
 			$(requestBtn).prop('disabled', false);
-			// requestRatesBtn.removeClass('load');
 
 		}).fail(function () {
 			let sbSlogan = $('.sb-slogan-container');
