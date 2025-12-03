@@ -336,6 +336,7 @@ function shipbubble_get_shipping_rates(string $addressCode, array $products, $se
             'width' => $setDimensions['width'],
             'height' => $setDimensions['height']
         ],
+        'service_type' => 'pickup',
         'delivery_instructions' => $products['comments'] ?? 'please handle carefully',
 	    'store_checkout_currency' => $currency_code
     ];
