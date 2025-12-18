@@ -1,6 +1,6 @@
 <?php
 
-if (is_plugin_active('funnel-builder/funnel-builder.php')) {
+if (shipbubble_is_plugin_active('funnel-builder/funnel-builder.php')) {
 	add_filter('wfacp_show_shipping_options', '__return_true' ,9999);
 	add_filter('wfacp_show_shipping_package_name', '__return_true' ,9999);
 	add_filter('wfacp_display_shipping_content_at_top', '__return_true',9999);

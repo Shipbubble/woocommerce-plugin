@@ -421,7 +421,7 @@ function shipbubble_get_currency_code() {
 			'get_currency' => function() { return yith_wcmcs_get_current_currency_id(); }
 		),
 		array(
-			'check' => function() { return (is_plugin_active('yaycurrency/yay-currency.php') || is_plugin_active('yaycurrency-pro/yay-currency.php')) && class_exists('Yay_Currency\Helpers\YayCurrencyHelper'); },
+			'check' => function() { return (shipbubble_is_plugin_active('yaycurrency/yay-currency.php') || shipbubble_is_plugin_active('yaycurrency-pro/yay-currency.php')) && class_exists('Yay_Currency\Helpers\YayCurrencyHelper'); },
 			'get_currency' => function() {
 				$currency_data = YayCurrencyHelper::get_current_currency();
 				return is_array($currency_data) ? $currency_data['currency'] ?? '' : '';
@@ -639,4 +639,22 @@ function shipbubble_get_local_pickup_default(): string
 
 
     return $address . ', ' . $state . ', ' . $country;
+}
+
+
+/**
+ * Checks if a WordPress plugin is active, considering both single-site and multisite installations.
+ *
+ * @param $plugin_slug
+ * @return bool
+ */
+function shipbubble_is_plugin_active($plugin_slug): bool
+{
+	if (!function_exists('is_plugin_active')) require_once ABSPATH . 'wp-admin/includes/plugin.php';
+
+    if (is_multisite()) {
+	    return is_plugin_active_for_network($plugin_slug) || is_plugin_active($plugin_slug);
+    }
+
+    return is_plugin_active($plugin_slug);
 }
