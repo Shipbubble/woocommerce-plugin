@@ -113,6 +113,17 @@ jQuery(document).ready(function($) {
 		handleAddressFormSubmit()
 	})
 
+
+	function showValidationFailedAlert() {
+		Swal.fire({
+			icon: 'warning',
+			title: 'Validation Failed',
+			text: 'Please fill in all required store information.',
+			showConfirmButton: false,
+			timer: 4500
+		});
+	}
+
 	function handleAddressFormSubmit() {
 		const senderFields = {
 			name: $('#shipbubble_sender_name'),
