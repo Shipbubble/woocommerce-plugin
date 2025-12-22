@@ -118,7 +118,7 @@ jQuery(document).ready(function($) {
 		Swal.fire({
 			icon: 'warning',
 			title: 'Validation Failed',
-			text: 'Please fill in all required sender address fields.',
+			text: 'Please fill in all required store information.',
 			showConfirmButton: false,
 			timer: 4500
 		});
