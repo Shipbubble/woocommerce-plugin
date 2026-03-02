@@ -244,7 +244,7 @@ function shipbubble_courier_setup_on_change()
 	}
 }
 
-// Change rates on select courier 
+// Change rates on select courier
 add_filter('woocommerce_package_rates', 'shipbubble_change_rates', 100, 2);
 function shipbubble_change_rates($rates, $packages)
 {
@@ -258,6 +258,21 @@ function shipbubble_change_rates($rates, $packages)
 		// $post_data = array_map( 'sanitize_text_field', $post_data );
 	} elseif (isset($_POST['shipbubble_courier_set'])) {
 		$post_data = $_POST;
+	}
+
+	// WooCommerce Blocks (Store API) context — read courier selection from session
+	// set by the extensionCartUpdate callback in blocks-integration.php.
+	if ( empty( $post_data ) && WC()->session ) {
+		$blocks_courier = WC()->session->get( 'shipbubble_blocks_courier' );
+		if ( ! empty( $blocks_courier ) ) {
+			$post_data = [
+				'delivery_option'              => '1',
+				'shipbubble_selected_courier'  => $blocks_courier['courier_name'] ?? '',
+				'shipbubble_cost'              => $blocks_courier['cost'] ?? '0',
+				'shipbubble_courier_id'        => $blocks_courier['courier_id'] ?? '',
+				'shipbubble_courier_set'       => 'true',
+			];
+		}
 	}
 
 	if (!empty($post_data)) {
@@ -310,9 +325,20 @@ function shipbubble_change_rates($rates, $packages)
 			$rates = place_shipbubble_first_at_checkout($rates);
 		}
 	} else {
+		// In the WooCommerce Blocks / Store API context, keep the Shipbubble rate
+		// visible when no courier has been selected yet.  The React UI renders
+		// below the shipping radios and lets the customer pick a courier; once
+		// selected, extensionCartUpdate triggers a recalculation that enters the
+		// if-branch above with the correct cost.
+		$is_store_api = shipbubble_is_store_api_request();
+
 		foreach ($rates as $rate_key => $rate) {
 			if (SHIPBUBBLE_ID === $rate->method_id) {
-				unset($rates[$rate_key]);
+				if ( ! $is_store_api ) {
+					unset($rates[$rate_key]);
+				}
+				// In blocks context: leave the rate intact so it appears in the
+				// shipping method list while the customer picks a courier.
 			} else {
 				if (strtolower($disableOtherShippingMethods) == 'yes') {
 					unset($rates[$rate_key]); // Remove other shipping methods

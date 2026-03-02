@@ -22,6 +22,8 @@ if (!defined('ABSPATH')) {
 	exit;
 }
 
+define('SHIPBUBBLE_PLUGIN_FILE', __FILE__);
+
 // if  admin area
 if (is_admin()) {
 	// include dependencies
@@ -113,6 +115,7 @@ function shipbubble_wc_api_init()
 
 	// public
 	require_once plugin_dir_path(__FILE__) . 'public/woocommerce/checkout.php';
+	require_once plugin_dir_path(__FILE__) . 'public/woocommerce/blocks-integration.php';
 	require_once plugin_dir_path(__FILE__) . 'public/woocommerce/enqueue-styles.php';
 	// }
 
@@ -168,6 +171,50 @@ function shipbubble_show_plugin_settings_link($links, $file) {
 add_filter('plugin_action_links', 'shipbubble_show_plugin_settings_link', 10, 2);
 
 
+/**
+ * Returns true when this is a WooCommerce Store API (Blocks) REST request.
+ * Handles pretty-permalink (/wp-json/wc/store/v1/) and plain-permalink
+ * (?rest_route=/wc/store/v1/) URL styles, plus the WP query-var fallback.
+ */
+function shipbubble_is_store_api_request() {
+	// WordPress only defines REST_REQUEST = true during REST API processing.
+	if ( ! defined( 'REST_REQUEST' ) || ! REST_REQUEST ) {
+		return false;
+	}
+
+	// Primary: REQUEST_URI — works for pretty permalinks and typical setups.
+	// Use wp_unslash only; sanitize_text_field can strip encoded characters.
+	if ( isset( $_SERVER['REQUEST_URI'] ) ) {
+		$uri = wp_unslash( $_SERVER['REQUEST_URI'] );
+		if ( strpos( $uri, 'wc/store' ) !== false ) {
+			return true;
+		}
+	}
+
+	// Fallback: WP's parsed rest_route query var.
+	// Covers setups where REQUEST_URI does not directly contain the route
+	// (e.g. plain-permalink mode: ?rest_route=/wc/store/v1/cart).
+	if (
+		isset( $GLOBALS['wp'] ) &&
+		is_object( $GLOBALS['wp'] ) &&
+		! empty( $GLOBALS['wp']->query_vars['rest_route'] )
+	) {
+		if ( strpos( $GLOBALS['wp']->query_vars['rest_route'], 'wc/store' ) !== false ) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+/**
+ * Returns true when we are in a checkout context — either the classic checkout
+ * page or a WooCommerce Store API (Blocks) cart/checkout REST request.
+ */
+function shipbubble_is_checkout_context() {
+	return is_checkout() || shipbubble_is_store_api_request();
+}
+
 // Disable Shipping methods if not in checkout page
 add_filter('woocommerce_package_rates', 'shipbubble_keep_shipping_methods_on_checkout', 100, 2);
 function shipbubble_keep_shipping_methods_on_checkout($rates, $package)
@@ -175,7 +222,7 @@ function shipbubble_keep_shipping_methods_on_checkout($rates, $package)
 	$options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
 	$disableOtherShippingMethods = isset($options['disable_other_shipping_methods']) ? sanitize_text_field($options['disable_other_shipping_methods']) : 'no';
 
-	if (!is_checkout()) {
+	if (!shipbubble_is_checkout_context()) {
 		// Loop through shipping methods rates
 		foreach ($rates as $rate_key => $rate) {
 			if (SHIPBUBBLE_ID === $rate->method_id) {
@@ -195,7 +242,7 @@ add_filter('woocommerce_shipping_packages', 'shipbubble_keep_shipping_packages_o
 add_filter('woocommerce_cart_shipping_packages', 'shipbubble_keep_shipping_packages_on_checkout', 20, 1);
 function shipbubble_keep_shipping_packages_on_checkout($packages)
 {
-	if (!is_checkout()) {
+	if (!shipbubble_is_checkout_context()) {
 		foreach ($packages as $key => $package) {
 			WC()->session->__unset('shipping_for_package_' . $key); // Remove
 			unset($packages[$key]); // Remove
@@ -495,11 +542,11 @@ function shipbubble_append_enqueue_script()
 add_action('wp_enqueue_scripts', 'shipbubble_append_enqueue_script');
 add_action('admin_enqueue_scripts', 'shipbubble_append_enqueue_script');
 
-add_action('before_woocommerce_init',  'shipbubble_checkout_block_incompatibilty');
+add_action('before_woocommerce_init', 'shipbubble_checkout_block_compatibility');
 
-function shipbubble_checkout_block_incompatibilty() {
+function shipbubble_checkout_block_compatibility() {
 	if ( class_exists( '\Automattic\WooCommerce\Utilities\FeaturesUtil' ) ) {
-		\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'cart_checkout_blocks', __FILE__, false );
+		\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'cart_checkout_blocks', __FILE__, true );
 	}
 }
 
