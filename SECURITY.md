@@ -2,10 +2,10 @@
 
 ## Supported Versions
 
-| Version | Supported          |
-| ------- | ------------------ |
-| 2.10.x  | Yes                |
-| < 2.10  | No                 |
+| Version | Supported |
+| ------- | --------- |
+| 2.10.x  | Yes       |
+| < 2.10  | No        |
 
 ## Reporting a Vulnerability
 
@@ -13,7 +13,7 @@ We take the security of Shipbubble and our users seriously. If you discover a se
 
 **Do not open a public GitHub issue for security vulnerabilities.**
 
-Instead, please send an email to **security@shipbubble.com** with:
+Instead, please send an email to **engineering@shipbubble.com** with:
 
 - A description of the vulnerability
 - Steps to reproduce the issue
@@ -36,4 +36,4 @@ Instead, please send an email to **security@shipbubble.com** with:
 
 ## Scope
 
-This policy applies to the Shipbubble WordPress/WooCommerce plugin. For security concerns related to the Shipbubble API or platform, please contact us at **security@shipbubble.com**.
+This policy applies to the Shipbubble WordPress/WooCommerce plugin. For security concerns related to the Shipbubble API or platform, please contact us at **engineering@shipbubble.com**.
