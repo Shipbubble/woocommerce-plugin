@@ -454,11 +454,26 @@ function shipbubble_sandbox_address_validated() {
 }
 
 function shipbubble_get_address_code() {
-	if (shipbubble_is_live_mode()) {
-		return get_option(WC_SHIPBUBBLE_ID)['address_code'] ?? '';
-	} else {
-		return get_option(WC_SHIPBUBBLE_ID)['sandbox_address_code'] ?? '';
+	return shipbubble_get_sender_address_code();
+}
+
+function shipbubble_get_sender_address_code($vendor_id = null, $is_live = null) {
+	$options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
+
+	if (is_null($is_live)) {
+		$is_live = shipbubble_is_live_mode();
 	}
+
+	$address_code = $is_live ? ($options['address_code'] ?? '') : ($options['sandbox_address_code'] ?? '');
+
+	return apply_filters('shipbubble_get_address_code', $address_code, $is_live, $vendor_id);
+}
+
+function shipbubble_get_store_category($vendor_id = null) {
+	$options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
+	$category = $options['store_category'] ?? '';
+
+	return apply_filters('shipbubble_get_store_category', $category, $vendor_id);
 }
 
 function shipbubble_switch_mode($mode) {
@@ -518,7 +533,7 @@ function generate_shipbubble_notice() {
 
 
 function shipbubble_is_local_pickup_active() {
-	return shipbubble_is_option_active('local_pickup');
+	return apply_filters('shipbubble_is_local_pickup_active', shipbubble_is_option_active('local_pickup'));
 }
 
 /**
@@ -622,6 +637,70 @@ function shipbubble_get_option($key) {
     return $options[$key] ?? '';
 }
 
+function shipbubble_multivendor_enabled(): bool
+{
+	return (bool) apply_filters('shipbubble_multivendor_enabled', shipbubble_is_option_active('multi_vendor'));
+}
+
+function shipbubble_get_vendor_info($vendor_id)
+{
+	$vendor_id = absint($vendor_id);
+
+	if (!$vendor_id) {
+		return shipbubble_vendor_info_default();
+	}
+
+	$vendor_info = get_user_meta($vendor_id, 'shipbubble_vendor_info', true);
+
+	if (empty($vendor_info) || !is_array($vendor_info)) {
+		$vendor_info = shipbubble_vendor_info_default();
+		update_user_meta($vendor_id, 'shipbubble_vendor_info', $vendor_info);
+	}
+
+	return wp_parse_args($vendor_info, shipbubble_vendor_info_default());
+}
+
+function shipbubble_get_cart_vendor_ids(): array
+{
+	$vendor_ids = apply_filters('shipbubble_get_cart_vendor_ids', array());
+
+	if (!is_array($vendor_ids)) {
+		return array();
+	}
+
+	return array_values(array_unique(array_filter($vendor_ids, function ($vendor_id) {
+		return is_string($vendor_id) || is_numeric($vendor_id);
+	})));
+}
+
+function shipbubble_get_cart_vendor_id()
+{
+	$vendor_ids = shipbubble_get_cart_vendor_ids();
+
+	if (count($vendor_ids) !== 1) {
+		return null;
+	}
+
+	return apply_filters('shipbubble_get_cart_vendor_id', $vendor_ids[0]);
+}
+
+function shipbubble_cart_has_multiple_vendors(): bool
+{
+	return (bool) apply_filters('shipbubble_checkout_has_multi_vendor', count(shipbubble_get_cart_vendor_ids()) > 1);
+}
+
+function shipbubble_get_local_pickup_text(): string
+{
+	$options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
+	$pickup_text = $options['local_pickup_text'] ?? '';
+
+	if (empty($pickup_text)) {
+		$pickup_text = 'Pickup in store';
+	}
+
+	return apply_filters('shipbubble_get_local_pickup_text', $pickup_text);
+}
+
 /**
  * Retrieves the local pickup address from the Shipbubble options.
  *
@@ -638,7 +717,14 @@ function shipbubble_get_local_pickup_default(): string
     $country = $options['pickup_country'] ?? '';
 
 
-    return $address . ', ' . $state . ', ' . $country;
+    return apply_filters('shipbubble_get_pickup_address', $address . ', ' . $state . ', ' . $country);
+}
+
+function is_shipbubble_admin_page() : bool
+{
+	$page = $_GET['page'] ?? '';
+
+	return strpos($page, 'shipbubble-settings') !== false;
 }
 
 

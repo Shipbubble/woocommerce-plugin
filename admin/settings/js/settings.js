@@ -134,6 +134,7 @@ jQuery(document).ready(function($) {
 			country: $('#shipbubble_country'),
 			category: $('#shipbubble_category'),
 			disableOthers: $('#shipbubble_deactivate'),
+			multiVendor: $('#shipbubble_multi_vendor'),
 		};
 
 		if (Object.values(senderFields).some(field => field.val() === '')) {
@@ -156,6 +157,7 @@ jQuery(document).ready(function($) {
 			pickup_country: senderFields.country.val(),
 			activate_shipbubble: $('#shipbubble_activate').is(':checked') ? 'yes' : 'no',
 			disable_other_shipping_methods: senderFields.disableOthers.is(':checked') ? 'yes' : 'no',
+			multi_vendor: senderFields.multiVendor.is(':checked') ? 'yes' : 'no',
 		};
 
 		validateSenderAddress(payload);

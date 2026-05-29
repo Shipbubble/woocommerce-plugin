@@ -97,6 +97,25 @@ function shipbubble_wc_options_default(): array
 		'sandbox_api_key' => '',
 		'live_mode' => 'yes',
 		'local_pickup' => 'no',
+		'local_pickup_text' => '',
+		'multi_vendor' => 'no'
+	);
+}
+
+function shipbubble_vendor_info_default(): array
+{
+	return array(
+		'sender_name' => '',
+		'sender_email' => '',
+		'sender_phone' => '',
+		'store_category' => '',
+		'address_code' => '',
+		'sandbox_address_code' => '',
+		'pickup_address' => '',
+		'pickup_state' => '',
+		'pickup_country' => '',
+		'address_validated' => 'no',
+		'local_pickup' => 'no',
 		'local_pickup_text' => ''
 	);
 }
@@ -104,6 +123,7 @@ function shipbubble_wc_options_default(): array
 if (!in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_option('active_plugins')))) return;
 
 add_action('plugins_loaded', 'shipbubble_wc_api_init', 11);
+add_action('plugins_loaded', 'shipbubble_load_multivendor_adapters', 20);
 
 function shipbubble_wc_api_init()
 {
@@ -145,6 +165,19 @@ function shipbubble_wc_api_init()
 		add_option('shipbubble_db_update_time', time());
 	}
 
+}
+
+function shipbubble_load_multivendor_adapters()
+{
+	$wcfm_adapter = plugin_dir_path(__FILE__) . 'multi-vendor/wcfm.php';
+
+	if (file_exists($wcfm_adapter)) {
+		require_once $wcfm_adapter;
+	}
+
+	if (function_exists('shipbubble_wcfm_register_adapter')) {
+		shipbubble_wcfm_register_adapter();
+	}
 }
 
 function shipbubble_settings_redirect() {
@@ -420,8 +453,27 @@ add_action( 'woocommerce_checkout_order_processed', 'shipbubble_validate_checkou
  *
  * @return void This function does not return any value. It either deletes the order or updates its meta data.
  */
-function shipbubble_validate_checkout_order($order_id)
+function shipbubble_validate_checkout_order($order_id = 0)
 {
+	if (function_exists('shipbubble_cart_has_multiple_vendors') && shipbubble_cart_has_multiple_vendors()) {
+		$multi_vendor_message = __('You cannot checkout with products from multiple vendors. Please purchase from one vendor at a time.', 'shipbubble');
+
+		if (!function_exists('wc_has_notice') || !wc_has_notice($multi_vendor_message, 'error')) {
+			wc_add_notice($multi_vendor_message, 'error');
+		}
+
+		if (!$order_id) {
+			return;
+		}
+
+		$order = wc_get_order($order_id);
+		if ($order) {
+			$order->delete();
+		}
+
+		wp_send_json_error();
+	}
+
 	$order = wc_get_order($order_id);
 
 	if (!$order) {
@@ -454,11 +506,11 @@ function shipbubble_validate_checkout_order($order_id)
             $all_virtual = false;
             break; // Exit the loop early if a non-virtual product is found
         }
-    }
+	}
 
 	// Get the selected shipping method from the checkout object
 	$chosen_shipping_method = WC()->checkout->get_value('shipping_method');
-	$is_local_pickup = 'local_pickup' === $_POST['shipbubble_courier_id'];
+	$is_local_pickup = isset($_POST['shipbubble_courier_id']) && 'local_pickup' === $_POST['shipbubble_courier_id'];
 
 	// check
 	if (!$all_virtual && !empty($payment_method) && !empty($enabled_gateways) && !$is_local_pickup) {
