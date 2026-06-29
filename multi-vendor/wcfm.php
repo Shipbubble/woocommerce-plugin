@@ -14,7 +14,12 @@ function shipbubble_wcfm_register_adapter()
 
 	$registered = true;
 
-	add_filter('wcfm_marketplace_settings_fields_general', 'shipbubble_wcfm_settings_fields_general', 50, 2);
+	// Our own collapsible panel on the vendor settings page.
+	add_action('end_wcfm_vendor_settings', 'shipbubble_wcfm_vendor_settings_panel', 15);
+
+	// Hide WCFM's native shipping type / processing-time fields.
+	add_filter('wcfmmp_settings_fields_shipping', 'shipbubble_wcfm_settings_fields_shipping', 50, 3);
+	add_filter('wcfmmp_shipping_types', 'shipbubble_wcfm_remove_shipping_types');
 	add_action('wcfm_vendor_settings_update', 'shipbubble_wcfm_handle_saved_profile', 50, 2);
 
 	add_filter('is_shipbubble_active', 'shipbubble_wcfm_is_shipbubble_active');
@@ -39,54 +44,172 @@ function shipbubble_wcfm_is_adapter_active(): bool
 		&& function_exists('wcfm_get_vendor_id_by_post');
 }
 
-function shipbubble_wcfm_settings_fields_general($settings_fields, $vendor_id = 0)
+function shipbubble_wcfm_remove_shipping_types(array $types): array
+{
+	// Shipbubble handles all shipping — collapse WCFM's type dropdown to a single inert option.
+	return array('' => __('Managed by Shipbubble', 'shipbubble'));
+}
+
+function shipbubble_wcfm_settings_fields_shipping($settings_fields, $user_id = 0, $wcfmmp_shipping = array())
 {
 	if (!shipbubble_wcfm_is_adapter_active()) {
 		return $settings_fields;
 	}
 
-	$vendor_id = absint($vendor_id);
+	// Strip WCFM's native shipping type and processing-time rows — our panel replaces them.
+	unset($settings_fields['wcfmmp_shipping_type'], $settings_fields['wcfmmp_pt']);
+
+	return $settings_fields;
+}
+
+function shipbubble_wcfm_vendor_settings_panel($vendor_id)
+{
+	if (!shipbubble_wcfm_is_adapter_active()) {
+		return;
+	}
+
+	global $WCFM;
+
+	$vendor_id   = absint($vendor_id);
 	$vendor_info = shipbubble_get_vendor_info($vendor_id);
-	$categories = shipbubble_get_order_categories();
+	$categories  = shipbubble_get_order_categories();
 
 	if (empty($categories)) {
 		$categories = array('' => __('Select category', 'shipbubble'));
+	} else {
+		$categories = array_merge(array('' => __('Select category', 'shipbubble')), $categories);
 	}
 
-	$shipbubble_fields = array(
-		'shipbubble_store_category' => array(
-			'label' => __('Shipbubble Category', 'shipbubble'),
-			'type' => 'select',
-			'options' => $categories,
-			'class' => 'wcfm-select wcfm_ele',
-			'label_class' => 'wcfm_title wcfm_ele',
-			'value' => $vendor_info['store_category'] ?? '',
-		),
-	);
+	$address_validated = ($vendor_info['address_validated'] ?? 'no') === 'yes';
+	?>
+	<!-- collapsible -->
+	<div class="page_collapsible" id="wcfm_settings_form_shipbubble_head">
+		<label class="wcfmfa fa-truck"></label>
+		<?php esc_html_e('Shipbubble Shipping', 'shipbubble'); ?><span></span>
+	</div>
+	<div class="wcfm-container">
+		<div id="wcfm_settings_form_shipbubble_expander" class="wcfm-content">
+			<div class="wcfm_clearfix"></div>
 
-	if (shipbubble_is_option_active('local_pickup')) {
-		$shipbubble_fields['shipbubble_local_pickup'] = array(
-			'label' => __('Shipbubble Local Pickup', 'shipbubble'),
-			'type' => 'select',
-			'options' => array(
-				'no' => __('No', 'shipbubble'),
-				'yes' => __('Yes', 'shipbubble'),
-			),
-			'class' => 'wcfm-select wcfm_ele',
-			'label_class' => 'wcfm_title wcfm_ele',
-			'value' => $vendor_info['local_pickup'] ?? 'no',
-		);
-		$shipbubble_fields['shipbubble_local_pickup_text'] = array(
-			'label' => __('Shipbubble Pickup Text', 'shipbubble'),
-			'type' => 'text',
-			'class' => 'wcfm-text wcfm_ele',
-			'label_class' => 'wcfm_title wcfm_ele',
-			'value' => $vendor_info['local_pickup_text'] ?? '',
-			'placeholder' => __('Pickup in store', 'shipbubble'),
-		);
-	}
+			<?php if ($address_validated) : ?>
+			<div style="border:1px solid #46b450;background:#ecf7ed;color:#155724;padding:12px 15px;border-radius:4px;margin-bottom:16px;">
+				<?php esc_html_e('Your address is verified and Shipbubble shipping is active for your store.', 'shipbubble'); ?>
+			</div>
+			<?php else : ?>
+			<div style="border:1px solid #f0ad4e;background:#fff8e1;color:#856404;padding:12px 15px;border-radius:4px;margin-bottom:16px;">
+				<?php esc_html_e('Fill in your pickup details below and save to activate Shipbubble shipping.', 'shipbubble'); ?>
+			</div>
+			<?php endif; ?>
 
-	return array_merge($settings_fields, $shipbubble_fields);
+			<div class="wcfm_clearfix"></div>
+			<?php
+			$fields = array(
+				'shipbubble_sender_name' => array(
+					'label'       => __('Contact Name', 'shipbubble'),
+					'name'        => 'vendor_data[shipbubble_sender_name]',
+					'type'        => 'text',
+					'class'       => 'wcfm-text wcfm_ele',
+					'label_class' => 'wcfm_title wcfm_ele',
+					'value'       => $vendor_info['sender_name'] ?? '',
+					'placeholder' => __('Full name', 'shipbubble'),
+					'hints'       => __('Name of the person handling shipments from this store.', 'shipbubble'),
+				),
+				'shipbubble_sender_email' => array(
+					'label'       => __('Contact Email', 'shipbubble'),
+					'name'        => 'vendor_data[shipbubble_sender_email]',
+					'type'        => 'text',
+					'class'       => 'wcfm-text wcfm_ele',
+					'label_class' => 'wcfm_title wcfm_ele',
+					'value'       => $vendor_info['sender_email'] ?? '',
+					'placeholder' => __('email@example.com', 'shipbubble'),
+					'hints'       => __('Email address used for shipping notifications.', 'shipbubble'),
+				),
+				'shipbubble_sender_phone' => array(
+					'label'       => __('Contact Phone', 'shipbubble'),
+					'name'        => 'vendor_data[shipbubble_sender_phone]',
+					'type'        => 'text',
+					'class'       => 'wcfm-text wcfm_ele',
+					'label_class' => 'wcfm_title wcfm_ele',
+					'value'       => $vendor_info['sender_phone'] ?? '',
+					'placeholder' => __('e.g. 08012345678', 'shipbubble'),
+					'hints'       => __('Phone number for the pickup contact.', 'shipbubble'),
+				),
+				'shipbubble_pickup_address' => array(
+					'label'       => __('Pickup Address', 'shipbubble'),
+					'name'        => 'vendor_data[shipbubble_pickup_address]',
+					'type'        => 'text',
+					'class'       => 'wcfm-text wcfm_ele',
+					'label_class' => 'wcfm_title wcfm_ele',
+					'value'       => $vendor_info['pickup_address'] ?? '',
+					'placeholder' => __('Street address', 'shipbubble'),
+					'hints'       => __('Street address where couriers will pick up orders.', 'shipbubble'),
+				),
+				'shipbubble_pickup_state' => array(
+					'label'       => __('State', 'shipbubble'),
+					'name'        => 'vendor_data[shipbubble_pickup_state]',
+					'type'        => 'text',
+					'class'       => 'wcfm-text wcfm_ele',
+					'label_class' => 'wcfm_title wcfm_ele',
+					'value'       => $vendor_info['pickup_state'] ?? '',
+					'placeholder' => __('e.g. Lagos', 'shipbubble'),
+				),
+				'shipbubble_pickup_country' => array(
+					'label'       => __('Country', 'shipbubble'),
+					'name'        => 'vendor_data[shipbubble_pickup_country]',
+					'type'        => 'select',
+					'options'     => array_merge(
+						array('' => __('Select country', 'shipbubble')),
+						(new WC_Countries())->get_countries()
+					),
+					'class'       => 'wcfm-select wcfm_ele',
+					'label_class' => 'wcfm_title wcfm_ele',
+					'value'       => $vendor_info['pickup_country'] ?? '',
+				),
+				'shipbubble_store_category' => array(
+					'label'       => __('Shipping Category', 'shipbubble'),
+					'name'        => 'vendor_data[shipbubble_store_category]',
+					'type'        => 'select',
+					'options'     => $categories,
+					'class'       => 'wcfm-select wcfm_ele',
+					'label_class' => 'wcfm_title wcfm_ele',
+					'value'       => $vendor_info['store_category'] ?? '',
+					'hints'       => __('Select the category that best describes your products. Used for Shipbubble rate calculation.', 'shipbubble'),
+				),
+			);
+
+			if (shipbubble_is_option_active('local_pickup')) {
+				$fields['shipbubble_local_pickup'] = array(
+					'label'       => __('Enable Local Pickup', 'shipbubble'),
+					'name'        => 'vendor_data[shipbubble_local_pickup]',
+					'type'        => 'select',
+					'options'     => array(
+						'no'  => __('No', 'shipbubble'),
+						'yes' => __('Yes', 'shipbubble'),
+					),
+					'class'       => 'wcfm-select wcfm_ele',
+					'label_class' => 'wcfm_title wcfm_ele',
+					'value'       => $vendor_info['local_pickup'] ?? 'no',
+					'hints'       => __('Allow customers to pick up orders directly from your store.', 'shipbubble'),
+				);
+				$fields['shipbubble_local_pickup_text'] = array(
+					'label'       => __('Pickup Label', 'shipbubble'),
+					'name'        => 'vendor_data[shipbubble_local_pickup_text]',
+					'type'        => 'text',
+					'class'       => 'wcfm-text wcfm_ele',
+					'label_class' => 'wcfm_title wcfm_ele',
+					'value'       => $vendor_info['local_pickup_text'] ?? '',
+					'placeholder' => __('e.g. Pick up in store', 'shipbubble'),
+					'hints'       => __('Label shown to customers for the local pickup option at checkout.', 'shipbubble'),
+				);
+			}
+
+			$WCFM->wcfm_fields->wcfm_generate_form_field($fields);
+			?>
+		</div>
+	</div>
+	<div class="wcfm_clearfix"></div>
+	<!-- end collapsible -->
+	<?php
 }
 
 function shipbubble_wcfm_handle_saved_profile($vendor_id, $wcfm_settings_form = array())
@@ -95,174 +218,97 @@ function shipbubble_wcfm_handle_saved_profile($vendor_id, $wcfm_settings_form = 
 		return;
 	}
 
-	if (is_array($vendor_id) && is_numeric($wcfm_settings_form)) {
-		$temp = $vendor_id;
-		$vendor_id = $wcfm_settings_form;
-		$wcfm_settings_form = $temp;
-	}
-
 	$vendor_id = absint($vendor_id);
 
-	if (!$vendor_id) {
+	if (!$vendor_id || !is_array($wcfm_settings_form)) {
 		return;
 	}
 
-	if (!is_array($wcfm_settings_form)) {
-		$wcfm_settings_form = array();
-	}
-
-	$profile = get_user_meta($vendor_id, 'wcfmmp_profile_settings', true);
-	if (!is_array($profile)) {
-		$profile = array();
-	}
+	// Our fields use name="vendor_data[shipbubble_...]" so they land in the vendor_data sub-array.
+	$submitted = is_array($wcfm_settings_form['vendor_data'] ?? null)
+		? $wcfm_settings_form['vendor_data']
+		: array();
 
 	$vendor_info = shipbubble_get_vendor_info($vendor_id);
-	$sender = shipbubble_wcfm_get_sender_details($vendor_id, $wcfm_settings_form, $profile);
-	$category = sanitize_text_field($wcfm_settings_form['shipbubble_store_category'] ?? ($vendor_info['store_category'] ?? ''));
-	$local_pickup = sanitize_text_field($wcfm_settings_form['shipbubble_local_pickup'] ?? 'no');
-	$local_pickup = 'yes' === $local_pickup ? 'yes' : 'no';
-	$local_pickup_text = sanitize_text_field($wcfm_settings_form['shipbubble_local_pickup_text'] ?? '');
 
-	$vendor_info = array_merge($vendor_info, array(
-		'sender_name' => $sender['name'],
-		'sender_email' => $sender['email'],
-		'sender_phone' => $sender['phone'],
-		'store_category' => $category,
-		'pickup_address' => $sender['pickup_address'],
-		'pickup_state' => $sender['state_label'],
-		'pickup_country' => $sender['country_label'],
-		'address_code' => '',
-		'sandbox_address_code' => '',
-		'address_validated' => 'no',
-		'local_pickup' => $local_pickup,
-		'local_pickup_text' => $local_pickup_text,
-	));
+	// Read submitted values; fall back to what's already stored so partial saves don't blank fields.
+	$name    = sanitize_text_field($submitted['shipbubble_sender_name'] ?? $vendor_info['sender_name']);
+	$email   = sanitize_email($submitted['shipbubble_sender_email'] ?? $vendor_info['sender_email']);
+	$phone   = sanitize_text_field($submitted['shipbubble_sender_phone'] ?? $vendor_info['sender_phone']);
+	$street  = sanitize_text_field($submitted['shipbubble_pickup_address'] ?? $vendor_info['pickup_address']);
+	$state   = sanitize_text_field($submitted['shipbubble_pickup_state'] ?? $vendor_info['pickup_state']);
+	$country = sanitize_text_field($submitted['shipbubble_pickup_country'] ?? $vendor_info['pickup_country']);
+	$category = sanitize_text_field($submitted['shipbubble_store_category'] ?? $vendor_info['store_category']);
 
-	if (empty($sender['name']) || empty($sender['email']) || empty($sender['phone']) || empty($sender['full_address']) || empty($category)) {
+	$local_pickup      = sanitize_text_field($submitted['shipbubble_local_pickup'] ?? $vendor_info['local_pickup']);
+	$local_pickup      = 'yes' === $local_pickup ? 'yes' : 'no';
+	$local_pickup_text = sanitize_text_field($submitted['shipbubble_local_pickup_text'] ?? $vendor_info['local_pickup_text']);
+
+	// Detect if the address fields changed so we know whether to re-validate.
+	$address_changed = ($name !== $vendor_info['sender_name'])
+		|| ($email !== $vendor_info['sender_email'])
+		|| ($phone !== $vendor_info['sender_phone'])
+		|| ($street !== $vendor_info['pickup_address'])
+		|| ($state !== $vendor_info['pickup_state'])
+		|| ($country !== $vendor_info['pickup_country']);
+
+	// Update the stored values but preserve existing validation state until we re-validate.
+	$vendor_info['sender_name']       = $name;
+	$vendor_info['sender_email']      = $email;
+	$vendor_info['sender_phone']      = $phone;
+	$vendor_info['pickup_address']    = $street;
+	$vendor_info['pickup_state']      = $state;
+	$vendor_info['pickup_country']    = $country;
+	$vendor_info['store_category']    = $category;
+	$vendor_info['local_pickup']      = $local_pickup;
+	$vendor_info['local_pickup_text'] = $local_pickup_text;
+
+	// Not all required fields filled — save progress without touching validation state.
+	if (empty($name) || empty($email) || empty($phone) || empty($street) || empty($state) || empty($country) || empty($category)) {
+		$vendor_info['address_validated']   = 'no';
+		$vendor_info['address_code']        = '';
+		$vendor_info['sandbox_address_code'] = '';
 		update_user_meta($vendor_id, 'shipbubble_vendor_info', $vendor_info);
 		return;
 	}
 
-	$keys = shipbubble_get_keys();
-	$name = shipbubble_wcfm_normalize_sender_name($sender['name']);
+	// If nothing address-related changed and already validated, skip the API call.
+	$keys_cached = shipbubble_get_keys();
+	$already_live    = empty($keys_cached['live_api_key']) || !empty($vendor_info['address_code']);
+	$already_sandbox = empty($keys_cached['sandbox_api_key']) || !empty($vendor_info['sandbox_address_code']);
+	if (!$address_changed && $vendor_info['address_validated'] === 'yes' && $already_live && $already_sandbox) {
+		update_user_meta($vendor_id, 'shipbubble_vendor_info', $vendor_info);
+		return;
+	}
+
+	$vendor_info['address_code']        = '';
+	$vendor_info['sandbox_address_code'] = '';
+	$vendor_info['address_validated']   = 'no';
+
+	$api_name    = shipbubble_wcfm_normalize_sender_name($name);
+	$api_address = implode(', ', array_filter(array($street, $state, $country)));
+	$keys        = $keys_cached;
 
 	if (!empty($keys['live_api_key'])) {
-		$live_response = shipbubble_validate_address(
-			$name,
-			$sender['email'],
-			$sender['phone'],
-			$sender['full_address'],
-			'',
-			$keys['live_api_key']
-		);
-
-		if (isset($live_response->response_code) && (int) $live_response->response_code === SHIPBUBBLE_RESPONSE_IS_OK) {
-			$vendor_info['address_code'] = $live_response->data->address_code ?? '';
+		$response = shipbubble_validate_address($api_name, $email, $phone, $api_address, '', $keys['live_api_key']);
+		if (isset($response->response_code) && (int) $response->response_code === SHIPBUBBLE_RESPONSE_IS_OK) {
+			$vendor_info['address_code'] = $response->data->address_code ?? '';
 		}
 	}
 
 	if (!empty($keys['sandbox_api_key'])) {
-		$sandbox_response = shipbubble_validate_address(
-			$name,
-			$sender['email'],
-			$sender['phone'],
-			$sender['full_address'],
-			'',
-			$keys['sandbox_api_key']
-		);
-
-		if (isset($sandbox_response->response_code) && (int) $sandbox_response->response_code === SHIPBUBBLE_RESPONSE_IS_OK) {
-			$vendor_info['sandbox_address_code'] = $sandbox_response->data->address_code ?? '';
+		$response = shipbubble_validate_address($api_name, $email, $phone, $api_address, '', $keys['sandbox_api_key']);
+		if (isset($response->response_code) && (int) $response->response_code === SHIPBUBBLE_RESPONSE_IS_OK) {
+			$vendor_info['sandbox_address_code'] = $response->data->address_code ?? '';
 		}
 	}
 
-	$live_valid = empty($keys['live_api_key']) || !empty($vendor_info['address_code']);
+	$live_valid    = empty($keys['live_api_key']) || !empty($vendor_info['address_code']);
 	$sandbox_valid = empty($keys['sandbox_api_key']) || !empty($vendor_info['sandbox_address_code']);
-	$has_key = !empty($keys['live_api_key']) || !empty($keys['sandbox_api_key']);
+	$has_key       = !empty($keys['live_api_key']) || !empty($keys['sandbox_api_key']);
 	$vendor_info['address_validated'] = ($has_key && $live_valid && $sandbox_valid) ? 'yes' : 'no';
 
 	update_user_meta($vendor_id, 'shipbubble_vendor_info', $vendor_info);
-}
-
-function shipbubble_wcfm_get_sender_details($vendor_id, array $form, array $profile): array
-{
-	$address = array();
-
-	if (isset($form['address']) && is_array($form['address'])) {
-		$address = $form['address'];
-	} elseif (isset($profile['address']) && is_array($profile['address'])) {
-		$address = $profile['address'];
-	}
-
-	$street_1 = sanitize_text_field($address['street_1'] ?? '');
-	$street_2 = sanitize_text_field($address['street_2'] ?? '');
-	$city = sanitize_text_field($address['city'] ?? '');
-	$postcode = sanitize_text_field($address['zip'] ?? ($address['postcode'] ?? ''));
-	$state_code = sanitize_text_field($address['state'] ?? '');
-	$country_code = sanitize_text_field($address['country'] ?? '');
-	$labels = shipbubble_wcfm_get_location_labels($country_code, $state_code);
-
-	$store_name = sanitize_text_field($form['store_name'] ?? ($profile['store_name'] ?? ''));
-	$phone = sanitize_text_field($form['phone'] ?? ($profile['phone'] ?? ''));
-	$email = sanitize_email($form['store_email'] ?? ($profile['store_email'] ?? ''));
-
-	if (empty($store_name) && function_exists('wcfm_get_vendor_store_name')) {
-		$store_name = sanitize_text_field(wcfm_get_vendor_store_name($vendor_id));
-	}
-
-	$store = shipbubble_wcfm_get_store($vendor_id);
-	if ($store) {
-		if (empty($store_name) && method_exists($store, 'get_shop_name')) {
-			$store_name = sanitize_text_field($store->get_shop_name());
-		}
-		if (empty($phone) && method_exists($store, 'get_phone')) {
-			$phone = sanitize_text_field($store->get_phone());
-		}
-		if (empty($email) && method_exists($store, 'get_email')) {
-			$email = sanitize_email($store->get_email());
-		}
-	}
-
-	if (empty($email)) {
-		$user = get_userdata($vendor_id);
-		$email = $user && !empty($user->user_email) ? sanitize_email($user->user_email) : '';
-	}
-
-	$pickup_address_parts = array_filter(array($street_1, $street_2, $city, $postcode));
-	$full_address_parts = array_filter(array($street_1, $street_2, $city, $postcode, $labels['state'], $labels['country']));
-
-	return array(
-		'name' => $store_name,
-		'email' => $email,
-		'phone' => $phone,
-		'pickup_address' => implode(', ', $pickup_address_parts),
-		'state_label' => $labels['state'],
-		'country_label' => $labels['country'],
-		'full_address' => implode(', ', $full_address_parts),
-	);
-}
-
-function shipbubble_wcfm_get_location_labels($country_code, $state_code): array
-{
-	$countries_obj = new WC_Countries();
-	$countries = $countries_obj->get_countries();
-	$country_label = $countries[$country_code] ?? $country_code;
-	$states = $countries_obj->get_states($country_code);
-	$state_label = is_array($states) && isset($states[$state_code]) ? $states[$state_code] : $state_code;
-
-	return array(
-		'country' => $country_label,
-		'state' => $state_label,
-	);
-}
-
-function shipbubble_wcfm_get_store($vendor_id)
-{
-	if (function_exists('wcfmmp_get_store')) {
-		return wcfmmp_get_store($vendor_id);
-	}
-
-	return false;
 }
 
 function shipbubble_wcfm_normalize_sender_name($name): string
