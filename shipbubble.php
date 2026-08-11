@@ -474,6 +474,29 @@ function shipbubble_validate_checkout_order($order_id = 0)
 		wp_send_json_error();
 	}
 
+	// Block checkout when the cart's seller has not completed Shipbubble setup.
+	// Without this the buyer is left with no shipping method at all (Shipbubble
+	// deactivates itself for unready sellers), and the order would otherwise slip
+	// through on whatever unrelated shipping method happens to be available.
+	if (apply_filters('shipbubble_checkout_seller_not_ready', false)) {
+		$not_ready_message = __('This vendor has not completed their shipping setup, so this order cannot be placed yet. Please contact the store owner.', 'shipbubble');
+
+		if (!function_exists('wc_has_notice') || !wc_has_notice($not_ready_message, 'error')) {
+			wc_add_notice($not_ready_message, 'error');
+		}
+
+		if (!$order_id) {
+			return;
+		}
+
+		$order = wc_get_order($order_id);
+		if ($order) {
+			$order->delete();
+		}
+
+		wp_send_json_error();
+	}
+
 	$order = wc_get_order($order_id);
 
 	if (!$order) {

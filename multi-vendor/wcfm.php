@@ -17,9 +17,20 @@ function shipbubble_wcfm_register_adapter()
 	// Our own collapsible panel on the vendor settings page.
 	add_action('end_wcfm_vendor_settings', 'shipbubble_wcfm_vendor_settings_panel', 15);
 
+	// Persistent warning across the whole vendor dashboard until setup is complete.
+	add_action('before_wcfm_dashboard', 'shipbubble_wcfm_setup_incomplete_banner');
+
 	// Hide WCFM's native shipping type / processing-time fields.
 	add_filter('wcfmmp_settings_fields_shipping', 'shipbubble_wcfm_settings_fields_shipping', 50, 3);
 	add_filter('wcfmmp_shipping_types', 'shipbubble_wcfm_remove_shipping_types');
+
+	// Remove WCFM's whole Shipping section from vendor settings — our panel replaces it.
+	// The WCFM Marketplace settings view gates that section on these two filters, and
+	// `wcfm_is_allow_store_shipping` additionally disables WCFM's own vendor shipping
+	// gateways (by zone/weight/distance/country) so they can't compete with Shipbubble
+	// rates at checkout.
+	add_filter('wcfm_is_allow_store_shipping', '__return_false', 500);
+	add_filter('wcfm_is_allow_vshipping_settings', '__return_false', 500);
 	add_action('wcfm_vendor_settings_update', 'shipbubble_wcfm_handle_saved_profile', 50, 2);
 
 	add_filter('is_shipbubble_active', 'shipbubble_wcfm_is_shipbubble_active');
@@ -28,6 +39,7 @@ function shipbubble_wcfm_register_adapter()
 	add_filter('shipbubble_get_cart_vendor_ids', 'shipbubble_wcfm_get_cart_vendor_ids');
 	add_filter('shipbubble_get_cart_vendor_id', 'shipbubble_wcfm_normalize_cart_vendor_id');
 	add_filter('shipbubble_checkout_has_multi_vendor', 'shipbubble_wcfm_checkout_has_multi_vendor');
+	add_filter('shipbubble_checkout_seller_not_ready', 'shipbubble_wcfm_checkout_seller_not_ready');
 	add_filter('shipbubble_get_pickup_address', 'shipbubble_wcfm_get_vendor_pickup_address');
 	add_filter('shipbubble_get_local_pickup_text', 'shipbubble_wcfm_get_vendor_local_pickup_text');
 	add_filter('shipbubble_is_local_pickup_active', 'shipbubble_wcfm_is_vendor_local_pickup_active');
@@ -62,6 +74,74 @@ function shipbubble_wcfm_settings_fields_shipping($settings_fields, $user_id = 0
 	return $settings_fields;
 }
 
+/**
+ * Dashboard-wide warning shown to a vendor until their Shipbubble setup is complete.
+ *
+ * Renders on every WCFM dashboard page and disappears on its own once the vendor
+ * is ready. The copy branches on *why* they are not ready, so a vendor whose
+ * address was rejected is not told to go and fill in fields they already filled.
+ *
+ * Both API keys are validated together during admin setup and vendor addresses are
+ * validated against both, so a vendor is never live-only or sandbox-only — the two
+ * cases below are the only ones reachable.
+ */
+function shipbubble_wcfm_setup_incomplete_banner()
+{
+	if (!shipbubble_wcfm_is_adapter_active() || !function_exists('wcfm_is_vendor')) {
+		return;
+	}
+
+	$vendor_id = absint(get_current_user_id());
+
+	if (!$vendor_id || !wcfm_is_vendor($vendor_id) || shipbubble_wcfm_vendor_ready($vendor_id)) {
+		return;
+	}
+
+	$vendor_info = shipbubble_get_vendor_info($vendor_id);
+
+	// Every field the save handler requires before it will attempt validation.
+	$required = array('sender_name', 'sender_email', 'sender_phone', 'pickup_address', 'pickup_state', 'pickup_country', 'store_category');
+	$details_complete = true;
+
+	foreach ($required as $field) {
+		if (empty($vendor_info[$field])) {
+			$details_complete = false;
+			break;
+		}
+	}
+
+	if (!$details_complete) {
+		// Nothing saved yet, or a partial save — ask them to finish the form.
+		$heading = __('Shipbubble setup incomplete', 'shipbubble');
+		$message = __('Customers cannot place orders from your store until you add and verify your pickup details.', 'shipbubble');
+		$link    = __('Complete setup', 'shipbubble');
+		$accent  = '#f0ad4e';
+		$bg      = '#fff8e1';
+		$text    = '#856404';
+	} else {
+		// Everything filled in, but Shipbubble rejected the address.
+		$heading = __('We could not verify your pickup address', 'shipbubble');
+		$message = __('Customers cannot place orders from your store until your address is verified. Please check your shipping details and save again.', 'shipbubble');
+		$link    = __('Check details', 'shipbubble');
+		$accent  = '#dc3232';
+		$bg      = '#fdecea';
+		$text    = '#8a1f1f';
+	}
+
+	$settings_url = function_exists('get_wcfm_settings_url') ? get_wcfm_settings_url() : '';
+	?>
+	<div class="shipbubble-vendor-setup-notice" style="border-left:4px solid <?php echo esc_attr($accent); ?>;background:<?php echo esc_attr($bg); ?>;color:<?php echo esc_attr($text); ?>;padding:14px 18px;border-radius:4px;margin:0 0 20px;">
+		<strong><?php echo esc_html($heading); ?></strong>
+		<p style="margin:6px 0 0;">
+			<?php echo esc_html($message); ?>
+			<?php if ($settings_url) : ?>
+				<a href="<?php echo esc_url($settings_url); ?>"><?php echo esc_html($link); ?></a>
+			<?php endif; ?>
+		</p>
+	</div>
+	<?php
+}
+
 function shipbubble_wcfm_vendor_settings_panel($vendor_id)
 {
 	if (!shipbubble_wcfm_is_adapter_active()) {
@@ -80,7 +160,6 @@ function shipbubble_wcfm_vendor_settings_panel($vendor_id)
 		$categories = array_merge(array('' => __('Select category', 'shipbubble')), $categories);
 	}
 
-	$address_validated = ($vendor_info['address_validated'] ?? 'no') === 'yes';
 	?>
 	<!-- collapsible -->
 	<div class="page_collapsible" id="wcfm_settings_form_shipbubble_head">
@@ -89,18 +168,6 @@ function shipbubble_wcfm_vendor_settings_panel($vendor_id)
 	</div>
 	<div class="wcfm-container">
 		<div id="wcfm_settings_form_shipbubble_expander" class="wcfm-content">
-			<div class="wcfm_clearfix"></div>
-
-			<?php if ($address_validated) : ?>
-			<div style="border:1px solid #46b450;background:#ecf7ed;color:#155724;padding:12px 15px;border-radius:4px;margin-bottom:16px;">
-				<?php esc_html_e('Your address is verified and Shipbubble shipping is active for your store.', 'shipbubble'); ?>
-			</div>
-			<?php else : ?>
-			<div style="border:1px solid #f0ad4e;background:#fff8e1;color:#856404;padding:12px 15px;border-radius:4px;margin-bottom:16px;">
-				<?php esc_html_e('Fill in your pickup details below and save to activate Shipbubble shipping.', 'shipbubble'); ?>
-			</div>
-			<?php endif; ?>
-
 			<div class="wcfm_clearfix"></div>
 			<?php
 			$fields = array(
@@ -408,6 +475,27 @@ function shipbubble_wcfm_checkout_has_multi_vendor($has_multi_vendor): bool
 	}
 
 	return count(shipbubble_wcfm_get_cart_seller_keys()) > 1;
+}
+
+/**
+ * Whether the cart's vendor still needs to finish their Shipbubble setup.
+ *
+ * Admin-owned carts (vendor id 0) fall back to the store-level address code, so
+ * they are never treated as "not ready" here.
+ */
+function shipbubble_wcfm_checkout_seller_not_ready($not_ready): bool
+{
+	if (!shipbubble_wcfm_is_adapter_active()) {
+		return (bool) $not_ready;
+	}
+
+	$vendor_id = shipbubble_wcfm_get_current_cart_vendor_id();
+
+	if (is_null($vendor_id) || !$vendor_id) {
+		return (bool) $not_ready;
+	}
+
+	return !shipbubble_wcfm_vendor_ready($vendor_id);
 }
 
 function shipbubble_wcfm_single_vendor_add_to_cart($passed, $product_id, $quantity, $variation_id = 0, $variations = array())
