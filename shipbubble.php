@@ -115,6 +115,7 @@ function shipbubble_vendor_info_default(): array
 		'pickup_state' => '',
 		'pickup_country' => '',
 		'address_validated' => 'no',
+		'validation_errors' => array(),
 		'local_pickup' => 'no',
 		'local_pickup_text' => ''
 	);

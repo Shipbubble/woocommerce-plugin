@@ -106,10 +106,38 @@ function shipbubble_get_checkout_orders(): array
         $products['data'][$cart_item_key]['length'] = $data->get_length();
         $products['data'][$cart_item_key]['width'] = $data->get_width();
         $products['data'][$cart_item_key]['height'] = $data->get_height();
-        $products['data'][$cart_item_key]['description'] = empty($data->get_short_description()) ? 'n/a' : $data->get_short_description();
+        $products['data'][$cart_item_key]['description'] = shipbubble_package_item_description($data->get_short_description(), $data->get_name());
     }
 
     return $products;
+}
+
+/**
+ * Build a package item description Shipbubble will accept.
+ *
+ * A short description of markup only — WordPress editors commonly leave "<p><br></p>" —
+ * is not empty(), but the payload runs it through strip_tags() and the API then rejects
+ * the item for having no description. Strip first, then fall back to the product name.
+ *
+ * @param string $short_description Raw product short description.
+ * @param string $product_name      Used as the fallback description.
+ * @return string Non-empty description.
+ */
+function shipbubble_package_item_description($short_description, $product_name = ''): string
+{
+    $description = trim(strip_tags((string) $short_description));
+
+    // Collapse entity-only leftovers such as "&nbsp;" that survive strip_tags().
+    $description = trim(html_entity_decode($description, ENT_QUOTES, 'UTF-8'));
+    $description = trim(preg_replace('/\s+/u', ' ', $description));
+
+    if ('' !== $description) {
+        return $description;
+    }
+
+    $product_name = trim((string) $product_name);
+
+    return '' !== $product_name ? $product_name : 'n/a';
 }
 
 function shipbubble_set_package_dimensions($package_weight)
@@ -288,7 +316,7 @@ function shipbubble_regenerate_rate_token($order, $shipment, $reason = '')
             $items['data'][$i]['length'] = $product->get_length();
             $items['data'][$i]['width'] = $product->get_width();
             $items['data'][$i]['height'] = $product->get_height();
-            $items['data'][$i]['description'] = empty($product->get_short_description()) ? 'n/a' : $product->get_short_description();
+            $items['data'][$i]['description'] = shipbubble_package_item_description($product->get_short_description(), $product->get_name());
 
             $i++;
         }
