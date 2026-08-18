@@ -723,7 +723,7 @@ function shipbubble_get_local_pickup_text(): string
 	$pickup_text = $options['local_pickup_text'] ?? '';
 
 	if (empty($pickup_text)) {
-		$pickup_text = 'Pickup in store';
+		$pickup_text = __('Pickup in store', 'shipbubble');
 	}
 
 	return apply_filters('shipbubble_get_local_pickup_text', $pickup_text);

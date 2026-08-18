@@ -170,6 +170,16 @@ function shipbubble_wc_api_init()
 
 function shipbubble_load_multivendor_adapters()
 {
+	// Nothing to load unless the store has multi-vendor enabled and WCFM is actually
+	// present — the adapter is large and every request would otherwise pay for it.
+	if (!function_exists('shipbubble_multivendor_enabled') || !shipbubble_multivendor_enabled()) {
+		return;
+	}
+
+	if (!function_exists('wcfm_get_vendor_id_by_post')) {
+		return;
+	}
+
 	$wcfm_adapter = plugin_dir_path(__FILE__) . 'multi-vendor/wcfm.php';
 
 	if (file_exists($wcfm_adapter)) {
