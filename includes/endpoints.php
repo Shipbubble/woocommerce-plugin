@@ -322,7 +322,11 @@ function shipbubble_get_shipping_rates(string $addressCode, array $products, $se
     $setDimensions = shipbubble_set_package_dimensions($netWeight);
 
     $senderAddressCode = shipbubble_get_address_code();
-    $categoryCode = get_option(WC_SHIPBUBBLE_ID)['store_category'];
+    $categoryCode = shipbubble_get_store_category();
+
+	if (empty($senderAddressCode)) {
+		return json_decode(shipbubble_base_response('failed', __('Shipbubble sender address has not been validated for this store.', 'shipbubble')));
+	}
 
 	$currency_code = shipbubble_get_currency_code();
     $payload = [

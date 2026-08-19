@@ -6,6 +6,7 @@ function shipbubble_courier_list_container()
 	$options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
 
 	$isShipbubbleActive = isset($options['activate_shipbubble']) ? sanitize_text_field($options['activate_shipbubble']) : 'no';
+	$isShipbubbleActive = apply_filters('is_shipbubble_active', $isShipbubbleActive);
 	
 	$container = '';
 	$btnColor = '';
@@ -45,7 +46,7 @@ function shipbubble_courier_list_container()
 
 		if ($isShipbubbleActive == 'yes') {
 			$is_local_pickup_enabled = shipbubble_is_local_pickup_active();
-			$local_pickup_text = shipbubble_get_option('local_pickup_text') ?: 'Pickup in store';
+			$local_pickup_text = shipbubble_get_local_pickup_text();
 			$pickup_address = shipbubble_get_local_pickup_default();
 
 			$container = '<div class="shipbubble-delivery-method-container">';

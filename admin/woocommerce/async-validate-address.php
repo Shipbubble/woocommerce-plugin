@@ -46,6 +46,7 @@
 		        $options['store_category'] = sanitize_text_field($data['store_category']);
 				$options['address_code'] = $live_key_response->data->address_code;
 				$options['disable_other_shipping_methods'] = sanitize_text_field($data['disable_other_shipping_methods']);
+				$options['multi_vendor'] = sanitize_text_field($data['multi_vendor'] ?? 'no');
 				$address = sanitize_text_field($data['address']);
 				$state = sanitize_text_field($data['state']);
 		        $options['pickup_address'] = $address;
