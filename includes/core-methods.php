@@ -106,10 +106,38 @@ function shipbubble_get_checkout_orders(): array
         $products['data'][$cart_item_key]['length'] = $data->get_length();
         $products['data'][$cart_item_key]['width'] = $data->get_width();
         $products['data'][$cart_item_key]['height'] = $data->get_height();
-        $products['data'][$cart_item_key]['description'] = empty($data->get_short_description()) ? 'n/a' : $data->get_short_description();
+        $products['data'][$cart_item_key]['description'] = shipbubble_package_item_description($data->get_short_description(), $data->get_name());
     }
 
     return $products;
+}
+
+/**
+ * Build a package item description Shipbubble will accept.
+ *
+ * A short description of markup only — WordPress editors commonly leave "<p><br></p>" —
+ * is not empty(), but the payload runs it through strip_tags() and the API then rejects
+ * the item for having no description. Strip first, then fall back to the product name.
+ *
+ * @param string $short_description Raw product short description.
+ * @param string $product_name      Used as the fallback description.
+ * @return string Non-empty description.
+ */
+function shipbubble_package_item_description($short_description, $product_name = ''): string
+{
+    $description = trim(strip_tags((string) $short_description));
+
+    // Collapse entity-only leftovers such as "&nbsp;" that survive strip_tags().
+    $description = trim(html_entity_decode($description, ENT_QUOTES, 'UTF-8'));
+    $description = trim(preg_replace('/\s+/u', ' ', $description));
+
+    if ('' !== $description) {
+        return $description;
+    }
+
+    $product_name = trim((string) $product_name);
+
+    return '' !== $product_name ? $product_name : 'n/a';
 }
 
 function shipbubble_set_package_dimensions($package_weight)
@@ -288,7 +316,7 @@ function shipbubble_regenerate_rate_token($order, $shipment, $reason = '')
             $items['data'][$i]['length'] = $product->get_length();
             $items['data'][$i]['width'] = $product->get_width();
             $items['data'][$i]['height'] = $product->get_height();
-            $items['data'][$i]['description'] = empty($product->get_short_description()) ? 'n/a' : $product->get_short_description();
+            $items['data'][$i]['description'] = shipbubble_package_item_description($product->get_short_description(), $product->get_name());
 
             $i++;
         }
@@ -454,11 +482,26 @@ function shipbubble_sandbox_address_validated() {
 }
 
 function shipbubble_get_address_code() {
-	if (shipbubble_is_live_mode()) {
-		return get_option(WC_SHIPBUBBLE_ID)['address_code'] ?? '';
-	} else {
-		return get_option(WC_SHIPBUBBLE_ID)['sandbox_address_code'] ?? '';
+	return shipbubble_get_sender_address_code();
+}
+
+function shipbubble_get_sender_address_code($vendor_id = null, $is_live = null) {
+	$options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
+
+	if (is_null($is_live)) {
+		$is_live = shipbubble_is_live_mode();
 	}
+
+	$address_code = $is_live ? ($options['address_code'] ?? '') : ($options['sandbox_address_code'] ?? '');
+
+	return apply_filters('shipbubble_get_address_code', $address_code, $is_live, $vendor_id);
+}
+
+function shipbubble_get_store_category($vendor_id = null) {
+	$options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
+	$category = $options['store_category'] ?? '';
+
+	return apply_filters('shipbubble_get_store_category', $category, $vendor_id);
 }
 
 function shipbubble_switch_mode($mode) {
@@ -518,7 +561,7 @@ function generate_shipbubble_notice() {
 
 
 function shipbubble_is_local_pickup_active() {
-	return shipbubble_is_option_active('local_pickup');
+	return apply_filters('shipbubble_is_local_pickup_active', shipbubble_is_option_active('local_pickup'));
 }
 
 /**
@@ -622,6 +665,70 @@ function shipbubble_get_option($key) {
     return $options[$key] ?? '';
 }
 
+function shipbubble_multivendor_enabled(): bool
+{
+	return (bool) apply_filters('shipbubble_multivendor_enabled', shipbubble_is_option_active('multi_vendor'));
+}
+
+function shipbubble_get_vendor_info($vendor_id)
+{
+	$vendor_id = absint($vendor_id);
+
+	if (!$vendor_id) {
+		return shipbubble_vendor_info_default();
+	}
+
+	$vendor_info = get_user_meta($vendor_id, 'shipbubble_vendor_info', true);
+
+	if (empty($vendor_info) || !is_array($vendor_info)) {
+		$vendor_info = shipbubble_vendor_info_default();
+		update_user_meta($vendor_id, 'shipbubble_vendor_info', $vendor_info);
+	}
+
+	return wp_parse_args($vendor_info, shipbubble_vendor_info_default());
+}
+
+function shipbubble_get_cart_vendor_ids(): array
+{
+	$vendor_ids = apply_filters('shipbubble_get_cart_vendor_ids', array());
+
+	if (!is_array($vendor_ids)) {
+		return array();
+	}
+
+	return array_values(array_unique(array_filter($vendor_ids, function ($vendor_id) {
+		return is_string($vendor_id) || is_numeric($vendor_id);
+	})));
+}
+
+function shipbubble_get_cart_vendor_id()
+{
+	$vendor_ids = shipbubble_get_cart_vendor_ids();
+
+	if (count($vendor_ids) !== 1) {
+		return null;
+	}
+
+	return apply_filters('shipbubble_get_cart_vendor_id', $vendor_ids[0]);
+}
+
+function shipbubble_cart_has_multiple_vendors(): bool
+{
+	return (bool) apply_filters('shipbubble_checkout_has_multi_vendor', count(shipbubble_get_cart_vendor_ids()) > 1);
+}
+
+function shipbubble_get_local_pickup_text(): string
+{
+	$options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
+	$pickup_text = $options['local_pickup_text'] ?? '';
+
+	if (empty($pickup_text)) {
+		$pickup_text = __('Pickup in store', 'shipbubble');
+	}
+
+	return apply_filters('shipbubble_get_local_pickup_text', $pickup_text);
+}
+
 /**
  * Retrieves the local pickup address from the Shipbubble options.
  *
@@ -638,7 +745,14 @@ function shipbubble_get_local_pickup_default(): string
     $country = $options['pickup_country'] ?? '';
 
 
-    return $address . ', ' . $state . ', ' . $country;
+    return apply_filters('shipbubble_get_pickup_address', $address . ', ' . $state . ', ' . $country);
+}
+
+function is_shipbubble_admin_page() : bool
+{
+	$page = $_GET['page'] ?? '';
+
+	return strpos($page, 'shipbubble-settings') !== false;
 }
 
 
