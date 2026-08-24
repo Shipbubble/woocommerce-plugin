@@ -1,6 +1,10 @@
 <?php
 
-// enqueue admin style
+/**
+ * Enqueue Shipbubble admin styles with file-based cache busting.
+ *
+ * @return void
+ */
 function shipbubble_enqueue_style_admin() {
 	
 	/*
@@ -13,9 +17,11 @@ function shipbubble_enqueue_style_admin() {
 		)
 	*/
 	
-	$src = plugins_url( '/css/styles-wc.css', plugin_dir_path( __FILE__ ) );
+	$style_path = dirname(__DIR__) . '/css/styles-wc.css';
+	$src = plugins_url( 'admin/css/styles-wc.css', dirname( __DIR__, 2 ) . '/shipbubble.php' );
+	$version = file_exists($style_path) ? filemtime($style_path) : null;
 
-	wp_enqueue_style( 'shipbubble-admin', $src, array(), null, 'all' );
+	wp_enqueue_style( 'shipbubble-admin', $src, array(), $version, 'all' );
 
 }
 add_action( 'admin_enqueue_scripts', 'shipbubble_enqueue_style_admin' );

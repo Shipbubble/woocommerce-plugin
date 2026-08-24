@@ -1,6 +1,11 @@
 <?php
 
 add_action('woocommerce_checkout_before_order_review', 'shipbubble_courier_list_container');
+/**
+ * Render the Shipbubble delivery options for physical carts.
+ *
+ * @return void
+ */
 function shipbubble_courier_list_container()
 {
 	$options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
@@ -48,16 +53,21 @@ function shipbubble_courier_list_container()
 			$is_local_pickup_enabled = shipbubble_is_local_pickup_active();
 			$local_pickup_text = shipbubble_get_local_pickup_text();
 			$pickup_address = shipbubble_get_local_pickup_default();
+			$checkout_type = shipbubble_get_checkout_type();
+			$is_dynamic_checkout = 'dynamic' === $checkout_type;
 
-			$container = '<div class="shipbubble-delivery-method-container">';
+			$container = '<div class="shipbubble-delivery-method-container" data-checkout-type="' . esc_attr($checkout_type) . '" tabindex="-1" aria-label="Shipbubble delivery options" aria-busy="false">';
 
 			if ($is_local_pickup_enabled) {
+				$container .= '<input type="hidden" name="shippbuble_local_pickup_address" id="shipbubble-local-pickup-address" value="' . esc_attr($pickup_address) . '">';
+			}
+
+			if ($is_local_pickup_enabled && !$is_dynamic_checkout) {
 				$container .= '<div class="shipbubble-delivery-options-card">
             <div class="shipbubble-delivery-option" onclick="document.getElementById(\'shipbubble-pickup-option\').click();">
                 <div class="shipbubble-option-container">
                     <div class="shipbubble-radio-label">
                         <input type="radio" id="shipbubble-pickup-option" name="delivery_method" value="pickup">
-                        <input type="hidden" name="shippbuble_local_pickup_address" id="shipbubble-local-pickup-address" value="' . esc_attr($pickup_address) . '">
                         <div class="shipbubble-pickup-text-container">
                             <label for="shipbubble-pickup-option">' . esc_html($local_pickup_text) . '</label>
                             ' . ($pickup_address ? '<div class="shipbubble-pickup-address" id="shipbubble-local-pickup-address-text">' . esc_html($pickup_address) . '</div>' : '') . '
@@ -92,10 +102,31 @@ function shipbubble_courier_list_container()
         <input type="hidden" id="shipbubble_courier_id" name="shipbubble_courier_id" value="">
         
         <div class="container-card">
-            ' . (!$is_local_pickup_enabled ? '<button id="request_courier_rates" style="background: ' . $btnColor . ';">
+            ' . (!$is_local_pickup_enabled && !$is_dynamic_checkout ? '<button id="request_courier_rates" style="background: ' . $btnColor . ';">
                 <p>Get Delivery Prices</p>
             </button>' : '') . '
-            <div id="courier-list" class="container-delivery-card"></div>
+            <div id="courier-list" class="container-delivery-card">';
+
+			if ($is_dynamic_checkout && $is_local_pickup_enabled) {
+				$container .= '
+				<div class="container-delivery-card-list-item shipbubble-dynamic-pickup-option" data-radio-id="shipbubble-dynamic-pickup">
+					<div class="container-delivery-card-list-item-top">
+						<div class="message">
+							<div class="radio-info">
+								<p class="title">' . esc_html($local_pickup_text) . '</p>
+								<p class="price">' . esc_html__('Free', 'shipbubble') . '</p>
+							</div>
+							<span class="delivery-time" id="shipbubble-local-pickup-address-text">' . esc_html($pickup_address) . '</span>
+						</div>
+					</div>
+					<div class="radio-item">
+						<input type="radio" id="shipbubble-dynamic-pickup" name="delivery_option" data-request_token="" data-courier_name="Local Pickup" data-cost="0" data-service_code="" data-courier_id="local_pickup">
+						<label for="shipbubble-dynamic-pickup">' . esc_html($local_pickup_text) . '</label>
+					</div>
+				</div>';
+			}
+
+			$container .= '</div>
         </div>
     </div>';
 
@@ -121,6 +152,11 @@ function shipbubble_courier_list_container()
 }
 
 add_action('wp_footer', 'shipbubble_courier_setup_on_change');
+/**
+ * Register checkout handlers for courier and address changes.
+ *
+ * @return void
+ */
 function shipbubble_courier_setup_on_change()
 {
 	$options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
@@ -174,69 +210,74 @@ function shipbubble_courier_setup_on_change()
                             // Trigger WooCommerce checkout update
                             jQuery('body').trigger('update_checkout');
                         }
-                    });// Remove the click wrapper and use event delegation
-                    $(document).on('change', 'input[name="delivery_option"]', function() {
-                        if ($(this).is(':checked')) {
-                            const checked_courier = $(this);
-                            const courier_name = checked_courier.attr('data-courier_name');
-                            const total = checked_courier.attr('data-cost');
-                            const courier_id = checked_courier.attr('data-courier_id');
-                            const service_code = checked_courier.attr('data-service_code');
-                            const request_token = checked_courier.attr('data-request_token');
-
-                            const request_datetime = $('#shipbubble_rate_datetime').val();
-
-                            // Update hidden fields
-                            $('#shipbubble_selected_courier').val(courier_name);
-                            $('#shipbubble_cost').val(total);
-                            $('#request_token').val(request_token);
-                            $('#shipbubble_service_code').val(service_code);
-                            $('#shipbubble_courier_id').val(courier_id);
-
-                            // Set flag that courier has been set
-                            $('#shipbubble_courier_set').val('true');
-
-                            // Scroll to shipping totals if exists
-                            let shippingTotals = $(".woocommerce-shipping-totals.shipping");
-
-                            if (shippingTotals.length) {
-                                $('html, body').animate({
-                                    scrollTop: shippingTotals.offset().top
-                                }, 1000);
-                            }
-
-                            // Trigger WooCommerce checkout update
-                            jQuery('body').trigger('update_checkout');
-                        }
                     });
 
-					// Original handler for billing/shipping changes
-					$('form').on('change', 'input[name^="billing"], input[name^="shipping"], select[name^="billing"], select[name^="shipping"]', function handleShippingChanges() {
-						let list = $('#courier-list')
-                        sbSlogan = $('.sb-slogan-container');
+					/**
+					 * Clear courier results while retaining dynamic Local Pickup.
+					 *
+					 * @param {jQuery} list Courier list container.
+					 * @returns {void}
+					 */
+					function clearDisplayedCouriers(list) {
+						if (list.closest('.shipbubble-delivery-method-container').data('checkout-type') === 'dynamic') {
+							list.children('.container-delivery-card-header, .shipbubble-courier-results').remove();
+							list.find('.container-delivery-card-list-item').not('.shipbubble-dynamic-pickup-option').remove();
+							list.find('input[name="delivery_option"]').prop('checked', false);
+							list.find('.active').removeClass('active');
+							return;
+						}
 
-                        if ($('#shipbubble_courier_set').val() == 'false' && $('#shipbubble_rate_datetime').val().length !== 0) {
-                            list.empty();
-                            sbSlogan.hide();
-                        }
+						list.empty();
+					}
 
-                        if ($('#shipbubble_courier_set').val() == 'true') {
-                            $('#shipbubble_reset_shipping_method').val('true');
+					/**
+					 * Invalidate the current courier selection and displayed rates.
+					 *
+					 * @returns {void}
+					 */
+					function invalidateDisplayedCouriers() {
+						const list = $('#courier-list');
+						const hasSelectedCourier = $('#shipbubble_courier_set').val() === 'true'
+							|| $('#shipbubble_courier_id').val().length > 0;
 
-                            // set flag that previously set courier should be removed
-                            $('#shipbubble_courier_set').val('false');
+						if (hasSelectedCourier) {
+							$('#shipbubble_reset_shipping_method').val('true');
+						}
 
-                            list.empty();
-                            sbSlogan.hide();
-                        }
+						$('#shipbubble_courier_set').val('false');
+						$('#shipbubble_rate_datetime').val('');
+						$('#shipbubble_selected_courier').val('');
+						$('#shipbubble_cost').val('');
+						$('#request_token').val('');
+						$('#shipbubble_service_code').val('');
+						$('#shipbubble_courier_id').val('');
+						clearDisplayedCouriers(list);
+						$('.sb-slogan-container').hide();
 
 						const shippingRadio = $('input[name="delivery_method"]');
 						if (shippingRadio.length > 0) {
 							shippingRadio.prop('checked', false);
 						}
+					}
+
+					const addressTextFields = [
+						'#billing_address_1', '#billing_city', '#billing_postcode',
+						'#shipping_address_1', '#shipping_city', '#shipping_postcode'
+					].join(', ');
+
+					// Remove stale couriers as soon as an address value is edited.
+					$('form').on('input', addressTextFields, invalidateDisplayedCouriers);
+
+					/**
+					 * Invalidate rates and recalculate after a checkout field changes.
+					 *
+					 * @returns {void}
+					 */
+					$('form').on('change', 'input[name^="billing_"], input[name^="shipping_"]:not([name^="shipping_method"]), select[name^="billing_"], select[name^="shipping_"]', function handleShippingChanges() {
+						invalidateDisplayedCouriers();
 
 						$(document.body).trigger('update_checkout');
-                    })
+					});
 				}
 			);
 		</script>
