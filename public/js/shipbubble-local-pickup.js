@@ -205,12 +205,12 @@ jQuery(document).ready(function($) {
 	store_address_values();
 
 	$('#shipping_address_1, #shipping_city, #shipping_state, #shipping_country').on('change', function() {
-		if ($('input[name="delivery_method"]').length === 0) return;
+		if ($('#shipbubble-local-pickup-address').length === 0) return;
 		handle_address_change('shipping');
 	});
 
 	$('#billing_address_1, #billing_city, #billing_state, #billing_country').on('change', function() {
-		if ($('input[name="delivery_method"]').length === 0) return;
+		if ($('#shipbubble-local-pickup-address').length === 0) return;
 		handle_address_change('billing');
 	});
 

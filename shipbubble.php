@@ -83,6 +83,11 @@ function shipbubble_options_default(): array
 	);
 }
 
+/**
+ * Return the default WooCommerce settings for Shipbubble.
+ *
+ * @return array
+ */
 function shipbubble_wc_options_default(): array
 {
 	return array(
@@ -98,6 +103,7 @@ function shipbubble_wc_options_default(): array
 		'live_mode' => 'yes',
 		'local_pickup' => 'no',
 		'local_pickup_text' => '',
+		'checkout_type' => 'default',
 		'multi_vendor' => 'no'
 	);
 }
@@ -571,10 +577,15 @@ function shipbubble_validate_checkout_order($order_id = 0)
 	}
 }
 
+/**
+ * Enqueue shared Shipbubble scripts in dependency order.
+ *
+ * @return void
+ */
 function shipbubble_append_enqueue_script()
 {
 	wp_enqueue_script('sweetalert2', plugins_url('public/js/sweetalert2.min.js', __FILE__), array());
-	wp_enqueue_script('blockui', plugins_url('public/js/blockui/jquery.blockUI.js', __FILE__), array());
+	wp_enqueue_script('blockui', plugins_url('public/js/blockui/jquery.blockUI.js', __FILE__), array('jquery'));
 	// here you can enqueue more js / css files
 }
 

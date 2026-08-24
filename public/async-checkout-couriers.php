@@ -42,7 +42,14 @@
 		wp_localize_script( 'shipbubble-local-pickup', 'shipbubble_local_pickup', $data );
 	}
 
+	/**
+	 * Enqueue and configure the checkout courier script.
+	 *
+	 * @return void
+	 */
 	function enqueue_shipbubble_checkout_script() {
+		$options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
+
 		// define script url
 		$script_url = plugins_url( '/js/couriers-on-checkout.js', __FILE__ );
 
@@ -56,7 +63,13 @@
 		$ajax_url = admin_url( 'admin-ajax.php' );
 
 		// define script
-		$script = array( 'nonce' => $nonce, 'ajaxurl' => $ajax_url, 'logo' => SHIPBUBBLE_LOGO_URL );
+		$script = array(
+			'nonce' => $nonce,
+			'ajaxurl' => $ajax_url,
+			'logo' => SHIPBUBBLE_LOGO_URL,
+			'checkout_type' => shipbubble_get_checkout_type(),
+			'local_pickup' => ($options['local_pickup'] ?? 'no') === 'yes',
+		);
 
 		// localize script
 		wp_localize_script( 'ajax-public', 'ajax_public', $script );

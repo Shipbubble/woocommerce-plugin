@@ -36,7 +36,11 @@ function add_shipbubble_menu() {
 //	);
 }
 
-// Callback function to render the settings page
+/**
+ * Render the Shipbubble settings page and its available tabs.
+ *
+ * @return void
+ */
 function display_shipbubble_settings_page() {
 	$options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
 	$shipbubble_init = get_option(SHIPBUBBLE_INIT);
@@ -47,13 +51,15 @@ function display_shipbubble_settings_page() {
 			<a href="#shipbubble-settings-api-tab" class="nav-tab nav-tab-active" id="tab1-link">API Keys</a>
             <?php if ($shipbubble_init['account_status']) { ?>
 			<a href="#shipbubble-settings-sender-tab" class="nav-tab" id="tab2-link">Store Information</a>
-			<a href="#shipbubble-settings-local-pickup" class="nav-tab" id="tab2-link">Local Pickup</a>
+			<a href="#shipbubble-settings-checkout" class="nav-tab" id="tab3-link">Checkout</a>
+			<a href="#shipbubble-settings-local-pickup" class="nav-tab" id="tab4-link">Local Pickup</a>
             <?php } ?>
 		</h2>
 		<?php
 		include_once plugin_dir_path(__FILE__) . 'templates/api-keys.php';
         if ($shipbubble_init['account_status']) {
             include_once plugin_dir_path(__FILE__) . 'templates/sender-details.php';
+			include_once plugin_dir_path(__FILE__) . 'templates/checkout.php';
             include_once plugin_dir_path(__FILE__) . 'templates/local-pickup.php';
         }
 		?>
