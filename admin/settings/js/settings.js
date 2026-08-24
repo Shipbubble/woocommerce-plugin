@@ -333,6 +333,59 @@ jQuery(document).ready(function($) {
 		});
 	});
 
+	/**
+	 * Save the selected checkout type through the admin AJAX endpoint.
+	 */
+	$('#shipbubble-checkout-form').on('submit', function (e) {
+		e.preventDefault();
+
+		const checkoutType = $('input[name="shipbubble_checkout_type"]:checked').val();
+		disableForm('shipbubble-checkout-form');
+
+		$.post(ajaxurl, {
+			nonce: ajax_wc_admin.nonce,
+			action: 'shipbubble_update_checkout_type',
+			data: {checkout_type: checkoutType},
+			dataType: 'json'
+		}).done(function (response) {
+			if (!response || !response.success) {
+				const message = response && response.data && response.data.message
+					? response.data.message
+					: 'Something went wrong';
+				Swal.fire({
+					icon: 'warning',
+					title: '',
+					text: 'Error updating Checkout Type: ' + message,
+					showConfirmButton: false,
+					timer: 4500
+				});
+				return;
+			}
+
+			Swal.fire({
+				icon: 'success',
+				title: 'Checkout Type updated successfully!',
+				text: response.data.message,
+				showConfirmButton: false,
+				timer: 2000
+			});
+		}).fail(function (xhr) {
+			const response = xhr.responseJSON;
+			const message = response && response.data && response.data.message
+				? response.data.message
+				: 'Something went wrong';
+			Swal.fire({
+				icon: 'warning',
+				title: '',
+				text: 'Error updating Checkout Type: ' + message,
+				showConfirmButton: false,
+				timer: 4500
+			});
+		}).always(function () {
+			enableForm('shipbubble-checkout-form');
+		});
+	});
+
 	// form handlers
 	function disableForm(form_id, loading_message = '') {
 		showLoadingScreen(loading_message);

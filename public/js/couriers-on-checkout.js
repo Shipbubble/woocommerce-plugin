@@ -1,179 +1,236 @@
 jQuery(document).ready(function($) {
-	var requestRatesBtn = $('#request_courier_rates');
+	const isDynamicCheckout = ajax_public.checkout_type === 'dynamic';
+	let activeRateRequest = null;
+	let dynamicRequestTimer = null;
+	let lastDynamicPayload = '';
+	let lastObservedDynamicPayload = null;
+	let rateRequestSequence = 0;
 
-	requestRatesBtn.click(function (e) {
+	$(document).on('click', '#request_courier_rates', function (e) {
 		e.preventDefault();
-		processShippingRateRequest(this)
+		processShippingRateRequest(this, false);
 	});
 
-	function processShippingRateRequest(requestRatesBtn) {
-		$('#shipping-notice').remove();
+	/**
+	 * Read a checkout field from either an input or select element.
+	 *
+	 * @param {string} prefix Billing or shipping field prefix.
+	 * @param {string} field Field name without its prefix.
+	 * @param {boolean} useOptionText Whether to return selected option text.
+	 * @returns {string}
+	 */
+	function getCheckoutField(prefix, field, useOptionText = false) {
+		const selector = `#${prefix}_${field}`;
+		const select = $(`select${selector}`);
 
-		// initialize variables
-		let firstName = lastName = email = phone = selectedCountry = selectedState = city = streetAddress = '';
-		let shippingStateRequired = billingStateRequired = 0;
-
-		let useShippingAddress = $('input#ship-to-different-address-checkbox');
-
-		// order comments
-		orderComments = $('textarea#order_comments').val();
-
-		// use shipping variables
-		if (useShippingAddress.is(':checked')) {
-			firstName = $('input#shipping_first_name').val();
-			lastName = $('input#shipping_last_name').val();
-			city = $('input#shipping_city').val();
-			streetAddress = $('input#shipping_address_1').val();
-
-			if ($('input#shipping_email').val() == undefined) {
-				email = $('input#billing_email').val();
-			} else {
-				email = $('input#shipping_email').val();
-			}
-
-			if ($('input#shipping_phone').val() == undefined) {
-				phone = $('input#billing_phone').val();
-			} else {
-				phone = $('input#shipping_phone').val();
-			}
-
-			if ($('select#shipping_city').length) {
-				city = $('select#shipping_city option:selected').text();
-			} else {
-				city = $('input#shipping_city').val();
-			}
-
-			if ($('select#shipping_country').length) {
-				selectedCountry = $('select#shipping_country option:selected').text();
-			} else {
-				selectedCountry = $('input#shipping_country').val();
-				selectedCountry = getCountryCode(selectedCountry);
-			}
-
-			billingStateRequired = $('label[for="billing_state"]').find('abbr.required').length;
-
-			if ($('select#shipping_state').length) {
-				selectedState = $('select#shipping_state option:selected').text();
-			} else {
-				selectedState = $('input#shipping_state').val();
-			}
-
-		} else {
-			// use billing variables
-			firstName = $('input#billing_first_name').val();
-			lastName = $('input#billing_last_name').val();
-			email = $('input#billing_email').val();
-			phone = $('input#billing_phone').val();
-			streetAddress = $('input#billing_address_1').val();
-
-			if ($('select#billing_city').length) {
-				city = $('select#billing_city option:selected').text();
-			} else {
-				city = $('input#billing_city').val();
-			}
-
-			if ($('select#billing_country').length) {
-				selectedCountry = $('select#billing_country option:selected').text();
-			} else {
-				selectedCountry = $('input#billing_country').val();
-				selectedCountry = getCountryCode(selectedCountry);
-			}
-
-			shippingStateRequired = $('label[for="shipping_state"]').find('abbr.required').length;
-
-			if ($('select#billing_state').length) {
-				selectedState = $('select#billing_state option:selected').text();
-			} else {
-				selectedState = $('input#billing_state').val();
-			}
+		if (select.length) {
+			if (!select.val()) return '';
+			return useOptionText ? select.find('option:selected').text().trim() : select.val().trim();
 		}
 
-		// check requirements are met
-		if (
-			(((!billingStateRequired || !shippingStateRequired) && selectedState.length >= 0)
-				|| (billingStateRequired || shippingStateRequired) && selectedState.length > 0)
-			&&
-			firstName != '' && lastName != '' && email != '' && phone != '' && streetAddress != '' && city != '' && selectedCountry != '') {
+		return ($(`input${selector}`).val() || '').trim();
+	}
 
-			// hide notice
-			$('#shipping-notice').remove();
+	/**
+	 * Build a validated rate payload from the active checkout address.
+	 *
+	 * @returns {{payload: Object|null, missing: string[]}}
+	 */
+	function buildShippingRateRequest() {
+		const useShippingAddress = $('input#ship-to-different-address-checkbox').is(':checked');
+		const prefix = useShippingAddress ? 'shipping' : 'billing';
+		const fallbackPrefix = 'billing';
 
-			if ( $('.iti__selected-dial-code').length !== 0 ) {
-				let phoneDialCode = $('.iti__selected-dial-code').first().text();
+		let firstName = getCheckoutField(prefix, 'first_name') || getCheckoutField(fallbackPrefix, 'first_name');
+		let lastName = getCheckoutField(prefix, 'last_name') || getCheckoutField(fallbackPrefix, 'last_name');
+		let email = getCheckoutField(prefix, 'email') || getCheckoutField(fallbackPrefix, 'email');
+		let phone = getCheckoutField(prefix, 'phone') || getCheckoutField(fallbackPrefix, 'phone');
+		let streetAddress = getCheckoutField(prefix, 'address_1');
+		let city = getCheckoutField(prefix, 'city', true);
+		let selectedState = getCheckoutField(prefix, 'state', true);
+		let selectedCountry = getCheckoutField(prefix, 'country', true);
+		let postcode = getCheckoutField(prefix, 'postcode');
 
-				if (!phone.startsWith('+')) {
-					phone = phoneDialCode + phone;
-				}
+		if (!$(`select#${prefix}_country`).length && selectedCountry) {
+			selectedCountry = getCountryCode(selectedCountry);
+		}
+
+		const stateRequired = $(`label[for="${prefix}_state"]`).find('abbr.required').length > 0;
+		const missingFields = {
+			firstName,
+			lastName,
+			email,
+			phone,
+			streetAddress,
+			city,
+			selectedCountry
+		};
+
+		if (stateRequired && !selectedState) {
+			missingFields.selectedState = '';
+		}
+
+		const missing = Object.keys(missingFields).filter(key => !missingFields[key]);
+		if (missing.length) {
+			return {payload: null, missing};
+		}
+
+		if ($('.iti__selected-dial-code').length !== 0 && !phone.startsWith('+')) {
+			phone = $('.iti__selected-dial-code').first().text() + phone;
+		}
+
+		const payload = {
+			name: `${firstName} ${lastName}`,
+			email,
+			phone,
+			address: `${streetAddress}, ${city}, ${selectedState}, ${selectedCountry}`,
+			comments: $('textarea#order_comments').val() || ''
+		};
+
+		if (postcode) {
+			payload.postcode = postcode;
+		}
+
+		return {payload, missing: []};
+	}
+
+	/**
+	 * Return a stable key for the current complete rate payload.
+	 *
+	 * @returns {string}
+	 */
+	function getShippingRatePayloadKey() {
+		const request = buildShippingRateRequest();
+		return request.payload ? JSON.stringify(request.payload) : '';
+	}
+
+	/**
+	 * Validate checkout details and start a shipping-rate request.
+	 *
+	 * @param {HTMLElement|null} requestRatesControl Manual request control, if any.
+	 * @param {boolean} automatic Whether the request was triggered dynamically.
+	 * @returns {void}
+	 */
+	function processShippingRateRequest(requestRatesControl, automatic) {
+		$('#shipping-notice').remove();
+		const request = buildShippingRateRequest();
+
+		if (!request.payload) {
+			if (automatic) {
+				invalidateActiveRateRequest();
+				lastDynamicPayload = '';
+				resetCourierDisplay($('#courier-list'));
+				$('.sb-slogan-container').hide();
 			}
 
-			// Assemble payload
-			let addressPayload = {
-				name: firstName + ' ' + lastName,
-				email,
-				phone,
-				address: streetAddress + ', ' + city + ', ' + selectedState + ', ' + selectedCountry,
-				comments: orderComments,
-			};
+			if (!automatic) {
+				const missingLabels = request.missing.map(key => {
+					if (key === 'selectedState') return 'selected state or county';
+					return key.split(/(?=[A-Z])/).join(' ').toLowerCase();
+				});
 
-			if ($('input#billing_postcode').val()) {
-				addressPayload.postcode = $('input#billing_postcode').val();
-			} else if ($('input#shipping_postcode').val()) {
-				addressPayload.postcode = $('input#shipping_postcode').val();
+				Swal.fire({
+					title: '',
+					text: `Ensure that you have filled your ${missingLabels.join(', ')}`,
+					showConfirmButton: false,
+					showCloseButton: true,
+					width: 400,
+					customClass: {closeButton: 'shipbubble-close-button'}
+				});
 			}
 
-			let sbSlogan = $('.sb-slogan-container');
-			sbSlogan.show();
+			$(requestRatesControl).prop('checked', false);
+			return;
+		}
 
-			// disable request btn
-			$(requestRatesBtn).prop('disabled', true);
+		const payloadKey = JSON.stringify(request.payload);
+		if (automatic && payloadKey === lastDynamicPayload) {
+			const requestPending = activeRateRequest && activeRateRequest.readyState !== 4;
+			const resultsAvailable = $('#courier-list .shipbubble-courier-results').length > 0;
+			if (requestPending || resultsAvailable) return;
+		}
 
-			// Request shipping rates
-			fetch_shipping_rates(addressPayload, requestRatesBtn);
-		} else {
-			// Display notice
-			let errorBox = [];
-			let containerObject = { firstName, lastName, email, phone, streetAddress, city, selectedCountry }
+		if (automatic) lastDynamicPayload = payloadKey;
 
-			if ((billingStateRequired || shippingStateRequired)) {
-				containerObject['selectedState'] = '';
-			}
+		$('.sb-slogan-container').show();
+		$(requestRatesControl).prop('disabled', true);
+		fetch_shipping_rates(request.payload, requestRatesControl);
+	}
 
-			for (const key in containerObject) {
-				if (containerObject[key] == '') {
-					let kName = '';
+	/**
+	 * Clear courier results while preserving dynamic Local Pickup.
+	 *
+	 * @param {jQuery} list Courier list container.
+	 * @returns {void}
+	 */
+	function resetCourierDisplay(list) {
+		if (isDynamicCheckout && list.find('.shipbubble-dynamic-pickup-option').length) {
+			list.children('.container-delivery-card-header, .shipbubble-courier-results').remove();
+			return;
+		}
 
-					if (key.includes('selectedState') && (billingStateRequired || shippingStateRequired)) {
-						kName = 'selected state or county';
-					} else {
-						kName = key.split(/(?=[A-Z])/).join(' ').toLowerCase();
-					}
+		list.empty();
+	}
 
-					errorBox.push(`${kName}`);
-				}
-			}
+	/**
+	 * Prepare the courier list loading state.
+	 *
+	 * @returns {{list: jQuery, courierList: jQuery, loaders: jQuery}}
+	 */
+	function prepareCourierDisplay() {
+		const list = $('#courier-list');
+		resetCourierDisplay(list);
+		list.prepend('<div class="container-delivery-card-header"><p id="sb-status-text">Fetching delivery prices...</p></div>');
 
-			Swal.fire({
-				title: '',
-				text: `Ensure that you have filled your ${errorBox.join(', ')}`,
-				showConfirmButton: false,
-				showCloseButton: true,
-				width: 400,
-				customClass: {
-					closeButton: "shipbubble-close-button"
-				}
-			});
+		const results = $('<div class="shipbubble-courier-results"></div>');
+		const courierList = $('<div class="container-delivery-card-list shipbubble-loading"></div>');
+		const loaders = $('<div class="shipbubble-loading"><span></span><span></span><span></span><span></span></div>');
+		results.append(courierList, loaders);
+		list.append(results);
 
-			// if ($('#order_review_heading').length === 0) {
-			// 	// put shipping notice before the div with class .shipbubble-delivery-method-container
-			// 	shippingNotice.prependTo('.shipbubble-delivery-method-container').show();
-			// } else {
-			// 	shippingNotice.appendTo('#order_review_heading').show();
-			// }
+		return {list, courierList, loaders};
+	}
 
-			$(requestRatesBtn).prop('checked', false)
+	/**
+	 * Focus and reveal the Shipbubble section while rates load.
+	 *
+	 * @returns {void}
+	 */
+	function focusCourierSection() {
+		const section = $('.shipbubble-delivery-method-container').first();
+		if (!section.length) return;
+
+		section.attr('aria-busy', 'true');
+		const element = section.get(0);
+		element.focus({preventScroll: true});
+		element.scrollIntoView({behavior: 'smooth', block: 'center'});
+		window.setTimeout(function() {
+			const currentSection = $('.shipbubble-delivery-method-container[aria-busy="true"]').first().get(0);
+			if (currentSection) currentSection.focus({preventScroll: true});
+		}, 0);
+	}
+
+	/**
+	 * Clear failed courier results without removing Local Pickup.
+	 *
+	 * @returns {void}
+	 */
+	function clearFailedCourierDisplay() {
+		const list = $('#courier-list');
+		resetCourierDisplay(list);
+
+		if (list.find('.shipbubble-dynamic-pickup-option').length) {
+			list.prepend('<div class="container-delivery-card-header"><p id="sb-status-text">Select a delivery option</p></div>');
 		}
 	}
 
+	/**
+	 * Fetch and render courier rates for a validated address.
+	 *
+	 * @param {Object} payload Shipping-rate request payload.
+	 * @param {HTMLElement|null} requestBtn Manual request control, if any.
+	 * @returns {void}
+	 */
 	function fetch_shipping_rates(payload, requestBtn) {
 		// submit the data
 		let ajaxUrl = ajax_public.ajaxurl;
@@ -185,53 +242,47 @@ jQuery(document).ready(function($) {
 			data: payload
 		};
 
-		// initialize courier listing html container
-		let list = $('#courier-list');
+		const requestPayloadKey = JSON.stringify(payload);
+		let display = prepareCourierDisplay();
+		focusCourierSection();
+		const requestSequence = ++rateRequestSequence;
 
-		list.empty();
+		if (activeRateRequest && activeRateRequest.readyState !== 4) {
+			activeRateRequest.abort();
+		}
 
-		list.append(`
-        <div class="container-delivery-card-header">
-            <p id="sb-status-text">Fetching delivery prices...</p>
-        </div>
-    `);
+		activeRateRequest = $.post(ajaxUrl, data).done(function (data) {
+			if (requestSequence !== rateRequestSequence
+				|| requestPayloadKey !== getShippingRatePayloadKey()) return;
 
-		let newCourierList = $('<div class="container-delivery-card-list shipbubble-loading"></div');
-
-		list.append(newCourierList);
-
-		let loaders = $(`<div class="shipbubble-loading">
-        <span></span>
-        <span></span>
-        <span></span>
-        <span></span>
-    </div>`);
-
-		$(loaders).insertAfter(newCourierList);
-
-		loaders.show();
-
-		$.post(
-			ajaxUrl,
-			data,
-		).done(function (data) {
-
-			let response = JSON.parse(data);
+			let response;
+			try {
+				response = typeof data === 'string' ? JSON.parse(data) : data;
+			} catch (error) {
+				response = {status: 'failed', message: 'Unable to read the delivery rates response.'};
+			}
 
 			if (response.hasOwnProperty('status')) {
 				if (response['status'] == 'success') {
 					let output = response['data'];
+					display = $('#courier-list').children('.shipbubble-courier-results').length
+						? {
+							list: $('#courier-list'),
+							courierList: $('#courier-list').find('.shipbubble-courier-results .container-delivery-card-list').first(),
+							loaders: $('#courier-list').find('.shipbubble-courier-results > .shipbubble-loading').last()
+						}
+						: prepareCourierDisplay();
 
 					// dynamically add each courier
-					$('#sb-status-text').html('Select a delivery option');
+					display.list.find('#sb-status-text').html('Select a delivery option');
 
 					// log time of data fetch
 					var json_fetch_date = new Date().toLocaleString();
 					$('input[name="shipbubble_rate_datetime"]').val(json_fetch_date);
 
-					loaders.hide();
+					display.loaders.hide();
 
-					newCourierList.removeClass('shipbubble-loading');
+					display.courierList.removeClass('shipbubble-loading');
 
 					$.each(output.couriers, function (i, value) {
 						// set total charge
@@ -243,7 +294,7 @@ jQuery(document).ready(function($) {
 							pickupInfo = `<p class="pickup-info">Pickup at ${value.pickup_station.address}</p>`;
 						}
 
-						newCourierList.append(`
+						display.courierList.append(`
                         <div class="container-delivery-card-list-item" data-radio-id="${value.courier_id}_${i}">
                             <div class="container-delivery-card-list-item-top">
                                 <img src="${value.courier_image}" alt="${value.courier_name}" />
@@ -273,48 +324,11 @@ jQuery(document).ready(function($) {
                     `);
 					});
 
-					// Make entire div clickable
-					$('.container-delivery-card-list-item').on('click', function(e) {
-						// Don't trigger if clicking directly on the radio button or label
-						if ($(e.target).is('input[type="radio"]') || $(e.target).is('label')) {
-							return;
-						}
-
-						const radioId = $(this).data('radio-id');
-						const radioBtn = $(`#${radioId}`);
-
-						// Check if already selected
-						if (radioBtn.is(':checked')) {
-							return;
-						}
-
-						// Uncheck all and remove active class
-						$('input[name="delivery_option"]').prop('checked', false);
-						$('.container-delivery-card-list-item').removeClass('active');
-
-						// Check clicked radio and add active class
-						radioBtn.prop('checked', true);
-						$(this).addClass('active');
-
-						// Trigger change event to update checkout
-						radioBtn.trigger('change');
-					});
-
-					// Update visual state when radio changes (from any source)
-					$('input[name="delivery_option"]').on('change', function() {
-						// Remove active class from all
-						$('.container-delivery-card-list-item').removeClass('active');
-
-						if ($(this).is(':checked')) {
-							$(this).closest('.container-delivery-card-list-item').addClass('active');
-						}
-					});
-
 				} else {
 					let sbSlogan = $('.sb-slogan-container');
 					sbSlogan.hide();
 
-					list.empty();
+					clearFailedCourierDisplay();
 
 					let responseMessage = '';
 
@@ -339,17 +353,20 @@ jQuery(document).ready(function($) {
 						}
 					});
 
-					$(requestRatesBtn).prop('checked', false)
+					$(requestBtn).prop('checked', false);
 				}
 			}
 
 			$(requestBtn).prop('disabled', false);
 
-		}).fail(function () {
+		}).fail(function (xhr, status) {
+			if (status === 'abort' || requestSequence !== rateRequestSequence
+				|| requestPayloadKey !== getShippingRatePayloadKey()) return;
+
 			let sbSlogan = $('.sb-slogan-container');
 			sbSlogan.hide();
 
-			list.empty();
+			clearFailedCourierDisplay();
 
 			Swal.fire({
 				title: '',
@@ -362,9 +379,113 @@ jQuery(document).ready(function($) {
 				}
 			});
 
+		}).always(function () {
+			if (requestSequence === rateRequestSequence) {
+				activeRateRequest = null;
+				$('.shipbubble-delivery-method-container').attr('aria-busy', 'false');
+				$(requestBtn).prop('disabled', false);
+				$(requestBtn).prop('checked', false);
+			}
 		});
-		$(requestBtn).prop('disabled', false);
-		$(requestRatesBtn).prop('checked', false)
+	}
+
+	/**
+	 * Cancel the active request and invalidate its response.
+	 *
+	 * @returns {void}
+	 */
+	function invalidateActiveRateRequest() {
+		rateRequestSequence++;
+		if (activeRateRequest && activeRateRequest.readyState !== 4) {
+			activeRateRequest.abort();
+		}
+		activeRateRequest = null;
+		$('.shipbubble-delivery-method-container').attr('aria-busy', 'false');
+	}
+
+	/**
+	 * Remove stale couriers and cancel work tied to the previous address.
+	 *
+	 * @returns {void}
+	 */
+	function invalidateCourierResultsForAddressChange() {
+		if (isDynamicCheckout) {
+			const currentPayload = getShippingRatePayloadKey();
+			if (currentPayload === lastObservedDynamicPayload) return;
+			lastObservedDynamicPayload = currentPayload;
+		}
+
+		window.clearTimeout(dynamicRequestTimer);
+		resetCourierDisplay($('#courier-list'));
+		$('.sb-slogan-container').hide();
+	}
+
+	$(document).on('click', '.container-delivery-card-list-item', function(e) {
+		if ($(e.target).is('input[type="radio"]') || $(e.target).is('label')) return;
+
+		const radio = document.getElementById($(this).data('radio-id'));
+		if (!radio || radio.checked) return;
+
+		$('input[name="delivery_option"]').prop('checked', false);
+		$('.container-delivery-card-list-item').removeClass('active');
+		$(radio).prop('checked', true).trigger('change');
+	});
+
+	$(document).on('change', 'input[name="delivery_option"]', function() {
+		$('.container-delivery-card-list-item').removeClass('active');
+		if ($(this).is(':checked')) {
+			$(this).closest('.container-delivery-card-list-item').addClass('active');
+		}
+	});
+
+	/**
+	 * Debounce an automatic shipping-rate request.
+	 *
+	 * @param {number} delay Delay in milliseconds.
+	 * @returns {void}
+	 */
+	function scheduleDynamicRateRequest(delay = 350) {
+		if (!isDynamicCheckout) return;
+		window.clearTimeout(dynamicRequestTimer);
+		dynamicRequestTimer = window.setTimeout(function() {
+			processShippingRateRequest(null, true);
+		}, delay);
+	}
+
+	const addressFields = [
+		'#billing_address_1', '#billing_city', '#billing_state', '#billing_country', '#billing_postcode',
+		'#shipping_address_1', '#shipping_city', '#shipping_state', '#shipping_country', '#shipping_postcode',
+		'#ship-to-different-address-checkbox'
+	].join(', ');
+	const addressTextFields = [
+		'#billing_address_1', '#billing_city', '#billing_postcode',
+		'#shipping_address_1', '#shipping_city', '#shipping_postcode'
+	].join(', ');
+
+	$(document).on('input', addressTextFields, invalidateCourierResultsForAddressChange);
+	$(document).on('change', addressFields, invalidateCourierResultsForAddressChange);
+
+	if (isDynamicCheckout) {
+		const dynamicFields = [
+			'#billing_first_name', '#billing_last_name', '#billing_email', '#billing_phone',
+			'#billing_address_1', '#billing_city', '#billing_state', '#billing_country', '#billing_postcode',
+			'#shipping_first_name', '#shipping_last_name', '#shipping_email', '#shipping_phone',
+			'#shipping_address_1', '#shipping_city', '#shipping_state', '#shipping_country', '#shipping_postcode',
+			'#ship-to-different-address-checkbox'
+		].join(', ');
+
+		$(document).on('change', dynamicFields, function() {
+			invalidateCourierResultsForAddressChange();
+			scheduleDynamicRateRequest();
+		});
+		$(document.body).on('updated_checkout', function() {
+			if (activeRateRequest && activeRateRequest.readyState !== 4) {
+				focusCourierSection();
+			}
+			scheduleDynamicRateRequest(100);
+		});
+		lastObservedDynamicPayload = getShippingRatePayloadKey();
+		scheduleDynamicRateRequest(0);
 	}
 
 	const countryCodes = {

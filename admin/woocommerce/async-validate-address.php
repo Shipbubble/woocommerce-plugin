@@ -151,3 +151,32 @@
 	wp_die();
 }
 	add_action( 'wp_ajax_shipbubble_toggle_local_pickup', 'shipbubble_toggle_local_pickup_ajax' );
+
+	/**
+	 * Validate and save the selected checkout type.
+	 *
+	 * @return void
+	 */
+	function shipbubble_update_checkout_type_ajax() {
+		check_ajax_referer('ajax_wc_admin', 'nonce');
+
+		if (!current_user_can('manage_options')) {
+			wp_send_json_error(array('message' => 'You are not allowed to update these settings.'), 403);
+		}
+
+		$checkout_type_value = $_POST['data']['checkout_type'] ?? '';
+		$checkout_type = is_string($checkout_type_value)
+			? sanitize_key(wp_unslash($checkout_type_value))
+			: '';
+
+		if (!in_array($checkout_type, array('default', 'dynamic'), true)) {
+			wp_send_json_error(array('message' => 'Invalid checkout type.'), 400);
+		}
+
+		$options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
+		$options['checkout_type'] = $checkout_type;
+		update_option(WC_SHIPBUBBLE_ID, $options);
+
+		wp_send_json_success(array('message' => 'Checkout type updated successfully.'));
+	}
+	add_action('wp_ajax_shipbubble_update_checkout_type', 'shipbubble_update_checkout_type_ajax');

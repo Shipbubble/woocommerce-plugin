@@ -2,6 +2,19 @@
 use \Yay_Currency\Helpers\YayCurrencyHelper;
 use Automattic\WooCommerce\Utilities\OrderUtil;
 
+/**
+ * Return the configured checkout type with a safe default.
+ *
+ * @return string
+ */
+function shipbubble_get_checkout_type(): string
+{
+	$options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
+	$checkout_type = isset($options['checkout_type']) ? sanitize_key($options['checkout_type']) : 'default';
+
+	return in_array($checkout_type, array('default', 'dynamic'), true) ? $checkout_type : 'default';
+}
+
 function shipbubble_get_token(): string
 {
     $options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
