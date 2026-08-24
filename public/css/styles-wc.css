@@ -412,6 +412,10 @@
 	max-width: 549px;
 }
 
+.shipbubble-delivery-method-container:focus {
+	outline: none;
+}
+
 .shipbubble-delivery-options-card {
 	background: #fff;
 	padding: 5px;
