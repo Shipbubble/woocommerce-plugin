@@ -69,7 +69,7 @@ function shipbubble_courier_list_container()
                     <div class="shipbubble-radio-label">
                         <input type="radio" id="shipbubble-pickup-option" name="delivery_method" value="pickup">
                         <div class="shipbubble-pickup-text-container">
-                            <label for="shipbubble-pickup-option">' . esc_html($local_pickup_text) . '</label>
+                            <label for="shipbubble-pickup-option">' . wp_kses($local_pickup_text, shipbubble_kses_pickup_text_allowed_html()) . '</label>
                             ' . ($pickup_address ? '<div class="shipbubble-pickup-address" id="shipbubble-local-pickup-address-text">' . esc_html($pickup_address) . '</div>' : '') . '
                         </div>
                     </div>
@@ -113,7 +113,7 @@ function shipbubble_courier_list_container()
 					<div class="container-delivery-card-list-item-top">
 						<div class="message">
 							<div class="radio-info">
-								<p class="title">' . esc_html($local_pickup_text) . '</p>
+								<p class="title">' . wp_kses($local_pickup_text, shipbubble_kses_pickup_text_allowed_html()) . '</p>
 								<p class="price">' . esc_html__('Free', 'shipbubble') . '</p>
 							</div>
 							<span class="delivery-time" id="shipbubble-local-pickup-address-text">' . esc_html($pickup_address) . '</span>
@@ -121,7 +121,7 @@ function shipbubble_courier_list_container()
 					</div>
 					<div class="radio-item">
 						<input type="radio" id="shipbubble-dynamic-pickup" name="delivery_option" data-request_token="" data-courier_name="Local Pickup" data-cost="0" data-service_code="" data-courier_id="local_pickup">
-						<label for="shipbubble-dynamic-pickup">' . esc_html($local_pickup_text) . '</label>
+						<label for="shipbubble-dynamic-pickup">' . wp_kses($local_pickup_text, shipbubble_kses_pickup_text_allowed_html()) . '</label>
 					</div>
 				</div>';
 			}

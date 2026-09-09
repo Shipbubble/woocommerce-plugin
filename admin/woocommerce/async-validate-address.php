@@ -138,7 +138,7 @@
 
 	$options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
 	$options['local_pickup'] = 1 == $local_pickup ? 'yes' : 'no';
-	$options['local_pickup_text'] = sanitize_text_field($_POST['data']['local_pickup_text'] ?? '');
+	$options['local_pickup_text'] = trim( wp_kses( wp_unslash( $_POST['data']['local_pickup_text'] ?? '' ), shipbubble_kses_pickup_text_allowed_html() ) );
 
 	update_option(WC_SHIPBUBBLE_ID, $options);
 

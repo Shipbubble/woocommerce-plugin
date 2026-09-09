@@ -507,6 +507,12 @@
 	color: #5D5758;
 }
 
+.shipbubble-pickup-text-container a,
+.container-delivery-card-list-item .title a {
+	color: inherit;
+	text-decoration: underline;
+}
+
 .shipbubble_saving_popup img {
 	animation-name: shipbubble_blink;
 	animation-duration: 610ms;

@@ -17,8 +17,33 @@
             <tr>
                 <th scope="row"><label for="shipbubble_local_pickup_text">Local Pickup Text</label></th>
                 <td>
-                    <input type="text" name="shipbubble_local_pickup_text" id="shipbubble_local_pickup_text" class="regular-text" value="<?php echo esc_attr($options['local_pickup_text'] ?? ''); ?>">
-                    <p class="description">Customize the text displayed for in-store pickup option.</p>
+                    <?php
+                    wp_editor(
+                        $options['local_pickup_text'] ?? '',
+                        'shipbubble_local_pickup_text',
+                        array(
+                            'textarea_name'    => 'shipbubble_local_pickup_text',
+                            'textarea_rows'    => 3,
+                            'teeny'            => true,
+                            'media_buttons'    => false,
+                            'drag_drop_upload' => false,
+                            'wpautop'          => false,
+                            'tinymce'          => array(
+                                'toolbar1'          => 'bold,italic,link,unlink',
+                                'toolbar2'          => '',
+                                'menubar'           => false,
+                                'statusbar'         => false,
+                                'branding'          => false,
+                                'resize'            => false,
+                                'forced_root_block' => false,
+                                'force_br_newlines' => true,
+                                'force_p_newlines'  => false,
+                            ),
+                            'quicktags' => array( 'buttons' => 'strong,em,link,close' ),
+                        )
+                    );
+                    ?>
+                    <p class="description">Customize the text displayed for in-store pickup option. Basic formatting (bold, italic, links) is supported.</p>
                 </td>
             </tr>
         </table>

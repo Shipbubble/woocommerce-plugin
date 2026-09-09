@@ -167,3 +167,7 @@ body.wp-admin .swal2-title {
     word-break: normal;
 }
 
+#shipbubble-settings-local-pickup .wp-editor-wrap {
+    max-width: 500px;
+}
+

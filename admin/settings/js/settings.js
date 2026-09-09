@@ -1,6 +1,8 @@
 jQuery(document).ready(function($) {
 	const tabs = document.querySelectorAll('.nav-tab');
 	const contents = document.querySelectorAll('.shipbubble-tab-content');
+	let localPickupEditorFixed = false;
+
 	tabs.forEach(tab => {
 		tab.addEventListener('click', function(e) {
 			e.preventDefault();
@@ -13,6 +15,33 @@ jQuery(document).ready(function($) {
 			this.classList.add('nav-tab-active');
 			const target = document.querySelector(this.getAttribute('href'));
 			if (target) target.style.display = 'block';
+
+			// The Local Pickup Text editor (TinyMCE) is initialized while its
+			// tab panel is still display:none, so its iframe gets 0 height.
+			// Re-init it the first time this tab becomes visible, now that the
+			// panel is shown and TinyMCE can measure real dimensions.
+			if (this.id === 'tab4-link' && !localPickupEditorFixed) {
+				localPickupEditorFixed = true;
+				if (typeof tinymce !== 'undefined') {
+					const editorId = 'shipbubble_local_pickup_text';
+					if (tinymce.get(editorId)) {
+						tinymce.execCommand('mceRemoveEditor', false, editorId);
+					}
+					tinymce.execCommand('mceAddEditor', false, editorId);
+				}
+			}
+		});
+	});
+
+	// Keep the existing dirty-tracking / Save-button logic working when the
+	// Local Pickup Text field is edited via the TinyMCE visual editor: WP
+	// fires this custom jQuery event whenever a tinymce editor finishes
+	// (re)initializing — including after the mceAddEditor call above.
+	$(document).on('tinymce-editor-init', function (event, editor) {
+		if (editor.id !== 'shipbubble_local_pickup_text') return;
+		editor.on('change input undo redo', function () {
+			editor.save();
+			$('#shipbubble_local_pickup_text').trigger('change');
 		});
 	});
 
@@ -282,6 +311,14 @@ jQuery(document).ready(function($) {
 
 	$('#shipbubble-local-pickup-form').on('submit', function (e) {
 		e.preventDefault();
+
+		// Flush any pending TinyMCE visual-editor content into the underlying
+		// textarea before reading it. Safely no-ops if TinyMCE isn't loaded
+		// or blocked, and no-ops per-editor if that editor is in Text mode
+		// (already reflects live content in the textarea).
+		if (typeof tinymce !== 'undefined') {
+			tinymce.triggerSave();
+		}
 
 		var $local_pickup = $('#shipbubble_local_pickup'),
 			local_pickup_text = $('#shipbubble_local_pickup_text').val()

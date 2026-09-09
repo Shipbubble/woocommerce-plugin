@@ -730,6 +730,36 @@ function shipbubble_cart_has_multiple_vendors(): bool
 	return (bool) apply_filters('shipbubble_checkout_has_multi_vendor', count(shipbubble_get_cart_vendor_ids()) > 1);
 }
 
+/**
+ * Allowed HTML for the Local Pickup Text field.
+ *
+ * Mirrors the minimal WYSIWYG toolbar (bold, italic, link) exposed in
+ * admin/settings/templates/local-pickup.php. Used both to sanitize the
+ * value on save (admin/woocommerce/async-validate-address.php) and to
+ * render it safely on output (public/woocommerce/checkout.php), so the
+ * two can never drift apart. Do NOT use wp_kses_post() here — it is far
+ * more permissive (images, headings, block elements) than the toolbar
+ * allows, and the rendered value is placed inside <label> and
+ * <p class="title"> elements at checkout, where block-level markup
+ * would produce invalid HTML.
+ *
+ * @return array
+ */
+function shipbubble_kses_pickup_text_allowed_html(): array
+{
+	return array(
+		'strong' => array(),
+		'em'     => array(),
+		'a'      => array(
+			'href'   => true,
+			'title'  => true,
+			'target' => true,
+			'rel'    => true,
+		),
+		'br'     => array(),
+	);
+}
+
 function shipbubble_get_local_pickup_text(): string
 {
 	$options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
