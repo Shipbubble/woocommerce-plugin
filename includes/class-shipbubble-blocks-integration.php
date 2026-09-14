@@ -42,7 +42,7 @@ final class Shipbubble_Blocks_Integration implements IntegrationInterface
 			);
 		$dependencies = array_unique(array_merge(
 			(array) ($asset['dependencies'] ?? array()),
-			array('wp-data', 'wc-blocks-data-store', 'wc-blocks-checkout')
+			array('wp-blocks', 'wp-data', 'wp-element', 'wc-settings', 'wc-blocks-data-store', 'wc-blocks-checkout')
 		));
 
 		wp_register_script(
@@ -52,6 +52,16 @@ final class Shipbubble_Blocks_Integration implements IntegrationInterface
 			$asset['version'],
 			true
 		);
+
+		$style_path = dirname(__DIR__) . '/build/style-index.css';
+		if (file_exists($style_path)) {
+			wp_enqueue_style(
+				'shipbubble-checkout-blocks',
+				SHIPBUBBLE_PLUGIN_URL . '/build/style-index.css',
+				array(),
+				(string) filemtime($style_path)
+			);
+		}
 	}
 
 	/**
@@ -65,22 +75,27 @@ final class Shipbubble_Blocks_Integration implements IntegrationInterface
 	}
 
 	/**
-	 * No editor script is necessary because Shipbubble uses native rate rows.
+	 * Register the same small inner block in the Checkout editor.
 	 *
 	 * @return string[]
 	 */
 	public function get_editor_script_handles()
 	{
-		return array();
+		return array($this->script_handle);
 	}
 
 	/**
-	 * No public credentials or quote data are exposed to JavaScript.
+	 * Return display-only configuration. Private quote credentials remain in the
+	 * WooCommerce session and are never exposed to the Store API.
 	 *
 	 * @return array
 	 */
 	public function get_script_data()
 	{
-		return array();
+		return array(
+			'methodId' => SHIPBUBBLE_ID,
+			'logoUrl' => esc_url_raw(SHIPBUBBLE_LOGO_URL),
+			'selectedLabel' => __('Selected delivery', 'shipbubble'),
+		);
 	}
 }

@@ -122,6 +122,91 @@ function shipbubble_register_blocks_integration($integration_registry)
 add_action('woocommerce_blocks_checkout_block_registration', 'shipbubble_register_blocks_integration');
 
 /**
+ * Register the locked inner block so WordPress can preserve it in Checkout.
+ * The React component is supplied by the Blocks integration bundle.
+ *
+ * @return void
+ */
+function shipbubble_blocks_register_selected_courier_block()
+{
+	if (!shipbubble_blocks_is_supported() || !function_exists('register_block_type')) {
+		return;
+	}
+
+	register_block_type(
+		'shipbubble/selected-courier',
+		array(
+			'api_version' => 3,
+			'parent' => array('woocommerce/checkout-shipping-methods-block'),
+			'attributes' => array(
+				'lock' => array(
+					'type' => 'object',
+					'default' => array(
+						'remove' => true,
+						'move' => true,
+					),
+				),
+			),
+			'supports' => array(
+				'html' => false,
+				'multiple' => false,
+				'reusable' => false,
+			),
+		)
+	);
+}
+add_action('init', 'shipbubble_blocks_register_selected_courier_block', 20);
+
+/**
+ * Allow WooCommerce to attach the data attributes used to mount our component.
+ *
+ * @param array $namespaces Allowed block namespaces.
+ * @return array
+ */
+function shipbubble_blocks_allow_data_attributes(array $namespaces): array
+{
+	$namespaces[] = 'shipbubble';
+	return array_values(array_unique($namespaces));
+}
+add_filter(
+	'__experimental_woocommerce_blocks_add_data_attributes_to_namespace',
+	'shipbubble_blocks_allow_data_attributes'
+);
+
+/**
+ * Add the inner-block mount to checkouts saved before Shipbubble registered it.
+ * WooCommerce automatically inserts forced blocks when a merchant next saves
+ * Checkout; this render fallback makes the component available immediately on
+ * existing Checkout block pages as well.
+ *
+ * @param string $block_content Rendered Shipping Methods block markup.
+ * @return string
+ */
+function shipbubble_blocks_inject_selected_courier_mount($block_content)
+{
+	if (false !== strpos($block_content, 'shipbubble/selected-courier')) {
+		return $block_content;
+	}
+
+	$mount = '<div data-block-name="shipbubble/selected-courier" class="wp-block-shipbubble-selected-courier"></div>';
+	$closing_tag = strrpos($block_content, '</div>');
+
+	if (false === $closing_tag) {
+		return $block_content . $mount;
+	}
+
+	return substr($block_content, 0, $closing_tag)
+		. $mount
+		. substr($block_content, $closing_tag);
+}
+add_filter(
+	'render_block_woocommerce/checkout-shipping-methods-block',
+	'shipbubble_blocks_inject_selected_courier_mount',
+	20,
+	1
+);
+
+/**
  * Register the namespaced Store API cart update callback.
  *
  * @return void
@@ -470,8 +555,13 @@ function shipbubble_blocks_update_quote($data)
 			'courier_id' => $courier_id,
 			'service_code' => $service_code,
 			'courier_name' => shipbubble_blocks_clean_field($courier->courier_name),
+			'courier_image' => esc_url_raw((string) ($courier->courier_image ?? '')),
 			'cost' => max(0, (float) ($courier->rate_card_amount ?? 0) + $extra_charges),
-			'delivery_eta' => shipbubble_blocks_clean_field($courier->delivery_eta ?? ''),
+			'delivery_eta' => html_entity_decode(
+				shipbubble_blocks_clean_field($courier->delivery_eta ?? ''),
+				ENT_QUOTES | ENT_HTML5,
+				'UTF-8'
+			),
 			'pickup_address' => $pickup_address,
 		);
 	}
@@ -543,7 +633,10 @@ function shipbubble_blocks_get_native_rates(array $package): array
 			'cost' => $courier['cost'],
 			'description' => $courier['pickup_address'],
 			'delivery_time' => $courier['delivery_eta'],
-			'meta_data' => array('_shipbubble_quote_key' => $quote_key),
+			'meta_data' => array(
+				'_shipbubble_quote_key' => $quote_key,
+				'_shipbubble_courier_image' => $courier['courier_image'] ?? '',
+			),
 		);
 	}
 
