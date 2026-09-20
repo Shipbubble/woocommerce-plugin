@@ -41,6 +41,60 @@ function shipbubble_blocks_is_checkout_context(): bool
 }
 
 /**
+ * Require WooCommerce's existing phone field for physical checkouts using an
+ * active Shipbubble integration. WooCommerce uses this option for both its
+ * classic billing field and the Blocks address schema/validation.
+ *
+ * @param string $visibility Configured WooCommerce phone visibility.
+ * @return string
+ */
+function shipbubble_blocks_require_phone_field($visibility): string
+{
+	if (!function_exists('WC')) {
+		return (string) $visibility;
+	}
+
+	if (function_exists('is_cart') && is_cart()) {
+		return (string) $visibility;
+	}
+	$is_checkout_page = function_exists('is_checkout') && is_checkout();
+	$is_classic_checkout_request = isset($_REQUEST['wc-ajax'])
+		&& 'checkout' === sanitize_key(wp_unslash($_REQUEST['wc-ajax']));
+	if (!$is_checkout_page && !$is_classic_checkout_request && !shipbubble_blocks_is_checkout_context()) {
+		return (string) $visibility;
+	}
+
+	$options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
+	$is_active = apply_filters('is_shipbubble_active', $options['activate_shipbubble'] ?? 'no');
+	if ('yes' !== $is_active || (WC()->cart && !WC()->cart->needs_shipping())) {
+		return (string) $visibility;
+	}
+
+	return 'required';
+}
+add_filter('option_woocommerce_checkout_phone_field', 'shipbubble_blocks_require_phone_field');
+add_filter('default_option_woocommerce_checkout_phone_field', 'shipbubble_blocks_require_phone_field');
+
+/**
+ * Keep the classic checkout field required on WooCommerce versions that do
+ * not use the phone-visibility option for their billing field definition.
+ *
+ * @param array $fields Classic checkout fields.
+ * @return array
+ */
+function shipbubble_require_classic_checkout_phone(array $fields): array
+{
+	if (!shipbubble_blocks_is_checkout_page()
+		&& 'required' === shipbubble_blocks_require_phone_field('optional')
+		&& isset($fields['billing']['billing_phone'])) {
+		$fields['billing']['billing_phone']['required'] = true;
+	}
+
+	return $fields;
+}
+add_filter('woocommerce_checkout_fields', 'shipbubble_require_classic_checkout_phone', 20);
+
+/**
  * Clear cached package rates so the Store API response is recalculated.
  *
  * @return void
@@ -51,9 +105,7 @@ function shipbubble_blocks_clear_shipping_cache()
 		return;
 	}
 
-	foreach (WC()->cart->get_shipping_packages() as $package_key => $package) {
-		WC()->session->__unset('shipping_for_package_' . $package_key);
-	}
+	shipbubble_blocks_invalidate_package_cache();
 
 	$chosen_methods = (array) WC()->session->get('chosen_shipping_methods', array());
 	foreach ($chosen_methods as $package_key => $chosen_method) {
@@ -62,6 +114,22 @@ function shipbubble_blocks_clear_shipping_cache()
 		}
 	}
 	WC()->session->set('chosen_shipping_methods', $chosen_methods);
+}
+
+/**
+ * Recalculate packages without discarding a shopper's selected courier.
+ *
+ * @return void
+ */
+function shipbubble_blocks_invalidate_package_cache()
+{
+	if (!function_exists('WC') || !WC()->session || !WC()->cart) {
+		return;
+	}
+
+	foreach (WC()->cart->get_shipping_packages() as $package_key => $package) {
+		WC()->session->__unset('shipping_for_package_' . $package_key);
+	}
 }
 
 /**
@@ -99,6 +167,10 @@ function shipbubble_blocks_reset_page_context()
 
 	if (is_cart() || (is_checkout() && !$is_checkout_block)) {
 		shipbubble_blocks_clear_quote(true);
+	} elseif ($is_checkout_block && !shipbubble_blocks_is_checkout_context()) {
+		// The first Store API cart request should already use Checkout rules.
+		WC()->session->set('shipbubble_blocks_checkout_context', 'yes');
+		shipbubble_blocks_invalidate_package_cache();
 	}
 }
 add_action('template_redirect', 'shipbubble_blocks_reset_page_context', 5);
@@ -577,6 +649,7 @@ function shipbubble_blocks_update_quote($data)
 	WC()->session->set('shipbubble_blocks_quote', array(
 		'fingerprint' => $fingerprint,
 		'destination_signature' => shipbubble_blocks_destination_signature($destination),
+		'recipient' => $recipient,
 		'created_at' => time(),
 		'request_datetime' => current_time('mysql'),
 		'rates' => $private_rates,
@@ -664,7 +737,8 @@ function shipbubble_blocks_filter_package_rates(array $rates): array
 		}
 	}
 
-	return $disable_others && !empty($shipbubble_rates)
+	$is_active = apply_filters('is_shipbubble_active', $options['activate_shipbubble'] ?? 'no');
+	return $disable_others && 'yes' === $is_active
 		? $shipbubble_rates
 		: array_merge($shipbubble_rates, $other_rates);
 }
@@ -700,6 +774,12 @@ function shipbubble_blocks_save_order_meta($order)
 	foreach ($order->get_items('shipping') as $shipping_item) {
 		if (SHIPBUBBLE_ID !== $shipping_item->get_method_id()) {
 			continue;
+		}
+		if ('' === trim((string) ($order->get_shipping_phone() ?: $order->get_billing_phone()))) {
+			shipbubble_blocks_throw_error(
+				'shipbubble_phone_required',
+				__('Please enter a phone number to use Shipbubble shipping.', 'shipbubble')
+			);
 		}
 
 		if ('yes' === $shipping_item->get_meta('_shipbubble_local_pickup', true)) {
@@ -752,7 +832,13 @@ function shipbubble_blocks_save_order_meta($order)
 		$order->update_meta_data('shipbubble_shipment_details', serialize($shipment_details));
 		$order->update_meta_data('sb_shipment_meta', serialize($shipment_meta));
 		$order->update_meta_data('shipbubble_delivery_address', $delivery_address);
-		$order->update_meta_data('shipbubble_delivery_phone', $order->get_billing_phone());
+		$delivery_phone = $order->get_shipping_phone()
+			?: $order->get_billing_phone()
+			?: (string) ($quote['recipient']['phone'] ?? '');
+		if (!$order->get_billing_phone() && $delivery_phone) {
+			$order->set_billing_phone($delivery_phone);
+		}
+		$order->update_meta_data('shipbubble_delivery_phone', $delivery_phone);
 		$order->save();
 		return;
 	}

@@ -54,6 +54,8 @@ After activation, navigate to **Shipbubble Settings** in the WordPress admin to 
 
 Classic checkout keeps the existing Shipbubble branded courier interface and its Default/Dynamic setting. Checkout Blocks load Shipbubble rates automatically and show each courier through WooCommerce's standard shipping-rate rows, including its final price, ETA, and pickup-station details when available. A small locked inner block beneath the native selector adds the selected courier's logo and delivery summary without replacing WooCommerce's rate controls.
 
+When Shipbubble is active for a physical checkout, the existing WooCommerce phone field is required in both classic and Blocks checkout. If **Disable other shipping methods** is enabled, other rates (including Free Shipping) are hidden on checkout even while Shipbubble rates are loading. This setting does not hide other methods on Cart.
+
 Shipbubble rates are intentionally available only on checkout. Cart pages retain every unrelated WooCommerce shipping method and clear any stale Shipbubble quote before checkout begins again.
 
 ## Support

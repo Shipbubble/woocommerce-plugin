@@ -2,6 +2,7 @@ import {
 	buildQuoteRequest,
 	createQuoteScheduler,
 	getRequestKey,
+	sendQuoteAfterCustomerUpdate,
 } from './request';
 import metadata from './block.json';
 import {
@@ -11,7 +12,7 @@ import {
 import './style.scss';
 
 const { createElement } = window.wp.element;
-const { select, subscribe, useSelect } = window.wp.data;
+const { dispatch, select, subscribe, useSelect } = window.wp.data;
 const { getBlockType, registerBlockType } = window.wp.blocks;
 const { CART_STORE_KEY, CHECKOUT_STORE_KEY, processErrorResponse } =
 	window.wc.wcBlocksData;
@@ -118,11 +119,37 @@ if ( typeof registerCheckoutBlock === 'function' ) {
 	} );
 }
 
+function getCheckoutSnapshot() {
+	const cartData = select( CART_STORE_KEY )?.getCartData?.();
+	const checkoutStore = select( CHECKOUT_STORE_KEY );
+	const useShippingAsBilling =
+		checkoutStore?.getUseShippingAsBilling?.() === true;
+
+	return {
+		cartData,
+		useShippingAsBilling,
+		request: buildQuoteRequest(
+			cartData,
+			checkoutStore?.getOrderNotes?.(),
+			{ useShippingAsBilling }
+		),
+	};
+}
+
 const scheduler = createQuoteScheduler( {
 	send: ( request ) =>
-		extensionCartUpdate( {
-			namespace: 'shipbubble',
-			data: request,
+		sendQuoteAfterCustomerUpdate( request, {
+			getSnapshot: getCheckoutSnapshot,
+			updateCustomerData: ( customerData ) =>
+				dispatch( CART_STORE_KEY ).updateCustomerData(
+					customerData,
+					true
+				),
+			updateQuote: ( currentRequest ) =>
+				extensionCartUpdate( {
+					namespace: 'shipbubble',
+					data: currentRequest,
+				} ),
 		} ),
 	onError: ( error ) => processErrorResponse( error ),
 } );
@@ -145,16 +172,10 @@ function observeCheckout() {
 		return;
 	}
 
-	const cartData = cartStore.getCartData?.();
+	const { cartData, request } = getCheckoutSnapshot();
 	if ( ! cartData ) {
 		return;
 	}
-
-	const checkoutStore = select( CHECKOUT_STORE_KEY );
-	const request = buildQuoteRequest(
-		cartData,
-		checkoutStore?.getOrderNotes?.()
-	);
 	const requestKey = getRequestKey( request );
 
 	if ( requestKey === lastObservedKey ) {
