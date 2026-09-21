@@ -104,7 +104,8 @@ function shipbubble_wc_options_default(): array
 		'local_pickup' => 'no',
 		'local_pickup_text' => '',
 		'checkout_type' => 'default',
-		'multi_vendor' => 'no'
+		'multi_vendor' => 'no',
+		'multiloca_enabled' => 'no'
 	);
 }
 
@@ -127,10 +128,32 @@ function shipbubble_vendor_info_default(): array
 	);
 }
 
+/**
+ * Check whether the active WCFM Marketplace installation exposes the API used
+ * by Shipbubble's compatibility adapter.
+ *
+ * @return bool
+ */
+function shipbubble_is_wcfm_integration_available(): bool
+{
+	return function_exists('wcfm_get_vendor_id_by_post');
+}
+
+/**
+ * Check whether MultiLoca is active and has loaded its bootstrap.
+ *
+ * @return bool
+ */
+function shipbubble_is_multiloca_integration_available(): bool
+{
+	return defined('WCMLIM_DIR_PATH') || class_exists('Wcmlim_Product_Taxonomy');
+}
+
 if (!in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_option('active_plugins')))) return;
 
 add_action('plugins_loaded', 'shipbubble_wc_api_init', 11);
 add_action('plugins_loaded', 'shipbubble_load_multivendor_adapters', 20);
+add_action('plugins_loaded', 'shipbubble_load_multiloca_adapter', 21);
 
 function shipbubble_wc_api_init()
 {
@@ -182,7 +205,7 @@ function shipbubble_load_multivendor_adapters()
 		return;
 	}
 
-	if (!function_exists('wcfm_get_vendor_id_by_post')) {
+	if (!shipbubble_is_wcfm_integration_available()) {
 		return;
 	}
 
@@ -194,6 +217,37 @@ function shipbubble_load_multivendor_adapters()
 
 	if (function_exists('shipbubble_wcfm_register_adapter')) {
 		shipbubble_wcfm_register_adapter();
+	}
+}
+
+/**
+ * Load the MultiLoca compatibility adapter when it has been explicitly enabled.
+ *
+ * MultiLoca registers its taxonomy on init, so detection here relies on its
+ * bootstrap constant/class rather than taxonomy_exists().
+ *
+ * @return void
+ */
+function shipbubble_load_multiloca_adapter()
+{
+	$options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
+
+	if ('yes' !== ($options['multiloca_enabled'] ?? 'no')) {
+		return;
+	}
+
+	if (!shipbubble_is_multiloca_integration_available()) {
+		return;
+	}
+
+	$adapter = plugin_dir_path(__FILE__) . 'includes/compatibilities/multiloca.php';
+
+	if (file_exists($adapter)) {
+		require_once $adapter;
+	}
+
+	if (function_exists('shipbubble_multiloca_register_adapter')) {
+		shipbubble_multiloca_register_adapter();
 	}
 }
 

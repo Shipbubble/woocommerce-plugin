@@ -261,10 +261,11 @@ function shipbubble_validate_address(string $name, string $email, string $phone,
  *
  * @param string $addressCode
  * @param array $products
- * @param array $serviceCodes
+ * @param array       $serviceCodes
+ * @param string|null $senderAddressCode Explicit sender code, or null to resolve it from checkout context.
  * @return mixed
  */
-function shipbubble_get_shipping_rates(string $addressCode, array $products, $serviceCodes = array())
+function shipbubble_get_shipping_rates(string $addressCode, array $products, $serviceCodes = array(), $senderAddressCode = null)
 {
     $options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
 
@@ -321,11 +322,17 @@ function shipbubble_get_shipping_rates(string $addressCode, array $products, $se
 
     $setDimensions = shipbubble_set_package_dimensions($netWeight);
 
-    $senderAddressCode = shipbubble_get_address_code();
+    if (is_null($senderAddressCode)) {
+        $senderAddressCode = shipbubble_get_address_code();
+    }
     $categoryCode = shipbubble_get_store_category();
 
 	if (empty($senderAddressCode)) {
-		return json_decode(shipbubble_base_response('failed', __('Shipbubble sender address has not been validated for this store.', 'shipbubble')));
+		$message = apply_filters(
+			'shipbubble_sender_address_error',
+			__('Shipbubble sender address has not been validated for this store.', 'shipbubble')
+		);
+		return json_decode(shipbubble_base_response('failed', $message));
 	}
 
 	$currency_code = shipbubble_get_currency_code();

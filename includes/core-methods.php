@@ -230,11 +230,12 @@ function shipbubble_package_dimensions(): array
  *
  * @param string $addressCode  The address code used to fetch the shipping rates.
  * @param array  $products     The list of products for which shipping rates are to be calculated.
- * @param array  $serviceCodes Optional. An array of specific service codes for which rates should be calculated. Defaults to an empty array.
+ * @param array       $serviceCodes      Optional service codes to request.
+ * @param string|null $senderAddressCode Optional explicit sender code. Null resolves the current checkout sender.
  *
  * @return array An array containing the shipping rates, request token, extra charges, couriers, and the currency symbol. In case of errors, it will return an error message.
  */
-function shipbubble_process_shipping_rates($addressCode, $products, $serviceCodes = array())
+function shipbubble_process_shipping_rates($addressCode, $products, $serviceCodes = array(), $senderAddressCode = null)
 {
     $options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
 
@@ -244,7 +245,7 @@ function shipbubble_process_shipping_rates($addressCode, $products, $serviceCode
 
     $rates = array();
 
-    $response = shipbubble_get_shipping_rates($addressCode, $products, $serviceCodes);
+    $response = shipbubble_get_shipping_rates($addressCode, $products, $serviceCodes, $senderAddressCode);
 
     if (isset($response->response_code) && $response->response_code == SHIPBUBBLE_RESPONSE_IS_OK) {
         $data = $response->data;
@@ -334,8 +335,11 @@ function shipbubble_regenerate_rate_token($order, $shipment, $reason = '')
             $i++;
         }
 
+        // Preserve the original order origin when regenerating a rate token.
+        $senderAddressCode = apply_filters('shipbubble_regenerated_sender_address_code', null, $order);
+
         // Fetch Shipping rate for service code
-        $response = shipbubble_process_shipping_rates($addressCode, $items, [$shipment->service_code]);
+        $response = shipbubble_process_shipping_rates($addressCode, $items, [$shipment->service_code], $senderAddressCode);
 
         if (count($response) && isset($response['couriers']) && count($response['couriers'])) 
         {

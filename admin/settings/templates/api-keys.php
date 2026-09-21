@@ -1,4 +1,4 @@
-<div id="shipbubble-settings-api-tab" class="shipbubble-tab-content">
+<div id="shipbubble-settings-api-tab" class="shipbubble-accordion-panel">
 	<form id="shipbubble-api-keys-form">
 		<?php
 		settings_fields('shipbubble_api_keys');

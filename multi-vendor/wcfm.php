@@ -64,7 +64,8 @@ function shipbubble_wcfm_is_adapter_active(): bool
 {
 	return function_exists('shipbubble_multivendor_enabled')
 		&& shipbubble_multivendor_enabled()
-		&& function_exists('wcfm_get_vendor_id_by_post');
+		&& function_exists('shipbubble_is_wcfm_integration_available')
+		&& shipbubble_is_wcfm_integration_available();
 }
 
 function shipbubble_wcfm_remove_shipping_types(array $types): array
@@ -803,7 +804,7 @@ function shipbubble_wcfm_check_cart_items()
 
 	$vendor_id = shipbubble_wcfm_get_current_cart_vendor_id();
 
-	if ($vendor_id && !shipbubble_wcfm_vendor_ready($vendor_id)) {
+	if ($vendor_id && apply_filters('shipbubble_checkout_seller_not_ready', !shipbubble_wcfm_vendor_ready($vendor_id))) {
 		shipbubble_wcfm_add_notice(__('This vendor has not completed Shipbubble shipping setup. Please contact the store owner or choose another product.', 'shipbubble'));
 	}
 }

@@ -1,7 +1,7 @@
 <?php
 $checkout_type = shipbubble_get_checkout_type();
 ?>
-<div id="shipbubble-settings-checkout" class="shipbubble-tab-content" style="display:none;">
+<div id="shipbubble-settings-checkout" class="shipbubble-accordion-panel" hidden>
 	<form id="shipbubble-checkout-form">
 		<?php
 		settings_fields('shipbubble_checkout');
