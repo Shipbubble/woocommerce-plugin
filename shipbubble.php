@@ -2,16 +2,14 @@
 
 /**
  * Plugin Name:  Shipbubble
- * Version: 2.7.0
  * Description:  Shipbubble is a platform that enables retailers to conveniently delight their customers with multiple shipping options, thereby increasing conversion rates
  * Contributors: Shipbubble, Mavi Onogomuho
  * Donate link: https://www.shipbubble.com/
  * Tags: logistics, deliveries, shipping rates, multiple couriers, post purchase experience
- * Requires at least: 6.3
- * Tested up to: 6.9
- * Stable tag: 2.7.0
- * Requires PHP: 7.4
- * WC tested up to: 10.3
+ * Requires at least: 4.0
+ * Tested up to: 6.5
+ * Stable tag: 1.0
+ * Requires PHP: 5.6
  * Text Domain:  shipbubble
  * Domain Path:  /languages
  * License: GPLv3 or later

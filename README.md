@@ -15,12 +15,11 @@ Shipbubble is a WordPress/WooCommerce plugin that enables retailers to offer mul
 - Order tracking with shipment status labels
 - Currency conversion compatibility (YayCurrency, YITH Multi Currency)
 - WooCommerce HPOS (High-Performance Order Storage) compatible
-- Native Checkout Blocks shipping rates with selected-courier branding on WooCommerce 9.2+
 
 ## Requirements
 
-- WordPress 6.3 or higher
-- PHP 7.4 or higher
+- WordPress 4.0 or higher
+- PHP 5.6 or higher
 - WooCommerce (required plugin)
 
 ## Installation
@@ -49,14 +48,6 @@ After activation, navigate to **Shipbubble Settings** in the WordPress admin to 
 3. The customer selects their preferred courier and rate.
 4. On order completion, a shipment is automatically created via the Shipbubble API.
 5. Order tracking status is updated as the shipment progresses.
-
-### Checkout compatibility
-
-Classic checkout keeps the existing Shipbubble branded courier interface and its Default/Dynamic setting. Checkout Blocks load Shipbubble rates automatically and show each courier through WooCommerce's standard shipping-rate rows, including its final price, ETA, and pickup-station details when available. A small locked inner block beneath the native selector adds the selected courier's logo and delivery summary without replacing WooCommerce's rate controls.
-
-When Shipbubble is active for a physical checkout, the existing WooCommerce phone field is required in both classic and Blocks checkout. If **Disable other shipping methods** is enabled, other rates (including Free Shipping) are hidden on checkout even while Shipbubble rates are loading. This setting does not hide other methods on Cart.
-
-Shipbubble rates are intentionally available only on checkout. Cart pages retain every unrelated WooCommerce shipping method and clear any stale Shipbubble quote before checkout begins again.
 
 ## Support
 
