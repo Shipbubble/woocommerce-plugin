@@ -1,6 +1,10 @@
 <?php
 
-    // process ajax request
+	/**
+	 * Validate and save the store-level Shipbubble sender address.
+	 *
+	 * @return void
+	 */
     function shipbubble_initiate_validate_sender_address() {
 
         // check nonce

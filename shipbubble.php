@@ -197,6 +197,11 @@ function shipbubble_wc_api_init()
 
 }
 
+/**
+ * Load the enabled WCFM Marketplace compatibility adapter when WCFM is active.
+ *
+ * @return void
+ */
 function shipbubble_load_multivendor_adapters()
 {
 	// Nothing to load unless the store has multi-vendor enabled and WCFM is actually

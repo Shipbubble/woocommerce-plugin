@@ -60,6 +60,11 @@ function shipbubble_wcfm_register_adapter()
 	add_action('woocommerce_before_checkout_process', 'shipbubble_wcfm_check_cart_items', 5);
 }
 
+/**
+ * Determine whether the WCFM adapter is enabled and its dependency is active.
+ *
+ * @return bool
+ */
 function shipbubble_wcfm_is_adapter_active(): bool
 {
 	return function_exists('shipbubble_multivendor_enabled')
@@ -789,6 +794,11 @@ function shipbubble_wcfm_single_vendor_add_to_cart($passed, $product_id, $quanti
 	return $passed;
 }
 
+/**
+ * Add checkout notices for unsupported multi-vendor or unready-vendor carts.
+ *
+ * @return void
+ */
 function shipbubble_wcfm_check_cart_items()
 {
 	if (!shipbubble_wcfm_is_adapter_active()) {

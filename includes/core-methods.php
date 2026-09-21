@@ -276,6 +276,14 @@ function shipbubble_process_shipping_rates($addressCode, $products, $serviceCode
     return $rates;
 }
 
+/**
+ * Regenerate a Shipbubble rate token for an existing order shipment.
+ *
+ * @param WC_Order $order Order whose delivery rate is being regenerated.
+ * @param object   $shipment Stored shipment details and selected courier.
+ * @param string   $reason Optional regeneration reason for audit metadata.
+ * @return array Regenerated rate details or validation errors.
+ */
 function shipbubble_regenerate_rate_token($order, $shipment, $reason = '')
 {
     $countryObject = WC()->countries;
