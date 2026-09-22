@@ -129,6 +129,8 @@ function shipbubble_vendor_info_default(): array
 
 if (!in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_option('active_plugins')))) return;
 
+require_once plugin_dir_path(__FILE__) . 'includes/blocks-checkout.php';
+
 add_action('plugins_loaded', 'shipbubble_wc_api_init', 11);
 add_action('plugins_loaded', 'shipbubble_load_multivendor_adapters', 20);
 
@@ -143,7 +145,7 @@ function shipbubble_wc_api_init()
 	require_once plugin_dir_path(__FILE__) . 'public/woocommerce/enqueue-styles.php';
 	// }
 
-	$version = '2.6';
+	$version = SHIPBUBBLE_PLUGIN_VERSION_NUMBER;
 	$shipbubble_version = get_option(SHIPBUBBLE_PLUGIN_VERSION, '');
 
 	// Check if the shipbubble_version is empty or less than the specified version
@@ -218,40 +220,20 @@ function shipbubble_show_plugin_settings_link($links, $file) {
 add_filter('plugin_action_links', 'shipbubble_show_plugin_settings_link', 10, 2);
 
 
-// Disable Shipping methods if not in checkout page
+// Shipbubble is checkout-only. Keep unrelated methods and packages intact elsewhere.
 add_filter('woocommerce_package_rates', 'shipbubble_keep_shipping_methods_on_checkout', 100, 2);
 function shipbubble_keep_shipping_methods_on_checkout($rates, $package)
 {
-	$options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
-	$disableOtherShippingMethods = isset($options['disable_other_shipping_methods']) ? sanitize_text_field($options['disable_other_shipping_methods']) : 'no';
+	$is_blocks_checkout = function_exists('shipbubble_blocks_is_checkout_context') && shipbubble_blocks_is_checkout_context();
 
-	if (!is_checkout()) {
-		// Loop through shipping methods rates
+	if (!is_checkout() && !$is_blocks_checkout) {
 		foreach ($rates as $rate_key => $rate) {
 			if (SHIPBUBBLE_ID === $rate->method_id) {
 				unset($rates[$rate_key]);
-			} else {
-				if (strtolower($disableOtherShippingMethods) == 'yes') {
-					unset($rates[$rate_key]); // Remove other shipping methods
-				}
 			}
 		}
 	}
 	return $rates;
-}
-
-// Shipping packages
-add_filter('woocommerce_shipping_packages', 'shipbubble_keep_shipping_packages_on_checkout', 20, 1);
-add_filter('woocommerce_cart_shipping_packages', 'shipbubble_keep_shipping_packages_on_checkout', 20, 1);
-function shipbubble_keep_shipping_packages_on_checkout($packages)
-{
-	if (!is_checkout()) {
-		foreach ($packages as $key => $package) {
-			WC()->session->__unset('shipping_for_package_' . $key); // Remove
-			unset($packages[$key]); // Remove
-		}
-	}
-	return $packages;
 }
 
 // prevent proceed to order if shipping method has not been selected
@@ -584,6 +566,10 @@ function shipbubble_validate_checkout_order($order_id = 0)
  */
 function shipbubble_append_enqueue_script()
 {
+	if (!is_admin() && function_exists('shipbubble_blocks_is_checkout_page') && shipbubble_blocks_is_checkout_page()) {
+		return;
+	}
+
 	wp_enqueue_script('sweetalert2', plugins_url('public/js/sweetalert2.min.js', __FILE__), array());
 	wp_enqueue_script('blockui', plugins_url('public/js/blockui/jquery.blockUI.js', __FILE__), array('jquery'));
 	// here you can enqueue more js / css files
@@ -592,11 +578,12 @@ function shipbubble_append_enqueue_script()
 add_action('wp_enqueue_scripts', 'shipbubble_append_enqueue_script');
 add_action('admin_enqueue_scripts', 'shipbubble_append_enqueue_script');
 
-add_action('before_woocommerce_init',  'shipbubble_checkout_block_incompatibilty');
+add_action('before_woocommerce_init', 'shipbubble_declare_checkout_blocks_compatibility');
 
-function shipbubble_checkout_block_incompatibilty() {
+function shipbubble_declare_checkout_blocks_compatibility() {
 	if ( class_exists( '\Automattic\WooCommerce\Utilities\FeaturesUtil' ) ) {
-		\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'cart_checkout_blocks', __FILE__, false );
+		$is_compatible = defined('WC_VERSION') && version_compare(WC_VERSION, '9.2', '>=');
+		\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility('cart_checkout_blocks', __FILE__, $is_compatible);
 	}
 }
 
@@ -682,6 +669,31 @@ function shipbubble_shipping_service_init()
 			 */
 			public function calculate_shipping( $package = array() )
 			{
+				if (function_exists('shipbubble_blocks_is_checkout_context') && shipbubble_blocks_is_checkout_context()) {
+					$native_rates = shipbubble_blocks_get_native_rates($package);
+
+					foreach ($native_rates as $native_rate) {
+						$rate_id = $this->get_rate_id($native_rate['id_suffix']);
+						$this->add_rate(array(
+							'id' => $rate_id,
+							'label' => $native_rate['label'],
+							'cost' => $native_rate['cost'],
+							'meta_data' => $native_rate['meta_data'],
+						));
+
+						if (isset($this->rates[$rate_id])) {
+							if (!empty($native_rate['description']) && method_exists($this->rates[$rate_id], 'set_description')) {
+								$this->rates[$rate_id]->set_description($native_rate['description']);
+							}
+							if (!empty($native_rate['delivery_time']) && method_exists($this->rates[$rate_id], 'set_delivery_time')) {
+								$this->rates[$rate_id]->set_delivery_time($native_rate['delivery_time']);
+							}
+						}
+					}
+
+					return;
+				}
+
 				// This is where you'll add your rates
 				$rate = array(
 					'id'     => $this->id,

@@ -8,6 +8,7 @@
 	    $isShipbubbleActive = $options['activate_shipbubble'] ?? 'no';
 
 	    if ( 'yes' != $isShipbubbleActive || !is_checkout()) return;
+	    if (function_exists('shipbubble_blocks_is_checkout_page') && shipbubble_blocks_is_checkout_page()) return;
 
 	    enqueue_shipbubble_local_pickup_script();
 		enqueue_shipbubble_checkout_script();
