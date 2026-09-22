@@ -9,6 +9,56 @@ export function normalizeField( value ) {
 }
 
 /**
+ * Build a stable signature from cart data that can affect a courier quote.
+ * Shipping rates and cart totals are intentionally excluded to avoid update
+ * loops after WooCommerce recalculates shipping.
+ *
+ * @param {Object} cartData WooCommerce cart store data.
+ * @return {string} Stable cart signature.
+ */
+export function getCartSignature( cartData ) {
+	const items = Array.isArray( cartData?.items )
+		? cartData.items
+				.map( ( item ) => ( {
+					key: normalizeField( item?.key ),
+					id: String( item?.id ?? '' ),
+					quantity: Number( item?.quantity ?? 0 ),
+					variation: Array.isArray( item?.variation )
+						? item.variation
+								.map( ( attribute ) => ( {
+									attribute: normalizeField(
+										attribute?.attribute
+									),
+									value: normalizeField( attribute?.value ),
+								} ) )
+								.sort( ( first, second ) =>
+									first.attribute.localeCompare(
+										second.attribute
+									)
+								)
+						: [],
+					price: String( item?.prices?.price ?? '' ),
+					lineTotal: String( item?.totals?.line_total ?? '' ),
+				} ) )
+				.sort( ( first, second ) =>
+					first.key.localeCompare( second.key )
+				)
+		: [];
+	const coupons = Array.isArray( cartData?.coupons )
+		? cartData.coupons
+				.map( ( coupon ) => ( {
+					code: normalizeField( coupon?.code ),
+					discountType: normalizeField( coupon?.discount_type ),
+				} ) )
+				.sort( ( first, second ) =>
+					first.code.localeCompare( second.code )
+				)
+		: [];
+
+	return JSON.stringify( { items, coupons } );
+}
+
+/**
  * Build the stable, minimal request sent to Shipbubble's Store API extension.
  * Address objects in wc/store/cart keep their Store API snake_case fields.
  *
@@ -63,6 +113,7 @@ export function buildQuoteRequest(
 
 	return {
 		action: 'quote',
+		cart_signature: getCartSignature( cartData ),
 		recipient: {
 			first_name: firstName,
 			last_name: lastName,

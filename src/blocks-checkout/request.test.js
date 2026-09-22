@@ -1,6 +1,7 @@
 import {
 	buildQuoteRequest,
 	createQuoteScheduler,
+	getCartSignature,
 	getRequestKey,
 	normalizeField,
 	sendQuoteAfterCustomerUpdate,
@@ -24,6 +25,17 @@ const completeCart = {
 		email: 'ada@example.test',
 		phone: '+2348000000000',
 	},
+	items: [
+		{
+			key: 'cart-item-1',
+			id: 42,
+			quantity: 1,
+			variation: [],
+			prices: { price: '250000' },
+			totals: { line_total: '250000' },
+		},
+	],
+	coupons: [],
 };
 
 describe( 'Shipbubble checkout-block requests', () => {
@@ -35,6 +47,7 @@ describe( 'Shipbubble checkout-block requests', () => {
 	test( 'builds a quote from shipping and billing data', () => {
 		expect( buildQuoteRequest( completeCart ) ).toEqual( {
 			action: 'quote',
+			cart_signature: getCartSignature( completeCart ),
 			recipient: {
 				first_name: 'Ada',
 				last_name: 'Lovelace',
@@ -99,6 +112,55 @@ describe( 'Shipbubble checkout-block requests', () => {
 	test( 'uses a stable key for normalized requests', () => {
 		const request = buildQuoteRequest( completeCart );
 		expect( getRequestKey( request ) ).toBe( getRequestKey( request ) );
+	} );
+
+	test( 'changes the request key when cart quantities change', () => {
+		const request = buildQuoteRequest( completeCart );
+		const changedRequest = buildQuoteRequest( {
+			...completeCart,
+			items: [ { ...completeCart.items[ 0 ], quantity: 2 } ],
+		} );
+
+		expect( getRequestKey( changedRequest ) ).not.toBe(
+			getRequestKey( request )
+		);
+	} );
+
+	test( 'changes the request key when coupons change', () => {
+		const request = buildQuoteRequest( completeCart );
+		const changedRequest = buildQuoteRequest( {
+			...completeCart,
+			coupons: [ { code: 'SAVE10', discount_type: 'percent' } ],
+		} );
+
+		expect( getRequestKey( changedRequest ) ).not.toBe(
+			getRequestKey( request )
+		);
+	} );
+
+	test( 'keeps cart signatures stable when item and coupon order changes', () => {
+		const secondItem = {
+			...completeCart.items[ 0 ],
+			key: 'cart-item-2',
+			id: 84,
+		};
+		const firstCart = {
+			...completeCart,
+			items: [ completeCart.items[ 0 ], secondItem ],
+			coupons: [
+				{ code: 'SAVE10', discount_type: 'percent' },
+				{ code: 'WELCOME', discount_type: 'fixed_cart' },
+			],
+		};
+		const reorderedCart = {
+			...firstCart,
+			items: [ secondItem, completeCart.items[ 0 ] ],
+			coupons: [ ...firstCart.coupons ].reverse(),
+		};
+
+		expect( getCartSignature( reorderedCart ) ).toBe(
+			getCartSignature( firstCart )
+		);
 	} );
 
 	test( 'saves customer data before requesting courier rates', async () => {

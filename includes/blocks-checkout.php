@@ -365,8 +365,10 @@ function shipbubble_blocks_request_is_complete(array $request): bool
 
 	if (function_exists('WC') && WC()->countries) {
 		$fields = WC()->countries->get_address_fields($destination['country'], 'shipping_');
-		if (!empty($fields['shipping_state']['required']) && '' === $destination['state']) {
-			return false;
+		foreach (array('shipping_state' => 'state', 'shipping_postcode' => 'postcode') as $field_key => $destination_key) {
+			if (!empty($fields[$field_key]['required']) && '' === $destination[$destination_key]) {
+				return false;
+			}
 		}
 	}
 
@@ -666,7 +668,17 @@ function shipbubble_blocks_update_quote($data)
  */
 function shipbubble_blocks_get_native_rates(array $package): array
 {
-	if (!shipbubble_blocks_is_checkout_context()) {
+	$options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
+	$is_active = apply_filters('is_shipbubble_active', $options['activate_shipbubble'] ?? 'no');
+	$shipping_packages = function_exists('WC') && WC()->cart
+		? WC()->cart->get_shipping_packages()
+		: array();
+
+	// The Shipbubble API quote currently covers the entire cart. Do not attach
+	// that full charge to every package when another plugin splits the cart.
+	if (!shipbubble_blocks_is_checkout_context()
+		|| 'yes' !== $is_active
+		|| count($shipping_packages) > 1) {
 		return array();
 	}
 
@@ -726,6 +738,9 @@ function shipbubble_blocks_filter_package_rates(array $rates): array
 {
 	$options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
 	$disable_others = 'yes' === strtolower((string) ($options['disable_other_shipping_methods'] ?? 'no'));
+	$has_multiple_packages = function_exists('WC')
+		&& WC()->cart
+		&& count(WC()->cart->get_shipping_packages()) > 1;
 	$shipbubble_rates = array();
 	$other_rates = array();
 
@@ -738,7 +753,7 @@ function shipbubble_blocks_filter_package_rates(array $rates): array
 	}
 
 	$is_active = apply_filters('is_shipbubble_active', $options['activate_shipbubble'] ?? 'no');
-	return $disable_others && 'yes' === $is_active
+	return $disable_others && 'yes' === $is_active && !$has_multiple_packages
 		? $shipbubble_rates
 		: array_merge($shipbubble_rates, $other_rates);
 }
@@ -791,8 +806,10 @@ function shipbubble_blocks_save_order_meta($order)
 
 		$quote_key = (string) $shipping_item->get_meta('_shipbubble_quote_key', true);
 		$courier = is_array($quote) && isset($quote['rates'][$quote_key]) ? $quote['rates'][$quote_key] : null;
+		$quote_created_at = is_array($quote) ? (int) ($quote['created_at'] ?? 0) : 0;
+		$expiry = SHIPBUBBLE_REQUEST_TOKEN_EXPIRY * HOUR_IN_SECONDS;
 
-		if (!$courier) {
+		if (!$courier || $quote_created_at <= 0 || (time() - $quote_created_at) >= $expiry) {
 			shipbubble_blocks_throw_error(
 				'shipbubble_quote_expired',
 				__('Your Shipbubble delivery rate has expired. Please refresh checkout and select a delivery option again.', 'shipbubble')
