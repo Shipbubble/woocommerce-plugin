@@ -22,6 +22,8 @@ function shipbubble_multiloca_register_adapter()
 	add_action('created_locations', 'shipbubble_multiloca_validate_saved_location', 20, 2);
 	add_action('edited_locations', 'shipbubble_multiloca_validate_saved_location', 20, 2);
 	add_action('locations_edit_form_fields', 'shipbubble_multiloca_render_validation_status', 20, 2);
+	add_filter('manage_edit-locations_columns', 'shipbubble_multiloca_add_validation_column');
+	add_filter('manage_locations_custom_column', 'shipbubble_multiloca_render_validation_column', 10, 3);
 	add_action('admin_notices', 'shipbubble_multiloca_render_admin_notice');
 
 	// MultiLoca must win after WCFM (priority 10) whenever a cart location applies.
@@ -406,6 +408,106 @@ function shipbubble_multiloca_render_admin_notice()
 }
 
 /**
+ * Return the current Shipbubble validation state for a MultiLoca location.
+ *
+ * @param int $term_id Location term ID.
+ * @return array{validated: bool, stale: bool, label: string, color: string, errors: array}
+ */
+function shipbubble_multiloca_get_validation_status($term_id): array
+{
+	$term_id = absint($term_id);
+	$data = shipbubble_multiloca_get_location_data($term_id);
+	$keys = shipbubble_get_keys();
+	$errors = (array) get_term_meta($term_id, 'shipbubble_address_validation_errors', true);
+	$stored_fingerprint = (string) get_term_meta($term_id, 'shipbubble_address_fingerprint', true);
+	$fresh = !is_wp_error($data)
+		&& $data['fingerprint'] === $stored_fingerprint
+		&& shipbubble_multiloca_key_fingerprint($keys['live_api_key'] ?? '') === (string) get_term_meta($term_id, 'shipbubble_live_api_key_fingerprint', true)
+		&& shipbubble_multiloca_key_fingerprint($keys['sandbox_api_key'] ?? '') === (string) get_term_meta($term_id, 'shipbubble_sandbox_api_key_fingerprint', true);
+	$validated = $fresh && 'yes' === get_term_meta($term_id, 'shipbubble_address_validated', true);
+	$stale = !$fresh && '' !== $stored_fingerprint;
+
+	if ($validated) {
+		$label = __('Validated', 'shipbubble');
+		$color = '#008a20';
+	} elseif ($stale) {
+		$label = __('Needs revalidation', 'shipbubble');
+		$color = '#996800';
+	} else {
+		$label = __('Needs validation', 'shipbubble');
+		$color = '#b32d2e';
+	}
+
+	return array(
+		'validated' => $validated,
+		'stale' => $stale,
+		'label' => $label,
+		'color' => $color,
+		'errors' => array_values(array_filter(array_map('sanitize_text_field', $errors))),
+	);
+}
+
+/**
+ * Add Shipbubble validation state to the MultiLoca locations table.
+ *
+ * @param array $columns Existing taxonomy columns.
+ * @return array
+ */
+function shipbubble_multiloca_add_validation_column($columns): array
+{
+	$updated_columns = array();
+
+	foreach ($columns as $key => $label) {
+		if ('posts' === $key) {
+			$updated_columns['shipbubble_sender'] = __('Shipbubble', 'shipbubble');
+		}
+
+		$updated_columns[$key] = $label;
+	}
+
+	if (!isset($updated_columns['shipbubble_sender'])) {
+		$updated_columns['shipbubble_sender'] = __('Shipbubble', 'shipbubble');
+	}
+
+	return $updated_columns;
+}
+
+/**
+ * Render Shipbubble validation state in the MultiLoca locations table.
+ *
+ * @param string $content Existing column content.
+ * @param string $column_name Current column name.
+ * @param int    $term_id Location term ID.
+ * @return string
+ */
+function shipbubble_multiloca_render_validation_column($content, $column_name, $term_id): string
+{
+	if ('shipbubble_sender' !== $column_name) {
+		return (string) $content;
+	}
+
+	$status = shipbubble_multiloca_get_validation_status($term_id);
+	$output = '<strong style="color:' . esc_attr($status['color']) . '">' . esc_html($status['label']) . '</strong>';
+
+	if ($status['validated']) {
+		return $output;
+	}
+
+	if ($status['stale']) {
+		$output .= '<br><small>' . esc_html__('The address or API credentials changed.', 'shipbubble') . '</small>';
+	} elseif (!empty($status['errors'])) {
+		$output .= '<br><small>' . esc_html(implode(' ', $status['errors'])) . '</small>';
+	}
+
+	$edit_link = get_edit_term_link(absint($term_id), 'locations', 'product');
+	if (!is_wp_error($edit_link) && $edit_link) {
+		$output .= '<br><a href="' . esc_url($edit_link) . '">' . esc_html__('Edit and save to validate', 'shipbubble') . '</a>';
+	}
+
+	return $output;
+}
+
+/**
  * Show Shipbubble validation state on the MultiLoca edit screen.
  *
  * @param WP_Term $term Location term.
@@ -420,24 +522,15 @@ function shipbubble_multiloca_render_validation_status($term, $taxonomy = '')
 		return;
 	}
 
-	$data = shipbubble_multiloca_get_location_data($term->term_id);
-	$keys = shipbubble_get_keys();
-	$errors = (array) get_term_meta($term->term_id, 'shipbubble_address_validation_errors', true);
-	$fresh = !is_wp_error($data)
-		&& $data['fingerprint'] === (string) get_term_meta($term->term_id, 'shipbubble_address_fingerprint', true)
-		&& shipbubble_multiloca_key_fingerprint($keys['live_api_key'] ?? '') === (string) get_term_meta($term->term_id, 'shipbubble_live_api_key_fingerprint', true)
-		&& shipbubble_multiloca_key_fingerprint($keys['sandbox_api_key'] ?? '') === (string) get_term_meta($term->term_id, 'shipbubble_sandbox_api_key_fingerprint', true);
-	$validated = $fresh && 'yes' === get_term_meta($term->term_id, 'shipbubble_address_validated', true);
-	$status = $validated ? __('Validated', 'shipbubble') : __('Needs validation', 'shipbubble');
-	$color = $validated ? '#008a20' : '#b32d2e';
+	$status = shipbubble_multiloca_get_validation_status($term->term_id);
 	?>
 	<tr class="form-field">
 		<th scope="row"><?php esc_html_e('Shipbubble sender', 'shipbubble'); ?></th>
 		<td>
-			<strong style="color: <?php echo esc_attr($color); ?>;"><?php echo esc_html($status); ?></strong>
+			<strong style="color: <?php echo esc_attr($status['color']); ?>;"><?php echo esc_html($status['label']); ?></strong>
 			<p class="description"><?php esc_html_e('Saving this location validates changed contact or address details against the configured Shipbubble API keys.', 'shipbubble'); ?></p>
-			<?php if (!$validated && !empty($errors)) : ?>
-				<p class="description" style="color: #b32d2e;"><?php echo esc_html(implode(' ', $errors)); ?></p>
+			<?php if (!$status['validated'] && !empty($status['errors'])) : ?>
+				<p class="description" style="color: #b32d2e;"><?php echo esc_html(implode(' ', $status['errors'])); ?></p>
 			<?php endif; ?>
 		</td>
 	</tr>
