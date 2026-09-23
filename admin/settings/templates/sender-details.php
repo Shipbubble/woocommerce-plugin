@@ -11,21 +11,13 @@
         if(isset($options['pickup_country'])) {
             $default_country = $options['pickup_country'];
         }
-        $activate = $options['activate_shipbubble'] === 'yes';
         $other_plugins = $options['disable_other_shipping_methods'] === 'yes';
         $category = $options['store_category'];
 
 		?>
         <div class="shipbubble-settings">
+			<p class="shipbubble-section-intro"><?php esc_html_e('Provide and validate the sender details Shipbubble will use as the default pickup origin.', 'shipbubble'); ?></p>
             <table class="form-table">
-			<tr>
-				<th scope="row"><label for="shipbubble_activate">Activate to use</label></th>
-				<td>
-					<input type="checkbox" name="shipbubble_activate" id="shipbubble_activate" value="1" <?php checked($activate); ?>>
-					<label for="shipbubble_activate">Activate to use</label>
-					<p class="description">Activate Shipbubble on Checkout.</p>
-				</td>
-			</tr>
 			<tr>
 				<th scope="row"><label for="shipbubble_sender_name">Sender's Name</label></th>
 				<td>

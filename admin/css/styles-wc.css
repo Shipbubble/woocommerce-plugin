@@ -209,6 +209,28 @@ body.wp-admin .swal2-title {
     transition: transform 160ms ease;
 }
 
+.shipbubble-accordion-title {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.shipbubble-required-badge {
+    display: inline-flex;
+    align-items: center;
+    min-height: 20px;
+    padding: 0 8px;
+    border-radius: 10px;
+    background: #d63638;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
 .shipbubble-accordion-item.is-open .shipbubble-accordion-toggle .dashicons {
     transform: rotate(180deg);
 }
@@ -224,6 +246,13 @@ body.wp-admin .swal2-title {
 
 .shipbubble-accordion-panel .form-table {
     margin-top: 0;
+}
+
+.shipbubble-section-intro {
+    max-width: 680px;
+    margin: 16px 0 4px;
+    color: #50575e;
+    font-size: 14px;
 }
 
 .shipbubble-integrations-empty {

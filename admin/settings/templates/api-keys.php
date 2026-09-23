@@ -7,8 +7,10 @@
 		$switch_color = shipbubble_is_live_mode() ? 'green' : 'grey';
         $live_key = $options['live_api_key'] ?? '';
         $test_key = $options['sandbox_api_key'] ?? '';
+		$activate = 'yes' === ($options['activate_shipbubble'] ?? 'no');
 		?>
         <div class="shipbubble-settings">
+			<p class="shipbubble-section-intro"><?php esc_html_e('Connect your Shipbubble account and enable it for checkout. This setup is required before Shipbubble can provide delivery rates.', 'shipbubble'); ?></p>
             <table class="form-table">
 			<tr>
 				<th scope="row"><label for="shipbubble_mode">Change Mode</label></th>
@@ -34,8 +36,18 @@
 				<th scope="row"><label for="shipbubble_test_api_key">Test API Key</label></th>
 				<td>
                     <input type="text" name="shipbubble_test_api_key" id="shipbubble_test_api_key" class="regular-text" value="<?php echo esc_attr($test_key); ?>">
-                    <p id="sandbox_api_key_note" class="form_note_shipbubble_api_key"></p>
+					<p id="sandbox_api_key_note" class="form_note_shipbubble_api_key"></p>
                 </td>
+			</tr>
+			<tr>
+				<th scope="row"><label for="shipbubble_activate"><?php esc_html_e('Checkout status', 'shipbubble'); ?></label></th>
+				<td>
+					<label for="shipbubble_activate">
+						<input type="checkbox" name="shipbubble_activate" id="shipbubble_activate" value="1" <?php checked($activate); ?>>
+						<?php esc_html_e('Enable Shipbubble at checkout', 'shipbubble'); ?>
+					</label>
+					<p class="description"><?php esc_html_e('Customers can only receive Shipbubble delivery rates when this is enabled.', 'shipbubble'); ?></p>
+				</td>
 			</tr>
 		</table>
         </div>

@@ -26,18 +26,19 @@ jQuery(document).ready(function($) {
 		e.preventDefault();
 
 		let sandbox_key = sandbox_api_key_input.val(),
-			live_key = live_api_key_input.val()
+			live_key = live_api_key_input.val(),
+			activateShipbubble = $('#shipbubble_activate').is(':checked') ? 'yes' : 'no'
 
-		validateShipbubbleApiKeys(sandbox_key, live_key)
+		validateShipbubbleApiKeys(sandbox_key, live_key, activateShipbubble)
 	})
 
-	function validateShipbubbleApiKeys(sandbox_api_key, live_api_key) {
+	function validateShipbubbleApiKeys(sandbox_api_key, live_api_key, activate_shipbubble) {
 		disableForm('shipbubble-api-keys-form');
 
 		$.post(ajaxurl, {
 			nonce: ajax_wc_admin.nonce,
 			action: 'validate_api_keys',
-			data: { sandbox_api_key, live_api_key },
+			data: { sandbox_api_key, live_api_key, activate_shipbubble },
 			dataType: 'json'
 		}).done(handleApiKeyValidationResponse)
 			.fail(handleApiKeyValidationError);
@@ -154,7 +155,6 @@ jQuery(document).ready(function($) {
 			state: senderFields.state.val(),
 			store_category: senderFields.category.find('option:selected').val(),
 			pickup_country: senderFields.country.val(),
-			activate_shipbubble: $('#shipbubble_activate').is(':checked') ? 'yes' : 'no',
 			disable_other_shipping_methods: senderFields.disableOthers.is(':checked') ? 'yes' : 'no',
 		};
 

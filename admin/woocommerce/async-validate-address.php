@@ -43,7 +43,6 @@
 
 	        if ('200' == $live_key_response->response_code) {
 		        $shipbubble_init[SHIPBUBBLE_ADDRESS_VALIDATED] = true;
-		        $options["activate_shipbubble"] = $data['activate_shipbubble'];
 				$options['sender_name'] = sanitize_text_field($data['name']);
 		        $options['sender_email'] = sanitize_email($data['email']);
 				$options['sender_phone'] =  sanitize_text_field($data['phone']);
