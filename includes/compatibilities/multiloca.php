@@ -571,7 +571,8 @@ function shipbubble_multiloca_resolve_cart_location(): array
 		return array('status' => 'not_applicable', 'location_id' => 0);
 	}
 
-	$location_ids = array();
+	$common_location_ids = null;
+	$ambiguous_product_name = '';
 	$physical_items = 0;
 
 	foreach (WC()->cart->get_cart() as $cart_item) {
@@ -599,38 +600,34 @@ function shipbubble_multiloca_resolve_cart_location(): array
 					'message' => sprintf(__('The selected location for %s is no longer available.', 'shipbubble'), $product_name),
 				);
 			}
-			$location_ids[] = $selected_id;
-			continue;
+			$item_location_ids = array($selected_id);
+		} else {
+			$item_location_ids = shipbubble_multiloca_cart_item_location_ids($cart_item);
+
+			if (empty($item_location_ids)) {
+				return array(
+					'status' => 'error',
+					'location_id' => 0,
+					'message' => sprintf(__('Select a fulfillment location for %s before requesting shipping rates.', 'shipbubble'), $product_name),
+				);
+			}
+
+			if (count($item_location_ids) > 1 && '' === $ambiguous_product_name) {
+				$ambiguous_product_name = $product_name;
+			}
 		}
 
-		$assigned_ids = shipbubble_multiloca_cart_item_location_ids($cart_item);
-
-		if (empty($assigned_ids)) {
-			return array(
-				'status' => 'error',
-				'location_id' => 0,
-				'message' => sprintf(__('Select a fulfillment location for %s before requesting shipping rates.', 'shipbubble'), $product_name),
-			);
-		}
-
-		if (count($assigned_ids) > 1) {
-			return array(
-				'status' => 'error',
-				'location_id' => 0,
-				'message' => sprintf(__('%s is available at multiple locations. Select one location before requesting shipping rates.', 'shipbubble'), $product_name),
-			);
-		}
-
-		$location_ids[] = reset($assigned_ids);
+		$item_location_ids = array_values(array_unique(array_map('absint', $item_location_ids)));
+		$common_location_ids = is_null($common_location_ids)
+			? $item_location_ids
+			: array_values(array_intersect($common_location_ids, $item_location_ids));
 	}
 
 	if (!$physical_items) {
 		return array('status' => 'not_applicable', 'location_id' => 0);
 	}
 
-	$location_ids = array_values(array_unique(array_map('absint', $location_ids)));
-
-	if (count($location_ids) !== 1) {
+	if (empty($common_location_ids)) {
 		return array(
 			'status' => 'error',
 			'location_id' => 0,
@@ -638,7 +635,18 @@ function shipbubble_multiloca_resolve_cart_location(): array
 		);
 	}
 
-	return array('status' => 'resolved', 'location_id' => $location_ids[0]);
+	if (count($common_location_ids) > 1) {
+		return array(
+			'status' => 'error',
+			'location_id' => 0,
+			'message' => sprintf(
+				__('%s is available at multiple locations. Select one location before requesting shipping rates.', 'shipbubble'),
+				$ambiguous_product_name ?: __('A product', 'shipbubble')
+			),
+		);
+	}
+
+	return array('status' => 'resolved', 'location_id' => reset($common_location_ids));
 }
 
 /**
