@@ -88,21 +88,25 @@
 
 }
 
-/* Smaller Toggle Switch */
-.switch {
+/* Shipbubble mode toggle. Namespaced to avoid WordPress/plugin style collisions. */
+.shipbubble-mode-switch {
     position: relative;
     display: inline-block;
-    width: 40px;  /* Adjusted width */
-    height: 20px;  /* Adjusted height */
+    width: 40px;
+    height: 20px;
+    margin: 0;
+    vertical-align: middle;
 }
 
-.switch input {
+.shipbubble-mode-switch input {
+    position: absolute;
     opacity: 0;
-    width: 0;
-    height: 0;
+    width: 1px;
+    height: 1px;
+    margin: 0;
 }
 
-.slider {
+.shipbubble-mode-switch__slider {
     position: absolute;
     cursor: pointer;
     top: 0;
@@ -111,40 +115,36 @@
     bottom: 0;
     background-color: #ccc;
     transition: .4s;
-    border-radius: 20px;  /* Adjusted for smaller size */
+    border: 0;
+    border-radius: 20px;
+    box-shadow: none;
+    box-sizing: border-box;
 }
 
-.slider:before {
+.shipbubble-mode-switch__slider::before {
     position: absolute;
     content: "";
-    height: 16px;  /* Adjusted knob size */
-    width: 16px;  /* Adjusted knob size */
-    left: 2px;  /* Adjusted position */
-    bottom: 2px;  /* Adjusted position */
+    height: 16px;
+    width: 16px;
+    left: 2px;
+    bottom: 2px;
     background-color: white;
     transition: .4s;
     border-radius: 50%;
+    box-shadow: none;
+    box-sizing: border-box;
 }
 
-input:checked + .slider {
-    background-color: #2196F3; /* You can set the color here */
+.shipbubble-mode-switch input:checked + .shipbubble-mode-switch__slider {
+    background-color: green;
 }
 
-input:focus + .slider {
-    box-shadow: 0 0 1px #2196F3; /* Optional focus styling */
+.shipbubble-mode-switch input:focus-visible + .shipbubble-mode-switch__slider {
+    box-shadow: 0 0 0 2px #2271b1;
 }
 
-input:checked + .slider:before {
-    transform: translateX(20px);  /* Adjusted for smaller size */
-}
-
-/* Rounded sliders */
-.slider.round {
-    border-radius: 20px;  /* Adjusted for smaller size */
-}
-
-.slider.round:before {
-    border-radius: 50%;
+.shipbubble-mode-switch input:checked + .shipbubble-mode-switch__slider::before {
+    transform: translateX(20px);
 }
 
 body.wp-admin .swal2-popup {

@@ -17,9 +17,9 @@
                 <td class="forminp">
                     <fieldset>
                         <legend class="screen-reader-text"><span>Change Mode</span></legend>
-                        <label class="switch">
+                        <label class="shipbubble-mode-switch">
                             <input type="checkbox" id="shipbubble_mode" name="shipbubble_mode" value="1" class="switch-checkbox shipbubble-actions-ignore" <?php checked(shipbubble_is_live_mode()); ?>>
-                            <span class="slider round" style="background-color: <?php echo esc_attr($switch_color); ?>;"></span>
+                            <span class="shipbubble-mode-switch__slider"></span>
                         </label>
                         <span class="switch-status" style="color: <?php echo esc_attr($switch_color); ?>; margin-left: 20px;"><?php echo esc_html($switch_status); ?></span>
                     </fieldset>

@@ -271,11 +271,10 @@ jQuery(document).ready(function($) {
 
 		// Function to update the status text based on the checkbox state
 		function updateStatusText() {
-			var $statusText = shipbubble_mode.closest('.switch').next('.switch-status');
+			var $statusText = shipbubble_mode.closest('.shipbubble-mode-switch').next('.switch-status');
 			var mode = shipbubble_mode.is(':checked') ? 'Live' : 'Test';
 			var color = mode === 'Live' ? 'green' : 'grey';
 			$statusText.text(mode).css('color', color);
-			shipbubble_mode.next('.slider').css('background-color', color);
 		}
 	}
 
