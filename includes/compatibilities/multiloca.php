@@ -32,7 +32,7 @@ function shipbubble_multiloca_register_adapter()
 	add_filter('is_shipbubble_active', 'shipbubble_multiloca_filter_shipbubble_active', 30);
 	add_filter('shipbubble_checkout_seller_not_ready', 'shipbubble_multiloca_filter_seller_not_ready', 30);
 
-	add_action('woocommerce_check_cart_items', 'shipbubble_multiloca_validate_checkout_cart', 20);
+	add_action('woocommerce_before_checkout_form', 'shipbubble_multiloca_validate_checkout_cart', 9);
 	add_action('woocommerce_before_checkout_process', 'shipbubble_multiloca_validate_checkout_cart', 4);
 	add_action('woocommerce_checkout_create_order', 'shipbubble_multiloca_persist_order_origin', 20, 2);
 }
