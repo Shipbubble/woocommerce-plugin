@@ -590,6 +590,7 @@ function shipbubble_multiloca_resolve_cart_location(): array
 		$physical_items++;
 		$product_name = $product ? $product->get_name() : __('product', 'shipbubble');
 		$selected_id = absint($cart_item['select_location']['location_termId'] ?? 0);
+		$assigned_location_ids = shipbubble_multiloca_cart_item_location_ids($cart_item);
 
 		if ($selected_id) {
 			$selected_term = get_term($selected_id, 'locations');
@@ -600,9 +601,21 @@ function shipbubble_multiloca_resolve_cart_location(): array
 					'message' => sprintf(__('The selected location for %s is no longer available.', 'shipbubble'), $product_name),
 				);
 			}
+
+			if (!in_array($selected_id, $assigned_location_ids, true)) {
+				return array(
+					'status' => 'error',
+					'location_id' => 0,
+					'message' => sprintf(
+						__('The selected location for %s is not assigned to that product. Choose one of the product\'s available locations.', 'shipbubble'),
+						$product_name
+					),
+				);
+			}
+
 			$item_location_ids = array($selected_id);
 		} else {
-			$item_location_ids = shipbubble_multiloca_cart_item_location_ids($cart_item);
+			$item_location_ids = $assigned_location_ids;
 
 			if (empty($item_location_ids)) {
 				return array(
@@ -823,8 +836,13 @@ function shipbubble_multiloca_filter_shipbubble_active($is_active): string
 	}
 
 	$resolved = shipbubble_multiloca_resolve_cart_location();
+	$multiloca_applies = 'not_applicable' !== $resolved['status'];
 
-	return 'not_applicable' === $resolved['status'] ? (string) $is_active : 'yes';
+	if ($multiloca_applies && function_exists('shipbubble_cart_has_multiple_vendors') && shipbubble_cart_has_multiple_vendors()) {
+		return 'no';
+	}
+
+	return $multiloca_applies ? 'yes' : (string) $is_active;
 }
 
 /**
