@@ -1,6 +1,10 @@
 <?php
 
-    // process ajax request
+	/**
+	 * Validate and save the store-level Shipbubble sender address.
+	 *
+	 * @return void
+	 */
     function shipbubble_initiate_validate_sender_address() {
 
         // check nonce
@@ -39,14 +43,12 @@
 
 	        if ('200' == $live_key_response->response_code) {
 		        $shipbubble_init[SHIPBUBBLE_ADDRESS_VALIDATED] = true;
-		        $options["activate_shipbubble"] = $data['activate_shipbubble'];
 				$options['sender_name'] = sanitize_text_field($data['name']);
 		        $options['sender_email'] = sanitize_email($data['email']);
 				$options['sender_phone'] =  sanitize_text_field($data['phone']);
 		        $options['store_category'] = sanitize_text_field($data['store_category']);
 				$options['address_code'] = $live_key_response->data->address_code;
 				$options['disable_other_shipping_methods'] = sanitize_text_field($data['disable_other_shipping_methods']);
-				$options['multi_vendor'] = sanitize_text_field($data['multi_vendor'] ?? 'no');
 				$address = sanitize_text_field($data['address']);
 				$state = sanitize_text_field($data['state']);
 		        $options['pickup_address'] = $address;
@@ -180,3 +182,32 @@
 		wp_send_json_success(array('message' => 'Checkout type updated successfully.'));
 	}
 	add_action('wp_ajax_shipbubble_update_checkout_type', 'shipbubble_update_checkout_type_ajax');
+
+	/**
+	 * Save third-party compatibility settings independently of sender validation.
+	 *
+	 * @return void
+	 */
+	function shipbubble_update_integrations_ajax() {
+		check_ajax_referer('ajax_wc_admin', 'nonce');
+
+		if (!current_user_can('manage_options')) {
+			wp_send_json_error(array('message' => 'You are not allowed to update these settings.'), 403);
+		}
+
+		$data = isset($_POST['data']) && is_array($_POST['data'])
+			? wp_unslash($_POST['data'])
+			: array();
+		$options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
+
+		if (shipbubble_is_wcfm_integration_available() && array_key_exists('multi_vendor', $data)) {
+			$options['multi_vendor'] = '1' === (string) $data['multi_vendor'] ? 'yes' : 'no';
+		}
+		if (shipbubble_is_multiloca_integration_available() && array_key_exists('multiloca_enabled', $data)) {
+			$options['multiloca_enabled'] = '1' === (string) $data['multiloca_enabled'] ? 'yes' : 'no';
+		}
+		update_option(WC_SHIPBUBBLE_ID, $options);
+
+		wp_send_json_success(array('message' => 'Integration settings updated successfully.'));
+	}
+	add_action('wp_ajax_shipbubble_update_integrations', 'shipbubble_update_integrations_ajax');
