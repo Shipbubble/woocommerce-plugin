@@ -88,21 +88,25 @@
 
 }
 
-/* Smaller Toggle Switch */
-.switch {
+/* Shipbubble mode toggle. Namespaced to avoid WordPress/plugin style collisions. */
+.shipbubble-mode-switch {
     position: relative;
     display: inline-block;
-    width: 40px;  /* Adjusted width */
-    height: 20px;  /* Adjusted height */
+    width: 40px;
+    height: 20px;
+    margin: 0;
+    vertical-align: middle;
 }
 
-.switch input {
+.shipbubble-mode-switch input {
+    position: absolute;
     opacity: 0;
-    width: 0;
-    height: 0;
+    width: 1px;
+    height: 1px;
+    margin: 0;
 }
 
-.slider {
+.shipbubble-mode-switch__slider {
     position: absolute;
     cursor: pointer;
     top: 0;
@@ -111,40 +115,36 @@
     bottom: 0;
     background-color: #ccc;
     transition: .4s;
-    border-radius: 20px;  /* Adjusted for smaller size */
+    border: 0;
+    border-radius: 20px;
+    box-shadow: none;
+    box-sizing: border-box;
 }
 
-.slider:before {
+.shipbubble-mode-switch__slider::before {
     position: absolute;
     content: "";
-    height: 16px;  /* Adjusted knob size */
-    width: 16px;  /* Adjusted knob size */
-    left: 2px;  /* Adjusted position */
-    bottom: 2px;  /* Adjusted position */
+    height: 16px;
+    width: 16px;
+    left: 2px;
+    bottom: 2px;
     background-color: white;
     transition: .4s;
     border-radius: 50%;
+    box-shadow: none;
+    box-sizing: border-box;
 }
 
-input:checked + .slider {
-    background-color: #2196F3; /* You can set the color here */
+.shipbubble-mode-switch input:checked + .shipbubble-mode-switch__slider {
+    background-color: green;
 }
 
-input:focus + .slider {
-    box-shadow: 0 0 1px #2196F3; /* Optional focus styling */
+.shipbubble-mode-switch input:focus-visible + .shipbubble-mode-switch__slider {
+    box-shadow: 0 0 0 2px #2271b1;
 }
 
-input:checked + .slider:before {
-    transform: translateX(20px);  /* Adjusted for smaller size */
-}
-
-/* Rounded sliders */
-.slider.round {
-    border-radius: 20px;  /* Adjusted for smaller size */
-}
-
-.slider.round:before {
-    border-radius: 50%;
+.shipbubble-mode-switch input:checked + .shipbubble-mode-switch__slider::before {
+    transform: translateX(20px);
 }
 
 body.wp-admin .swal2-popup {
@@ -165,5 +165,121 @@ body.wp-admin .swal2-title {
     white-space: normal;
     overflow-wrap: normal;
     word-break: normal;
+}
+
+.shipbubble-accordion {
+    max-width: 980px;
+    margin-top: 20px;
+    border: 1px solid #c3c4c7;
+    border-bottom: 0;
+    background: #fff;
+}
+
+.shipbubble-accordion-item {
+    border-bottom: 1px solid #c3c4c7;
+}
+
+.shipbubble-accordion-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 16px 20px;
+    border: 0;
+    background: #fff;
+    color: #1d2327;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 600;
+    text-align: left;
+}
+
+.shipbubble-accordion-toggle:hover,
+.shipbubble-accordion-toggle:focus {
+    background: #f6f7f7;
+    color: #135e96;
+}
+
+.shipbubble-accordion-toggle:focus-visible {
+    outline: 2px solid #2271b1;
+    outline-offset: -2px;
+}
+
+.shipbubble-accordion-toggle .dashicons {
+    transition: transform 160ms ease;
+}
+
+.shipbubble-accordion-title {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.shipbubble-required-badge {
+    display: inline-flex;
+    align-items: center;
+    min-height: 20px;
+    padding: 0 8px;
+    border-radius: 10px;
+    background: #d63638;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+.shipbubble-accordion-item.is-open .shipbubble-accordion-toggle .dashicons {
+    transform: rotate(180deg);
+}
+
+.shipbubble-accordion-panel {
+    padding: 4px 20px 20px;
+    border-top: 1px solid #dcdcde;
+}
+
+.shipbubble-accordion-panel[hidden] {
+    display: none;
+}
+
+.shipbubble-accordion-panel .form-table {
+    margin-top: 0;
+}
+
+.shipbubble-section-intro {
+    max-width: 680px;
+    margin: 16px 0 4px;
+    color: #50575e;
+    font-size: 14px;
+}
+
+.shipbubble-integrations-empty {
+    max-width: 520px;
+    margin: 24px auto 8px;
+    padding: 32px;
+    border: 1px dashed #c3c4c7;
+    border-radius: 6px;
+    background: #f6f7f7;
+    color: #50575e;
+    text-align: center;
+}
+
+.shipbubble-integrations-empty .dashicons {
+    width: 40px;
+    height: 40px;
+    color: #8c8f94;
+    font-size: 40px;
+}
+
+.shipbubble-integrations-empty h3 {
+    margin: 12px 0 6px;
+    color: #1d2327;
+    font-size: 16px;
+}
+
+.shipbubble-integrations-empty p {
+    margin: 0;
 }
 

@@ -1,4 +1,4 @@
-<div id="shipbubble-settings-local-pickup" class="shipbubble-tab-content" style="display:none;">
+<div id="shipbubble-settings-local-pickup" class="shipbubble-accordion-panel" hidden>
     <form id="shipbubble-local-pickup-form">
 		<?php
 		settings_fields('shipbubble_local_pickup');

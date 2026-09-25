@@ -60,11 +60,17 @@ function shipbubble_wcfm_register_adapter()
 	add_action('woocommerce_before_checkout_process', 'shipbubble_wcfm_check_cart_items', 5);
 }
 
+/**
+ * Determine whether the WCFM adapter is enabled and its dependency is active.
+ *
+ * @return bool
+ */
 function shipbubble_wcfm_is_adapter_active(): bool
 {
 	return function_exists('shipbubble_multivendor_enabled')
 		&& shipbubble_multivendor_enabled()
-		&& function_exists('wcfm_get_vendor_id_by_post');
+		&& function_exists('shipbubble_is_wcfm_integration_available')
+		&& shipbubble_is_wcfm_integration_available();
 }
 
 function shipbubble_wcfm_remove_shipping_types(array $types): array
@@ -788,6 +794,11 @@ function shipbubble_wcfm_single_vendor_add_to_cart($passed, $product_id, $quanti
 	return $passed;
 }
 
+/**
+ * Add checkout notices for unsupported multi-vendor or unready-vendor carts.
+ *
+ * @return void
+ */
 function shipbubble_wcfm_check_cart_items()
 {
 	if (!shipbubble_wcfm_is_adapter_active()) {
@@ -803,7 +814,7 @@ function shipbubble_wcfm_check_cart_items()
 
 	$vendor_id = shipbubble_wcfm_get_current_cart_vendor_id();
 
-	if ($vendor_id && !shipbubble_wcfm_vendor_ready($vendor_id)) {
+	if ($vendor_id && apply_filters('shipbubble_checkout_seller_not_ready', !shipbubble_wcfm_vendor_ready($vendor_id))) {
 		shipbubble_wcfm_add_notice(__('This vendor has not completed Shipbubble shipping setup. Please contact the store owner or choose another product.', 'shipbubble'));
 	}
 }

@@ -47,22 +47,52 @@ function display_shipbubble_settings_page() {
 	?>
 	<div class="wrap">
 		<h1>Shipbubble Settings</h1>
-		<h2 class="nav-tab-wrapper">
-			<a href="#shipbubble-settings-api-tab" class="nav-tab nav-tab-active" id="tab1-link">API Keys</a>
-            <?php if ($shipbubble_init['account_status']) { ?>
-			<a href="#shipbubble-settings-sender-tab" class="nav-tab" id="tab2-link">Store Information</a>
-			<a href="#shipbubble-settings-checkout" class="nav-tab" id="tab3-link">Checkout</a>
-			<a href="#shipbubble-settings-local-pickup" class="nav-tab" id="tab4-link">Local Pickup</a>
-            <?php } ?>
-		</h2>
-		<?php
-		include_once plugin_dir_path(__FILE__) . 'templates/api-keys.php';
-        if ($shipbubble_init['account_status']) {
-            include_once plugin_dir_path(__FILE__) . 'templates/sender-details.php';
-			include_once plugin_dir_path(__FILE__) . 'templates/checkout.php';
-            include_once plugin_dir_path(__FILE__) . 'templates/local-pickup.php';
-        }
-		?>
+		<div class="shipbubble-accordion">
+			<div class="shipbubble-accordion-item is-open">
+				<button type="button" class="shipbubble-accordion-toggle" aria-expanded="true" aria-controls="shipbubble-settings-api-tab">
+					<span class="shipbubble-accordion-title">
+						<span><?php esc_html_e('Connection & Activation', 'shipbubble'); ?></span>
+						<span class="shipbubble-required-badge"><?php esc_html_e('Required', 'shipbubble'); ?></span>
+					</span>
+					<span class="dashicons dashicons-arrow-down-alt2" aria-hidden="true"></span>
+				</button>
+				<?php include_once plugin_dir_path(__FILE__) . 'templates/api-keys.php'; ?>
+			</div>
+
+			<?php if (!empty($shipbubble_init['account_status'])) { ?>
+				<div class="shipbubble-accordion-item">
+					<button type="button" class="shipbubble-accordion-toggle" aria-expanded="false" aria-controls="shipbubble-settings-sender-tab">
+						<span class="shipbubble-accordion-title">
+							<span><?php esc_html_e('Store Information', 'shipbubble'); ?></span>
+							<span class="shipbubble-required-badge"><?php esc_html_e('Required', 'shipbubble'); ?></span>
+						</span>
+						<span class="dashicons dashicons-arrow-down-alt2" aria-hidden="true"></span>
+					</button>
+					<?php include_once plugin_dir_path(__FILE__) . 'templates/sender-details.php'; ?>
+				</div>
+
+				<div class="shipbubble-accordion-item">
+					<button type="button" class="shipbubble-accordion-toggle" aria-expanded="false" aria-controls="shipbubble-settings-integrations">
+						<span>Integrations</span><span class="dashicons dashicons-arrow-down-alt2" aria-hidden="true"></span>
+					</button>
+					<?php include_once plugin_dir_path(__FILE__) . 'templates/integrations.php'; ?>
+				</div>
+
+				<div class="shipbubble-accordion-item">
+					<button type="button" class="shipbubble-accordion-toggle" aria-expanded="false" aria-controls="shipbubble-settings-checkout">
+						<span>Checkout</span><span class="dashicons dashicons-arrow-down-alt2" aria-hidden="true"></span>
+					</button>
+					<?php include_once plugin_dir_path(__FILE__) . 'templates/checkout.php'; ?>
+				</div>
+
+				<div class="shipbubble-accordion-item">
+					<button type="button" class="shipbubble-accordion-toggle" aria-expanded="false" aria-controls="shipbubble-settings-local-pickup">
+						<span>Local Pickup</span><span class="dashicons dashicons-arrow-down-alt2" aria-hidden="true"></span>
+					</button>
+					<?php include_once plugin_dir_path(__FILE__) . 'templates/local-pickup.php'; ?>
+				</div>
+			<?php } ?>
+		</div>
 	</div>
 
 	<?php
