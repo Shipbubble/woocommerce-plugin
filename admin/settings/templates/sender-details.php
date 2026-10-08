@@ -1,4 +1,4 @@
-<div id="shipbubble-settings-sender-tab" class="shipbubble-tab-content" style="display:none;">
+<div id="shipbubble-settings-sender-tab" class="shipbubble-accordion-panel" hidden>
 	<form id="shipbubble-settings-form">
 		<?php
 		settings_fields('shipbubble_sender_details');
@@ -11,22 +11,13 @@
         if(isset($options['pickup_country'])) {
             $default_country = $options['pickup_country'];
         }
-        $activate = $options['activate_shipbubble'] === 'yes';
         $other_plugins = $options['disable_other_shipping_methods'] === 'yes';
-        $multi_vendor = ($options['multi_vendor'] ?? 'no') === 'yes';
         $category = $options['store_category'];
 
 		?>
         <div class="shipbubble-settings">
+			<p class="shipbubble-section-intro"><?php esc_html_e('Provide and validate the sender details Shipbubble will use as the default pickup origin.', 'shipbubble'); ?></p>
             <table class="form-table">
-			<tr>
-				<th scope="row"><label for="shipbubble_activate">Activate to use</label></th>
-				<td>
-					<input type="checkbox" name="shipbubble_activate" id="shipbubble_activate" value="1" <?php checked($activate); ?>>
-					<label for="shipbubble_activate">Activate to use</label>
-					<p class="description">Activate Shipbubble on Checkout.</p>
-				</td>
-			</tr>
 			<tr>
 				<th scope="row"><label for="shipbubble_sender_name">Sender's Name</label></th>
 				<td>
@@ -89,14 +80,6 @@
 					<input type="checkbox" name="shipbubble_deactivate" id="shipbubble_deactivate" value="1" <?php checked($other_plugins); ?>>
 					<label for="shipbubble_deactivate">Disable Other Shipping Method</label>
                     <p class="description">Shipbubble will disable other shipping methods.</p>
-				</td>
-			</tr>
-			<tr>
-				<th scope="row"><label for="shipbubble_multi_vendor">Multi-vendor Marketplace</label></th>
-				<td>
-					<input type="checkbox" name="shipbubble_multi_vendor" id="shipbubble_multi_vendor" value="1" <?php checked($multi_vendor); ?>>
-					<label for="shipbubble_multi_vendor">Enable WCFM Marketplace support</label>
-					<p class="description">Use vendor sender addresses for WCFM Marketplace carts while keeping the store API keys global.</p>
 				</td>
 			</tr>
 		</table>

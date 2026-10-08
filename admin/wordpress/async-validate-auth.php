@@ -1,5 +1,10 @@
 <?php
     // process ajax request
+	/**
+	 * Validate API keys and save the Shipbubble checkout activation setting.
+	 *
+	 * @return void
+	 */
     function shipbubble_validate_api_key() {
 
         // check nonce
@@ -11,6 +16,7 @@
 
         $liveKey = sanitize_text_field($_POST['data']['live_api_key']);
 		$sandboxKey = sanitize_text_field($_POST['data']['sandbox_api_key']);
+		$activateShipbubble = 'yes' === sanitize_text_field($_POST['data']['activate_shipbubble'] ?? 'no') ? 'yes' : 'no';
 
 		$keys = array( 'live' => $liveKey, 'sandbox' => $sandboxKey );
 		$storedKeys = shipbubble_get_keys();
@@ -36,6 +42,8 @@
 		}
 
 		if (empty($errors)) {
+			$options['activate_shipbubble'] = $activateShipbubble;
+			update_option(WC_SHIPBUBBLE_ID, $options);
 			$shipbubble_init['account_status'] = true;
 			$result = array(
 				'response_code' => 200,

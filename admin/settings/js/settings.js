@@ -1,19 +1,19 @@
 jQuery(document).ready(function($) {
-	const tabs = document.querySelectorAll('.nav-tab');
-	const contents = document.querySelectorAll('.shipbubble-tab-content');
-	tabs.forEach(tab => {
-		tab.addEventListener('click', function(e) {
-			e.preventDefault();
+	$('.shipbubble-accordion-toggle').on('click', function() {
+		const $toggle = $(this);
+		const $item = $toggle.closest('.shipbubble-accordion-item');
+		const panel = document.getElementById($toggle.attr('aria-controls'));
+		const isOpen = $toggle.attr('aria-expanded') === 'true';
 
-			// Remove active state from all tabs and hide all content
-			tabs.forEach(t => t.classList.remove('nav-tab-active'));
-			contents.forEach(c => c.style.display = 'none');
+		$('.shipbubble-accordion-item').removeClass('is-open');
+		$('.shipbubble-accordion-toggle').attr('aria-expanded', 'false');
+		$('.shipbubble-accordion-panel').prop('hidden', true);
 
-			// Add active state to clicked tab and show corresponding content
-			this.classList.add('nav-tab-active');
-			const target = document.querySelector(this.getAttribute('href'));
-			if (target) target.style.display = 'block';
-		});
+		if (!isOpen && panel) {
+			$item.addClass('is-open');
+			$toggle.attr('aria-expanded', 'true');
+			panel.hidden = false;
+		}
 	});
 
 	// api settings
@@ -26,18 +26,19 @@ jQuery(document).ready(function($) {
 		e.preventDefault();
 
 		let sandbox_key = sandbox_api_key_input.val(),
-			live_key = live_api_key_input.val()
+			live_key = live_api_key_input.val(),
+			activateShipbubble = $('#shipbubble_activate').is(':checked') ? 'yes' : 'no'
 
-		validateShipbubbleApiKeys(sandbox_key, live_key)
+		validateShipbubbleApiKeys(sandbox_key, live_key, activateShipbubble)
 	})
 
-	function validateShipbubbleApiKeys(sandbox_api_key, live_api_key) {
+	function validateShipbubbleApiKeys(sandbox_api_key, live_api_key, activate_shipbubble) {
 		disableForm('shipbubble-api-keys-form');
 
 		$.post(ajaxurl, {
 			nonce: ajax_wc_admin.nonce,
 			action: 'validate_api_keys',
-			data: { sandbox_api_key, live_api_key },
+			data: { sandbox_api_key, live_api_key, activate_shipbubble },
 			dataType: 'json'
 		}).done(handleApiKeyValidationResponse)
 			.fail(handleApiKeyValidationError);
@@ -134,7 +135,6 @@ jQuery(document).ready(function($) {
 			country: $('#shipbubble_country'),
 			category: $('#shipbubble_category'),
 			disableOthers: $('#shipbubble_deactivate'),
-			multiVendor: $('#shipbubble_multi_vendor'),
 		};
 
 		if (Object.values(senderFields).some(field => field.val() === '')) {
@@ -155,9 +155,7 @@ jQuery(document).ready(function($) {
 			state: senderFields.state.val(),
 			store_category: senderFields.category.find('option:selected').val(),
 			pickup_country: senderFields.country.val(),
-			activate_shipbubble: $('#shipbubble_activate').is(':checked') ? 'yes' : 'no',
 			disable_other_shipping_methods: senderFields.disableOthers.is(':checked') ? 'yes' : 'no',
-			multi_vendor: senderFields.multiVendor.is(':checked') ? 'yes' : 'no',
 		};
 
 		validateSenderAddress(payload);
@@ -179,6 +177,7 @@ jQuery(document).ready(function($) {
 		const response = JSON.parse(data);
 		jQuery.unblockUI();
 		if (response.hasOwnProperty('response_code') && response['response_code'] === 200) {
+			markFormSaved('shipbubble-settings-form');
 
 			Swal.fire({
 				icon: 'success',
@@ -272,11 +271,10 @@ jQuery(document).ready(function($) {
 
 		// Function to update the status text based on the checkbox state
 		function updateStatusText() {
-			var $statusText = shipbubble_mode.closest('.switch').next('.switch-status');
+			var $statusText = shipbubble_mode.closest('.shipbubble-mode-switch').next('.switch-status');
 			var mode = shipbubble_mode.is(':checked') ? 'Live' : 'Test';
 			var color = mode === 'Live' ? 'green' : 'grey';
 			$statusText.text(mode).css('color', color);
-			shipbubble_mode.next('.slider').css('background-color', color);
 		}
 	}
 
@@ -308,6 +306,7 @@ jQuery(document).ready(function($) {
 				// Revert the checkbox state on error
 				$local_pickup.prop('checked', !isChecked);
 			} else {
+				markFormSaved('shipbubble-local-pickup-form');
 				Swal.fire({
 					icon: 'success',
 					title: 'Local Pickup updated successfully!',
@@ -369,6 +368,7 @@ jQuery(document).ready(function($) {
 				showConfirmButton: false,
 				timer: 2000
 			});
+			markFormSaved('shipbubble-checkout-form');
 		}).fail(function (xhr) {
 			const response = xhr.responseJSON;
 			const message = response && response.data && response.data.message
@@ -383,6 +383,63 @@ jQuery(document).ready(function($) {
 			});
 		}).always(function () {
 			enableForm('shipbubble-checkout-form');
+		});
+	});
+
+	$('#shipbubble-integrations-form').on('submit', function(e) {
+		e.preventDefault();
+		disableForm('shipbubble-integrations-form');
+		const integrationData = {};
+
+		if ($('#shipbubble_multi_vendor').length) {
+			integrationData.multi_vendor = $('#shipbubble_multi_vendor').is(':checked') ? 1 : 0;
+		}
+		if ($('#shipbubble_multiloca_enabled').length) {
+			integrationData.multiloca_enabled = $('#shipbubble_multiloca_enabled').is(':checked') ? 1 : 0;
+		}
+
+		$.post(ajaxurl, {
+			nonce: ajax_wc_admin.nonce,
+			action: 'shipbubble_update_integrations',
+			data: integrationData,
+			dataType: 'json'
+		}).done(function(response) {
+			if (!response || !response.success) {
+				const message = response && response.data && response.data.message
+					? response.data.message
+					: 'Something went wrong';
+				Swal.fire({
+					icon: 'warning',
+					title: 'Integrations update failed',
+					text: message,
+					showConfirmButton: false,
+					timer: 4500
+				});
+				return;
+			}
+
+			markFormSaved('shipbubble-integrations-form');
+			Swal.fire({
+				icon: 'success',
+				title: 'Integrations updated successfully!',
+				text: response.data.message,
+				showConfirmButton: false,
+				timer: 2000
+			});
+		}).fail(function(xhr) {
+			const response = xhr.responseJSON;
+			const message = response && response.data && response.data.message
+				? response.data.message
+				: 'Something went wrong';
+			Swal.fire({
+				icon: 'warning',
+				title: 'Integrations update failed',
+				text: message,
+				showConfirmButton: false,
+				timer: 4500
+			});
+		}).always(function() {
+			enableForm('shipbubble-integrations-form');
 		});
 	});
 
@@ -414,67 +471,44 @@ jQuery(document).ready(function($) {
 		});
 	}
 
-	var initial_values = {};
-	jQuery('.shipbubble-actions').hide();
+	const formInitialValues = new Map();
 
-	/**
-	 * Store initial values of the settings
-	 *
-	 * @returns {void}
-	 */
-	function store_values() {
-		jQuery('.shipbubble-settings :input').each(function() {
-			if (jQuery(this).hasClass('shipbubble-actions-ignore')) {
+	function getFormValues($form) {
+		const values = {};
+		$form.find('.shipbubble-settings :input').each(function() {
+			const $input = $(this);
+			if ($input.hasClass('shipbubble-actions-ignore') || !$input.attr('name')) {
 				return;
 			}
-			if (jQuery(this).is(':checkbox')) {
-				initial_values[jQuery(this).attr('name')] = jQuery(this).is(':checked');
-			} else {
-				initial_values[jQuery(this).attr('name')] = jQuery(this).val();
-			}
+			values[$input.attr('name')] = $input.is(':checkbox') || $input.is(':radio')
+				? $input.is(':checked')
+				: $input.val();
 		});
+		return values;
 	}
 
-	// Store initial values on page load
-	store_values();
+	function updateFormActions($form) {
+		const formId = $form.attr('id');
+		const initialValues = formInitialValues.get(formId) || {};
+		const currentValues = getFormValues($form);
+		$form.find('.shipbubble-actions').toggle(JSON.stringify(initialValues) !== JSON.stringify(currentValues));
+	}
 
-	// Add change event listener to all inputs
-	jQuery('.shipbubble-settings :input').on('change', function()  {
-		var all_inputs_back_to_original = true;
-		jQuery('.shipbubble-settings :input').each(function() {
-			var input_name = jQuery(this).attr('name');
-
-			if (jQuery(this).hasClass('shipbubble-actions-ignore')) {
-				return true;
-			}
-
-			if (jQuery(this).is(':checkbox')) {
-				if (jQuery(this).is(':checked') !== initial_values[input_name]) {
-					all_inputs_back_to_original = false;
-					return false;
-				}
-			} else {
-				if (jQuery(this).val() !== initial_values[input_name]) {
-					all_inputs_back_to_original = false;
-					return false;
-				}
-			}
-		});
-
-		if (all_inputs_back_to_original) {
-			jQuery('.shipbubble-actions').hide();
-		} else {
-			jQuery('.shipbubble-actions').show();
+	function markFormSaved(formId) {
+		const $form = $('#' + formId);
+		if (!$form.length) {
+			return;
 		}
-	});
+		formInitialValues.set(formId, getFormValues($form));
+		$form.find('.shipbubble-actions').hide();
+	}
 
-	// Add click event listener to the button
-	jQuery('.shipbubble-actions :input').on('click', function() {
-		// Hide the actions div
-		jQuery('.shipbubble-actions').hide();
-
-		// Re-store the values
-		store_values();
+	$('.shipbubble-accordion-panel form').each(function() {
+		const $form = $(this);
+		markFormSaved($form.attr('id'));
+		$form.find('.shipbubble-settings :input').on('change input', function() {
+			updateFormActions($form);
+		});
 	});
 
 });
