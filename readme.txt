@@ -69,6 +69,9 @@ Please visit our website - https://shipbubble.com
 5. Performance based analytics.
 
 == Changelog ==
+= 3.1 =
+* WooCommerce block checkout support
+
 = 3.0 =
 * Multi location product plugin support
 
