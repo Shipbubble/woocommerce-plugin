@@ -2,6 +2,9 @@
 
 // enqueue admin style
 function shipbubble_enqueue_style_public() {
+	if (function_exists('shipbubble_blocks_is_checkout_page') && shipbubble_blocks_is_checkout_page()) {
+		return;
+	}
 	
 	/*
 		wp_enqueue_style(
