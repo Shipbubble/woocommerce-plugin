@@ -159,6 +159,10 @@ add_action('wp_footer', 'shipbubble_courier_setup_on_change');
  */
 function shipbubble_courier_setup_on_change()
 {
+	if (function_exists('shipbubble_blocks_is_checkout_page') && shipbubble_blocks_is_checkout_page()) {
+		return;
+	}
+
 	$options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
 
 	$isShipbubbleActive = isset($options['activate_shipbubble']) ? sanitize_text_field($options['activate_shipbubble']) : 'no';
@@ -290,6 +294,10 @@ function shipbubble_courier_setup_on_change()
 add_filter('woocommerce_package_rates', 'shipbubble_change_rates', 100, 2);
 function shipbubble_change_rates($rates, $packages)
 {
+	if (function_exists('shipbubble_blocks_is_checkout_context') && shipbubble_blocks_is_checkout_context()) {
+		return shipbubble_blocks_filter_package_rates($rates);
+	}
+
 	$options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
 	$disableOtherShippingMethods = isset($options['disable_other_shipping_methods']) ? sanitize_text_field($options['disable_other_shipping_methods']) : 'no';
 

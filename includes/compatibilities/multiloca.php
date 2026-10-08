@@ -37,6 +37,7 @@ function shipbubble_multiloca_register_adapter()
 	add_action('woocommerce_before_checkout_form', 'shipbubble_multiloca_validate_checkout_cart', 9);
 	add_action('woocommerce_before_checkout_process', 'shipbubble_multiloca_validate_checkout_cart', 4);
 	add_action('woocommerce_checkout_create_order', 'shipbubble_multiloca_persist_order_origin', 20, 2);
+	add_action('woocommerce_store_api_checkout_order_processed', 'shipbubble_multiloca_persist_store_api_order_origin', 5, 1);
 }
 
 /**
@@ -915,6 +916,24 @@ function shipbubble_multiloca_persist_order_origin($order, $data)
 	$order->update_meta_data('shipbubble_multiloca_pickup_address', $sender['location']['formatted_address']);
 	$order->update_meta_data('shipbubble_multiloca_address_code', $sender['address_code']);
 	$order->update_meta_data('shipbubble_multiloca_environment', shipbubble_is_live_mode() ? 'live' : 'sandbox');
+}
+
+/**
+ * Persist the resolved MultiLoca origin after a Checkout Block order is saved.
+ *
+ * The Store API does not run woocommerce_checkout_create_order, so Blocks
+ * require their own persistence hook at the equivalent order boundary.
+ *
+ * @param WC_Order $order Store API order.
+ * @return void
+ */
+function shipbubble_multiloca_persist_store_api_order_origin($order)
+{
+	shipbubble_multiloca_persist_order_origin($order, array());
+
+	if (is_object($order) && method_exists($order, 'save')) {
+		$order->save();
+	}
 }
 
 /**

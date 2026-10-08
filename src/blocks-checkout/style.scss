@@ -1,0 +1,68 @@
+.wp-block-shipbubble-selected-courier {
+	margin-top: 12px;
+}
+
+.shipbubble-selected-courier-editor {
+	padding: 12px 14px;
+	border: 1px dashed #949494;
+	border-radius: 8px;
+}
+
+.shipbubble-selected-courier-editor p {
+	margin: 4px 0 0;
+	font-size: 13px;
+}
+
+.shipbubble-selected-courier {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 12px 14px;
+	border: 1px solid #e2e4e7;
+	border-radius: 8px;
+	background: #fff;
+}
+
+.shipbubble-selected-courier__logo {
+	width: 44px;
+	height: 44px;
+	flex: 0 0 44px;
+	object-fit: contain;
+}
+
+.shipbubble-selected-courier__body {
+	min-width: 0;
+}
+
+.shipbubble-selected-courier__eyebrow,
+.shipbubble-selected-courier__name,
+.shipbubble-selected-courier__detail {
+	margin: 0;
+}
+
+.shipbubble-selected-courier__eyebrow {
+	font-size: 11px;
+	font-weight: 600;
+	line-height: 1.4;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	color: #757575;
+}
+
+.shipbubble-selected-courier__name {
+	font-size: 15px;
+	font-weight: 600;
+	line-height: 1.5;
+}
+
+.shipbubble-selected-courier__detail {
+	font-size: 13px;
+	line-height: 1.45;
+	color: #555;
+}
+
+@media (max-width: 480px) {
+	.shipbubble-selected-courier {
+		padding: 11px 12px;
+	}
+}

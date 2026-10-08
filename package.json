@@ -1,0 +1,16 @@
+{
+  "name": "shipbubble-woocommerce",
+  "version": "2.7.0",
+  "private": true,
+  "description": "Build tooling for the Shipbubble WooCommerce checkout integration.",
+  "license": "GPL-3.0-or-later",
+  "scripts": {
+    "build": "wp-scripts build src/blocks-checkout/index.js --output-path=build",
+    "start": "wp-scripts start src/blocks-checkout/index.js --output-path=build",
+    "lint:js": "wp-scripts lint-js src/blocks-checkout",
+    "test:unit": "wp-scripts test-unit-js"
+  },
+  "devDependencies": {
+    "@wordpress/scripts": "35.0.0"
+  }
+}
