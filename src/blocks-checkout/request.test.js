@@ -157,7 +157,7 @@ describe( 'Shipbubble checkout-block requests', () => {
 			getMissingQuoteFields( incompleteCart, {
 				useShippingAsBilling: true,
 			} )
-		).toEqual( [ 'last name', 'email address', 'phone number' ] );
+		).toEqual( [ 'last_name', 'email', 'phone' ] );
 	} );
 
 	test( 'clears rates when same billing is selected without a shipping phone', () => {
@@ -419,6 +419,26 @@ describe( 'Shipbubble checkout-block requests', () => {
 
 		scheduler.queue( { action: 'clear' } );
 		expect( setTimer ).toHaveBeenCalledWith( expect.any( Function ), 0 );
+	} );
+
+	test( 'passes the failed request to the error handler', async () => {
+		const error = new Error( 'Quote failed' );
+		const request = {
+			action: 'quote',
+			destination: { city: 'Lagos' },
+		};
+		const onError = jest.fn();
+		const scheduler = createQuoteScheduler( {
+			send: jest.fn().mockRejectedValue( error ),
+			onError,
+			setTimer: jest.fn().mockReturnValue( 1 ),
+			clearTimer: jest.fn(),
+		} );
+
+		scheduler.queue( request );
+		await scheduler.flush();
+
+		expect( onError ).toHaveBeenCalledWith( error, request );
 	} );
 
 	test( 'runs the newest queued request after an in-flight request', async () => {

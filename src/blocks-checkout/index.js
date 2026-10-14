@@ -22,6 +22,8 @@ const { CART_STORE_KEY, CHECKOUT_STORE_KEY, processErrorResponse } =
 const { extensionCartUpdate, registerCheckoutBlock } = window.wc.blocksCheckout;
 const settings =
 	window.wc.wcSettings?.getSetting?.( 'shipbubble_data', {} ) || {};
+const statusMessages = settings.statusMessages || {};
+const missingFieldLabels = settings.missingFieldLabels || {};
 
 let quoteUiState = { status: 'idle', missingFields: [] };
 const quoteUiListeners = new Set();
@@ -94,16 +96,19 @@ function SelectedCourierBlock() {
 
 	let statusMessage = '';
 	if ( quoteState.status === 'incomplete' ) {
-		statusMessage = quoteState.missingFields.length
-			? `Complete the following required fields to load delivery options: ${ quoteState.missingFields.join(
-					', '
-			  ) }.`
-			: 'Complete your contact and shipping details to load delivery options.';
+		const localizedFields = quoteState.missingFields.map(
+			( field ) => missingFieldLabels[ field ] || field
+		);
+		statusMessage = localizedFields.length
+			? statusMessages.incomplete?.replace(
+					'%s',
+					localizedFields.join( ', ' )
+			  )
+			: statusMessages.incompleteFallback;
 	} else if ( quoteState.status === 'loading' ) {
-		statusMessage = 'Loading delivery options…';
+		statusMessage = statusMessages.loading;
 	} else if ( quoteState.status === 'error' ) {
-		statusMessage =
-			'We could not load delivery options. Check your details and try again.';
+		statusMessage = statusMessages.error;
 	}
 
 	return createElement(
@@ -284,6 +289,14 @@ function getCheckoutSnapshot() {
 	};
 }
 
+function isCurrentQuoteRequest( request ) {
+	return (
+		request.action === 'quote' &&
+		getRequestKey( getCheckoutSnapshot().request ) ===
+			getRequestKey( request )
+	);
+}
+
 const scheduler = createQuoteScheduler( {
 	send: async ( request ) => {
 		try {
@@ -301,23 +314,23 @@ const scheduler = createQuoteScheduler( {
 					} ),
 			} );
 
-			if (
-				request.action === 'quote' &&
-				getRequestKey( getCheckoutSnapshot().request ) ===
-					getRequestKey( request )
-			) {
+			if ( isCurrentQuoteRequest( request ) ) {
 				setQuoteUiState( 'ready' );
 			}
 
 			return result;
 		} catch ( error ) {
-			if ( request.action === 'quote' ) {
+			if ( isCurrentQuoteRequest( request ) ) {
 				setQuoteUiState( 'error' );
 			}
 			throw error;
 		}
 	},
-	onError: ( error ) => processErrorResponse( error ),
+	onError: ( error, request ) => {
+		if ( isCurrentQuoteRequest( request ) ) {
+			processErrorResponse( error );
+		}
+	},
 } );
 
 let lastObservedKey = null;

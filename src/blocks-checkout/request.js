@@ -63,7 +63,7 @@ export function getCartSignature( cartData ) {
  *
  * @param {Object} cartData WooCommerce cart store data.
  * @param {Object} options  Checkout context.
- * @return {string[]} Human-readable missing field labels.
+ * @return {string[]} Stable identifiers for missing fields.
  */
 export function getMissingQuoteFields( cartData, options = {} ) {
 	if ( ! cartData || cartData.needsShipping === false ) {
@@ -74,23 +74,23 @@ export function getMissingQuoteFields( cartData, options = {} ) {
 	const billing = cartData.billingAddress || {};
 	const fields = [
 		[
-			'first name',
+			'first_name',
 			normalizeField( shipping.first_name || billing.first_name ),
 		],
 		[
-			'last name',
+			'last_name',
 			normalizeField( shipping.last_name || billing.last_name ),
 		],
-		[ 'email address', normalizeField( billing.email || shipping.email ) ],
+		[ 'email', normalizeField( billing.email || shipping.email ) ],
 		[
-			'phone number',
+			'phone',
 			normalizeField(
 				options.useShippingAsBilling === true
 					? shipping.phone
 					: shipping.phone || billing.phone
 			),
 		],
-		[ 'street address', normalizeField( shipping.address_1 ) ],
+		[ 'address_1', normalizeField( shipping.address_1 ) ],
 		[ 'city', normalizeField( shipping.city ) ],
 		[ 'country', normalizeField( shipping.country ) ],
 	];
@@ -305,7 +305,7 @@ export function createQuoteScheduler( {
 		try {
 			await send( next.request );
 		} catch ( error ) {
-			onError( error );
+			onError( error, next.request );
 		} finally {
 			running = false;
 
