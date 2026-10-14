@@ -96,6 +96,22 @@ final class Shipbubble_Blocks_Integration implements IntegrationInterface
 			'methodId' => SHIPBUBBLE_ID,
 			'logoUrl' => esc_url_raw(SHIPBUBBLE_LOGO_URL),
 			'selectedLabel' => __('Selected delivery', 'shipbubble'),
+			'statusMessages' => array(
+				/* translators: %s: comma-separated list of required checkout fields. */
+				'incomplete' => __('Complete the following required fields to load delivery options: %s.', 'shipbubble'),
+				'incompleteFallback' => __('Complete your contact and shipping details to load delivery options.', 'shipbubble'),
+				'loading' => __('Loading delivery options…', 'shipbubble'),
+				'error' => __('We could not load delivery options. Check your details and try again.', 'shipbubble'),
+			),
+			'missingFieldLabels' => array(
+				'first_name' => __('first name', 'shipbubble'),
+				'last_name' => __('last name', 'shipbubble'),
+				'email' => __('email address', 'shipbubble'),
+				'phone' => __('phone number', 'shipbubble'),
+				'address_1' => __('street address', 'shipbubble'),
+				'city' => __('city', 'shipbubble'),
+				'country' => __('country', 'shipbubble'),
+			),
 		);
 	}
 }

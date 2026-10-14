@@ -1,7 +1,9 @@
 import {
 	buildQuoteRequest,
+	createHydrationRetry,
 	createQuoteScheduler,
 	getCartSignature,
+	getMissingQuoteFields,
 	getRequestKey,
 	normalizeField,
 	sendQuoteAfterCustomerUpdate,
@@ -39,6 +41,76 @@ const completeCart = {
 };
 
 describe( 'Shipbubble checkout-block requests', () => {
+	test( 'retries checkout observation after cart hydration finishes', () => {
+		const timers = new Map();
+		let timerId = 0;
+		let ready = false;
+		const observe = jest.fn( () => ready );
+		const retry = createHydrationRetry( {
+			observe,
+			setTimer: ( callback ) => {
+				timerId += 1;
+				timers.set( timerId, callback );
+				return timerId;
+			},
+			clearTimer: ( id ) => timers.delete( id ),
+		} );
+
+		expect( retry.run() ).toBe( false );
+		expect( timers.size ).toBe( 1 );
+
+		ready = true;
+		const callback = Array.from( timers.values() )[ 0 ];
+		timers.clear();
+		callback();
+
+		expect( observe ).toHaveBeenCalledTimes( 2 );
+		expect( timers.size ).toBe( 0 );
+	} );
+
+	test( 'cancels a pending hydration retry when store data becomes stable', () => {
+		const timers = new Map();
+		let timerId = 0;
+		let ready = false;
+		const retry = createHydrationRetry( {
+			observe: () => ready,
+			setTimer: ( callback ) => {
+				timerId += 1;
+				timers.set( timerId, callback );
+				return timerId;
+			},
+			clearTimer: ( id ) => timers.delete( id ),
+		} );
+
+		retry.run();
+		expect( timers.size ).toBe( 1 );
+
+		ready = true;
+		expect( retry.run() ).toBe( true );
+		expect( timers.size ).toBe( 0 );
+	} );
+
+	test( 'bounds checkout hydration retries', () => {
+		const callbacks = [];
+		const observe = jest.fn( () => false );
+		const retry = createHydrationRetry( {
+			observe,
+			maxAttempts: 2,
+			setTimer: ( callback ) => {
+				callbacks.push( callback );
+				return callbacks.length;
+			},
+			clearTimer: jest.fn(),
+		} );
+
+		retry.run();
+		callbacks.shift()();
+		callbacks.shift()();
+
+		expect( observe ).toHaveBeenCalledTimes( 3 );
+		expect( callbacks ).toHaveLength( 0 );
+	} );
+
 	test( 'normalizes strings without coercing other values', () => {
 		expect( normalizeField( ' Lagos ' ) ).toBe( 'Lagos' );
 		expect( normalizeField( null ) ).toBe( '' );
@@ -63,6 +135,29 @@ describe( 'Shipbubble checkout-block requests', () => {
 			},
 			delivery_instructions: '',
 		} );
+	} );
+
+	test( 'identifies the recipient details still needed for rates', () => {
+		const incompleteCart = {
+			...completeCart,
+			shippingAddress: {
+				...completeCart.shippingAddress,
+				last_name: '',
+				phone: '',
+			},
+			billingAddress: {
+				...completeCart.billingAddress,
+				last_name: '',
+				email: '',
+				phone: '',
+			},
+		};
+
+		expect(
+			getMissingQuoteFields( incompleteCart, {
+				useShippingAsBilling: true,
+			} )
+		).toEqual( [ 'last_name', 'email', 'phone' ] );
 	} );
 
 	test( 'clears rates when same billing is selected without a shipping phone', () => {
@@ -324,6 +419,26 @@ describe( 'Shipbubble checkout-block requests', () => {
 
 		scheduler.queue( { action: 'clear' } );
 		expect( setTimer ).toHaveBeenCalledWith( expect.any( Function ), 0 );
+	} );
+
+	test( 'passes the failed request to the error handler', async () => {
+		const error = new Error( 'Quote failed' );
+		const request = {
+			action: 'quote',
+			destination: { city: 'Lagos' },
+		};
+		const onError = jest.fn();
+		const scheduler = createQuoteScheduler( {
+			send: jest.fn().mockRejectedValue( error ),
+			onError,
+			setTimer: jest.fn().mockReturnValue( 1 ),
+			clearTimer: jest.fn(),
+		} );
+
+		scheduler.queue( request );
+		await scheduler.flush();
+
+		expect( onError ).toHaveBeenCalledWith( error, request );
 	} );
 
 	test( 'runs the newest queued request after an in-flight request', async () => {
