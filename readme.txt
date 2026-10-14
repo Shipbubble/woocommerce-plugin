@@ -4,7 +4,7 @@ Donate link: https://www.shipbubble.com/
 Tags: logistics, deliveries, shipping rates, multiple couriers, post-purchase experience
 Requires at least: 4.0
 Tested up to: 10.6
-Stable tag: 3.1
+Stable tag: 3.2
 Requires PHP: 5.6
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
@@ -69,6 +69,9 @@ Please visit our website - https://shipbubble.com
 5. Performance based analytics.
 
 == Changelog ==
+= 3.2 =
+* Fix blocks checkout loading state.
+
 = 3.1 =
 * WooCommerce block checkout support
 
