@@ -2,6 +2,49 @@
 	margin-top: 12px;
 }
 
+.shipbubble-has-helpful-status
+	.wc-block-components-shipping-rates-control__no-shipping-address-message,
+.shipbubble-has-helpful-status
+	.wc-block-components-shipping-rates-control__no-shipping-methods-message,
+.shipbubble-has-helpful-status
+	.wc-block-components-shipping-rates-control__no-results-notice {
+	display: none;
+}
+
+.shipbubble-quote-status {
+	display: flex;
+	align-items: center;
+	gap: 9px;
+	margin: 0;
+	padding: 12px 14px;
+	border: 1px solid #e2e4e7;
+	border-radius: 8px;
+	background: #f7f7f7;
+	font-size: 14px;
+	line-height: 1.45;
+}
+
+.shipbubble-quote-status--error {
+	border-color: #cc1818;
+	background: #fff5f5;
+}
+
+.shipbubble-quote-status__spinner {
+	width: 16px;
+	height: 16px;
+	flex: 0 0 16px;
+	border: 2px solid currentcolor;
+	border-right-color: transparent;
+	border-radius: 50%;
+	animation: shipbubble-spin 0.7s linear infinite;
+}
+
+@keyframes shipbubble-spin {
+	to {
+		transform: rotate(360deg);
+	}
+}
+
 .shipbubble-selected-courier-editor {
 	padding: 12px 14px;
 	border: 1px dashed #949494;
