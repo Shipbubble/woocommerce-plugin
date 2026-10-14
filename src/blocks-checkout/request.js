@@ -59,6 +59,48 @@ export function getCartSignature( cartData ) {
 }
 
 /**
+ * Return the recipient fields Shipbubble still needs before requesting rates.
+ *
+ * @param {Object} cartData WooCommerce cart store data.
+ * @param {Object} options  Checkout context.
+ * @return {string[]} Human-readable missing field labels.
+ */
+export function getMissingQuoteFields( cartData, options = {} ) {
+	if ( ! cartData || cartData.needsShipping === false ) {
+		return [];
+	}
+
+	const shipping = cartData.shippingAddress || {};
+	const billing = cartData.billingAddress || {};
+	const fields = [
+		[
+			'first name',
+			normalizeField( shipping.first_name || billing.first_name ),
+		],
+		[
+			'last name',
+			normalizeField( shipping.last_name || billing.last_name ),
+		],
+		[ 'email address', normalizeField( billing.email || shipping.email ) ],
+		[
+			'phone number',
+			normalizeField(
+				options.useShippingAsBilling === true
+					? shipping.phone
+					: shipping.phone || billing.phone
+			),
+		],
+		[ 'street address', normalizeField( shipping.address_1 ) ],
+		[ 'city', normalizeField( shipping.city ) ],
+		[ 'country', normalizeField( shipping.country ) ],
+	];
+
+	return fields
+		.filter( ( [ , value ] ) => ! value )
+		.map( ( [ label ] ) => label );
+}
+
+/**
  * Build the stable, minimal request sent to Shipbubble's Store API extension.
  * Address objects in wc/store/cart keep their Store API snake_case fields.
  *
@@ -73,6 +115,10 @@ export function buildQuoteRequest(
 	options = {}
 ) {
 	if ( ! cartData || cartData.needsShipping === false ) {
+		return { action: 'clear' };
+	}
+
+	if ( getMissingQuoteFields( cartData, options ).length ) {
 		return { action: 'clear' };
 	}
 
@@ -99,18 +145,6 @@ export function buildQuoteRequest(
 		postcode: normalizeField( shipping.postcode ),
 	};
 
-	if (
-		! firstName ||
-		! lastName ||
-		! email ||
-		! phone ||
-		! destination.address_1 ||
-		! destination.city ||
-		! destination.country
-	) {
-		return { action: 'clear' };
-	}
-
 	return {
 		action: 'quote',
 		cart_signature: getCartSignature( cartData ),
@@ -133,6 +167,67 @@ export function buildQuoteRequest(
  */
 export function getRequestKey( request ) {
 	return JSON.stringify( request );
+}
+
+/**
+ * Retry an observation while WooCommerce hydrates its cart/customer stores.
+ * Some checkout sessions restore a complete saved address without emitting a
+ * later store change, so relying on wp.data.subscribe alone can miss the first
+ * quote request. Retries are bounded and stop as soon as the observer reports
+ * that the checkout data is stable.
+ *
+ * @param {Object}   dependencies             Runtime dependencies.
+ * @param {Function} dependencies.observe     Return true when data is stable.
+ * @param {number}   dependencies.delay       Delay between observations.
+ * @param {number}   dependencies.maxAttempts Maximum consecutive retries.
+ * @param {Function} dependencies.setTimer    Timer implementation.
+ * @param {Function} dependencies.clearTimer  Timer cancellation implementation.
+ * @return {{run: Function, cancel: Function}} Retrying observer.
+ */
+export function createHydrationRetry( {
+	observe,
+	delay = 250,
+	maxAttempts = 40,
+	setTimer = window.setTimeout,
+	clearTimer = window.clearTimeout,
+} ) {
+	let timer = null;
+	let attempts = 0;
+
+	const clearPendingTimer = () => {
+		if ( timer !== null ) {
+			clearTimer( timer );
+			timer = null;
+		}
+	};
+
+	const run = () => {
+		clearPendingTimer();
+
+		if ( observe() ) {
+			attempts = 0;
+			return true;
+		}
+
+		if ( attempts >= maxAttempts ) {
+			return false;
+		}
+
+		attempts += 1;
+		timer = setTimer( () => {
+			timer = null;
+			run();
+		}, delay );
+
+		return false;
+	};
+
+	const cancel = () => {
+		clearPendingTimer();
+		attempts = 0;
+	};
+
+	return { run, cancel };
 }
 
 /**
