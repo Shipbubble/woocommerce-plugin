@@ -1,228 +1,104 @@
 jQuery(document).ready(function($) {
-	var address_values = {};
+	if ($('#shipbubble-local-pickup-address').length === 0) return;
+
+	let lastAddressKey = '';
+	let activeRequest = null;
+	let requestSequence = 0;
 
 	/**
-	 * Store address values for shipping and billing addresses.
+	 * Read optional checkout fields and resolve fixed country codes locally.
 	 *
-	 * @returns {void}
+	 * @param {string} type Billing or shipping field prefix.
+	 * @param {string} field Checkout address field.
+	 * @returns {string} Field text, or an empty string when absent.
 	 */
-	function store_address_values() {
-		let shipping_address = jQuery('#shipping_address_1').val(),
-			shipping_city = jQuery('#shipping_city').val(),
-			shipping_state = '',
-			shipping_country = '',
-			billing_address = jQuery('#billing_address_1').val(),
-			billing_city = jQuery('#billing_city').val(),
-			billing_state = '',
-			billing_country = '';
-
-		if ($('select#billing_country').length) {
-			billing_country = $('select#billing_country option:selected').text();
-		} else {
-			billing_country = $('input#billing_country').val();
-			billing_country = getCountryCode(billing_country);
+	function getFieldValue(type, field) {
+		const selector = `#${type}_${field}`;
+		const select = $(`select${selector}`);
+		if (select.length) {
+			return select.find('option:selected').text().trim();
 		}
 
-		if ($('select#shipping_country').length) {
-			shipping_country = $('select#shipping_country option:selected').text();
-		} else {
-			shipping_country = $('input#shipping_country').val();
-			shipping_country = getCountryCode(shipping_country);
+		const value = String($(selector).val() || '').trim();
+		if (field === 'country') {
+			const countries = shipbubble_local_pickup.countries || {};
+			return countries[value.toUpperCase()] || value;
 		}
-
-		if ($('select#billing_state').length) {
-			billing_state = $('select#billing_state option:selected').text();
-		} else {
-			billing_state = $('input#billing_state').val();
-		}
-
-		if ($('select#shipping_state').length) {
-			shipping_state = $('select#shipping_state option:selected').text();
-		} else {
-			shipping_state = $('input#shipping_state').val();
-		}
-
-		address_values = {
-			'shipping_address': shipping_address,
-			'shipping_city': shipping_city,
-			'shipping_state': shipping_state,
-			'shipping_country': shipping_country,
-			'billing_address': billing_address,
-			'billing_city': billing_city,
-			'billing_state': billing_state,
-			'billing_country': billing_country
-		}
-
-		let useShippingAddress = $('input#ship-to-different-address-checkbox');
-
-		if (useShippingAddress.is(':checked')) {
-			if (shipping_address.length > 0 && shipping_city.length > 0 && shipping_state.length > 0 && shipping_country.length > 0) {
-				update_local_pickup_address('shipping');
-			}
-		} else {
-			if (billing_address.length > 0 && billing_city.length > 0 && billing_state.length > 0 && billing_country.length > 0) {
-				update_local_pickup_address('billing');
-			}
-		}
+		return value;
 	}
 
 	/**
-	 * Check if the address has changed since the last stored values.
+	 * Refresh pickup locations for the currently selected checkout address.
+	 * Optional lookups must always release their checkout loading overlay.
 	 *
-	 * @param {string} type - 'shipping' or 'billing'
-	 *
-	 * @returns {boolean}
+	 * @returns {void}
 	 */
-	function has_address_changed(type) {
-		let changed = false;
-
-		let prefix = (type === 'shipping') ? 'shipping' : 'billing';
-
-		let fields = {
+	function updateLocalPickupAddress() {
+		const type = $('#ship-to-different-address-checkbox').is(':checked') ? 'shipping' : 'billing';
+		const address = {
 			address: getFieldValue(type, 'address_1'),
 			city: getFieldValue(type, 'city'),
 			state: getFieldValue(type, 'state'),
 			country: getFieldValue(type, 'country')
 		};
+		const addressKey = JSON.stringify(address);
+		if (addressKey === lastAddressKey) return;
+		lastAddressKey = addressKey;
 
-		for (let key in fields) {
-			let fullKey = `${prefix}_${key}`;
-			if (fields[key] !== address_values[fullKey]) {
-				changed = true;
-				address_values[fullKey] = fields[key]; // update stored value
-			}
+		const sequence = ++requestSequence;
+		if (activeRequest) {
+			activeRequest.abort();
+			activeRequest = null;
 		}
 
-		return changed;
-	}
-
-	/**
-	 * Handle address change for shipping or billing.
-	 *
-	 * @param {string} type - 'shipping' or 'billing'
-	 *
-	 * @returns {void}
-	 */
-	function handle_address_change(type) {
-		if (has_address_changed(type)) {
-			let required_fields = [
-				address_values[`${type}_address`],
-				address_values[`${type}_city`],
-				address_values[`${type}_state`],
-				address_values[`${type}_country`]
-			];
-
-			// If any field is missing or empty, do not proceed
-			if (required_fields.some(val => !val || val.trim() === '')) {
-				console.warn(`${type} address is incomplete. Skipping AJAX.`);
-				return;
-			}
-
-			update_local_pickup_address(type);
-		}
-	}
-
-	$('#ship-to-different-address-checkbox').on('change', function () {
-		let useShippingAddress = $(this).is(':checked');
-
-		let shippingValues = {
-			address: getFieldValue('shipping', 'address_1'),
-			city: getFieldValue('shipping', 'city'),
-			state: getFieldValue('shipping', 'state'),
-			country: getFieldValue('shipping', 'country')
-		};
-
-		let billingValues = {
-			address: getFieldValue('billing', 'address_1'),
-			city: getFieldValue('billing', 'city'),
-			state: getFieldValue('billing', 'state'),
-			country: getFieldValue('billing', 'country')
-		};
-
-		let isDifferent = Object.keys(shippingValues).some(key => {
-			return shippingValues[key] !== billingValues[key];
-		});
-
-		if (isDifferent) {
-			const type = useShippingAddress ? 'shipping' : 'billing';
-			update_local_pickup_address(type);
+		if (Object.values(address).some(value => !value)) {
+			$.unblockUI();
+			return;
 		}
 
-		// Update stored values to reflect current selection
-		store_address_values();
-	});
-
-	function getFieldValue(type, field) {
-		const selector = `#${type}_${field}`;
-		if ($(`select${selector}`).length) {
-			return $(`select${selector} option:selected`).text().trim();
-		} else {
-			return $(`input${selector}`).val()?.trim() || '';
-		}
-	}
-
-
-	/**
-	 * Update the local pickup address via AJAX.
-	 *
-	 * @param {string} type - 'shipping' or 'billing'
-	 *
-	 * @returns {void}
-	 */
-	function update_local_pickup_address(type) {
-		showLoadingScreen()
-		let data = {
-			nonce: shipbubble_local_pickup.nonce,
-			action: 'shipbubble_request_pickup_address',
+		showLoadingScreen();
+		activeRequest = $.ajax({
+			url: shipbubble_local_pickup.ajaxurl,
+			type: 'POST',
+			dataType: 'json',
+			timeout: 30000,
 			data: {
-				address: address_values[`${type}_address`],
-				city: address_values[`${type}_city`],
-				state: address_values[`${type}_state`],
-				country: address_values[`${type}_country`],
+				nonce: shipbubble_local_pickup.nonce,
+				action: 'shipbubble_request_pickup_address',
+				data: address
 			}
-		};
-
-		$.post(shipbubble_local_pickup.ajaxurl, data).done(
-			function(data) {
-				let response = JSON.parse(data);
-
-				if (response.hasOwnProperty('data')) {
-					let address = response['data']['address'];
-					if (address.length) {
-						$('#shipbubble-local-pickup-address').val(address);
-						$('#shipbubble-local-pickup-address-text').text(address);
-					}
-				}
-
-				jQuery.unblockUI()
+		}).done(function(response) {
+			if (sequence !== requestSequence) return;
+			const pickupAddress = response && response.data && response.data.address;
+			if (typeof pickupAddress === 'string' && pickupAddress.trim()) {
+				$('#shipbubble-local-pickup-address').val(pickupAddress);
+				$('#shipbubble-local-pickup-address-text').text(pickupAddress);
 			}
-		).fail(function () {
+		}).fail(function(xhr, status) {
+			if (sequence !== requestSequence || status === 'abort') return;
+			lastAddressKey = '';
 			console.error('Failed to update local pickup address.');
-			jQuery.unblockUI();
-		})
+		}).always(function() {
+			if (sequence !== requestSequence) return;
+			activeRequest = null;
+			$.unblockUI();
+		});
 	}
 
-	store_address_values();
+	$(document).on('change', [
+		'#shipping_address_1', '#shipping_city', '#shipping_state', '#shipping_country',
+		'#billing_address_1', '#billing_city', '#billing_state', '#billing_country',
+		'#ship-to-different-address-checkbox'
+	].join(', '), updateLocalPickupAddress);
 
-	$('#shipping_address_1, #shipping_city, #shipping_state, #shipping_country').on('change', function() {
-		if ($('#shipbubble-local-pickup-address').length === 0) return;
-		handle_address_change('shipping');
-	});
-
-	$('#billing_address_1, #billing_city, #billing_state, #billing_country').on('change', function() {
-		if ($('#shipbubble-local-pickup-address').length === 0) return;
-		handle_address_change('billing');
-	});
+	updateLocalPickupAddress();
 
 	/**
-	 * Display a loading screen with a message.
+	 * Display the pickup address lookup loading screen.
 	 *
-	 * @param {string} [message='Processing...']
+	 * @returns {void}
 	 */
-	function showLoadingScreen(message = '') {
-		if (!message) {
-			message = 'Fetching pickup address...';
-		}
+	function showLoadingScreen() {
 		$.blockUI({
 			css: {
 				width: '300px',
@@ -232,8 +108,7 @@ jQuery(document).ready(function($) {
 				top: 'calc(50% - 150px)',
 				padding: '20px'
 			},
-			message: '<div style="margin: 8px; font-size:100%;" class="shipbubble_saving_popup"><img src="'+shipbubble_local_pickup.logo+'" height="80" width="80" style="padding-bottom:10px;"><br>'+ message +'</div>'
+			message: '<div style="margin: 8px; font-size:100%;" class="shipbubble_saving_popup"><img src="'+shipbubble_local_pickup.logo+'" height="80" width="80" style="padding-bottom:10px;"><br>Fetching pickup address...</div>'
 		});
 	}
-
 });

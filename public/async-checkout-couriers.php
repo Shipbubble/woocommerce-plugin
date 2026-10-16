@@ -28,7 +28,7 @@
 		$script_url = plugins_url( '/js/shipbubble-local-pickup.js', __FILE__ );
 
 		// enqueue script
-		wp_enqueue_script( 'shipbubble-local-pickup', $script_url, array( 'jquery' ), rand(1000, 9999), true );
+		wp_enqueue_script( 'shipbubble-local-pickup', $script_url, array( 'jquery', 'blockui' ), rand(1000, 9999), true );
 
 		$nonce = wp_create_nonce('shipbubble_local_pickup_nonce');
 
@@ -39,6 +39,8 @@
 			'ajaxurl' => $ajax_url,
 			'logo' => SHIPBUBBLE_LOGO_URL,
 		);
+
+		$data['countries'] = WC()->countries->get_countries();
 
 		wp_localize_script( 'shipbubble-local-pickup', 'shipbubble_local_pickup', $data );
 	}
