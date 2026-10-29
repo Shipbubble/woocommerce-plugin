@@ -3,14 +3,13 @@
     // enqueue scripts
     function ajax_enqueue_scripts_create_shipment( $hook ) 
     {
-        // check if our page
-        if ( 'post.php' !== $hook ) return;
+        if (!shipbubble_is_order_edit_screen()) return;
         
         // define script url
         $script_url = plugins_url( '/js/ajax-create-shipment.js', plugin_dir_path( __FILE__ ) );
 
         // enqueue script
-        wp_enqueue_script( 'ajax-wc-admin', $script_url, array( 'jquery' ) );
+        wp_enqueue_script( 'shipbubble-create-shipment', $script_url, array( 'jquery' ), SHIPBUBBLE_PLUGIN_VERSION_NUMBER, true );
 
         // create nonce
         $nonce = wp_create_nonce( 'ajax_wc_admin' );
@@ -19,7 +18,7 @@
         $script = array( 'nonce' => $nonce );
 
         // localize script
-        wp_localize_script( 'ajax-wc-admin', 'ajax_wc_admin', $script );
+        wp_localize_script( 'shipbubble-create-shipment', 'ajax_wc_admin', $script );
 
     }
     

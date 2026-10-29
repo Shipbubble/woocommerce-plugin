@@ -3,12 +3,7 @@
     // enqueue scripts
     function ajax_public_enqueue_scripts() {
 
-	    $options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
-
-	    $isShipbubbleActive = $options['activate_shipbubble'] ?? 'no';
-
-	    if ( 'yes' != $isShipbubbleActive || !is_checkout()) return;
-	    if (function_exists('shipbubble_blocks_is_checkout_page') && shipbubble_blocks_is_checkout_page()) return;
+	    if (!shipbubble_should_enqueue_classic_checkout_assets()) return;
 
 	    enqueue_shipbubble_local_pickup_script();
 		enqueue_shipbubble_checkout_script();
@@ -28,7 +23,7 @@
 		$script_url = plugins_url( '/js/shipbubble-local-pickup.js', __FILE__ );
 
 		// enqueue script
-		wp_enqueue_script( 'shipbubble-local-pickup', $script_url, array( 'jquery' ), rand(1000, 9999), true );
+		wp_enqueue_script( 'shipbubble-local-pickup', $script_url, array( 'jquery', 'shipbubble-blockui' ), SHIPBUBBLE_PLUGIN_VERSION_NUMBER, true );
 
 		$nonce = wp_create_nonce('shipbubble_local_pickup_nonce');
 
@@ -55,7 +50,7 @@
 		$script_url = plugins_url( '/js/couriers-on-checkout.js', __FILE__ );
 
 		// enqueue script
-		wp_enqueue_script( 'ajax-public', $script_url, array( 'jquery' ), rand(1000, 9999), true );
+		wp_enqueue_script( 'shipbubble-checkout', $script_url, array( 'jquery', 'shipbubble-sweetalert2' ), SHIPBUBBLE_PLUGIN_VERSION_NUMBER, true );
 
 		// create nonce
 		$nonce = wp_create_nonce( 'ajax_public' );
@@ -73,7 +68,7 @@
 		);
 
 		// localize script
-		wp_localize_script( 'ajax-public', 'ajax_public', $script );
+		wp_localize_script( 'shipbubble-checkout', 'ajax_public', $script );
 	}
 
 
