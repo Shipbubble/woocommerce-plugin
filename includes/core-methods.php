@@ -780,6 +780,48 @@ function is_shipbubble_admin_page() : bool
 	return strpos($page, 'shipbubble-settings') !== false;
 }
 
+/**
+ * Identify existing WooCommerce order editors in both storage modes.
+ *
+ * @return bool
+ */
+function shipbubble_is_order_edit_screen(): bool
+{
+	$screen = function_exists('get_current_screen') ? get_current_screen() : null;
+	if (!$screen) {
+		return false;
+	}
+
+	if ('post' === $screen->base && 'shop_order' === $screen->post_type && 'add' !== $screen->action) {
+		return true;
+	}
+
+	return function_exists('wc_get_page_screen_id')
+		&& wc_get_page_screen_id('shop-order') === $screen->id
+		&& isset($_GET['action']) && 'edit' === $_GET['action'];
+}
+
+/**
+ * Limit legacy assets to an active classic checkout form.
+ *
+ * @return bool
+ */
+function shipbubble_should_enqueue_classic_checkout_assets(): bool
+{
+	if (!function_exists('is_checkout') || !is_checkout()) {
+		return false;
+	}
+
+	if ((function_exists('is_order_received_page') && is_order_received_page())
+		|| (function_exists('is_checkout_pay_page') && is_checkout_pay_page())
+		|| (function_exists('shipbubble_blocks_is_checkout_page') && shipbubble_blocks_is_checkout_page())) {
+		return false;
+	}
+
+	$options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
+	return 'yes' === ($options['activate_shipbubble'] ?? 'no');
+}
+
 
 /**
  * Checks if a WordPress plugin is active, considering both single-site and multisite installations.

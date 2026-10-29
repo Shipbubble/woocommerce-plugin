@@ -5,7 +5,10 @@
  *
  * @return void
  */
-function shipbubble_enqueue_style_admin() {
+function shipbubble_enqueue_style_admin($hook) {
+	if ('toplevel_page_shipbubble-settings' !== $hook && !shipbubble_is_order_edit_screen()) {
+		return;
+	}
 	
 	/*
 		wp_enqueue_style(

@@ -45,29 +45,35 @@ function shipbubble_blocks_is_checkout_context(): bool
  * active Shipbubble integration. WooCommerce uses this option for both its
  * classic billing field and the Blocks address schema/validation.
  *
- * @param string $visibility Configured WooCommerce phone visibility.
- * @return string
+ * @param mixed $visibility Configured visibility or an option lookup's default value.
+ * @return mixed
  */
-function shipbubble_blocks_require_phone_field($visibility): string
+function shipbubble_blocks_require_phone_field($visibility)
 {
+	// The Customizer uses an object default to detect missing options. Preserve
+	// that sentinel (and other non-string values) instead of coercing it.
+	if (!is_string($visibility)) {
+		return $visibility;
+	}
+
 	if (!function_exists('WC')) {
-		return (string) $visibility;
+		return $visibility;
 	}
 
 	if (function_exists('is_cart') && is_cart()) {
-		return (string) $visibility;
+		return $visibility;
 	}
 	$is_checkout_page = function_exists('is_checkout') && is_checkout();
 	$is_classic_checkout_request = isset($_REQUEST['wc-ajax'])
 		&& 'checkout' === sanitize_key(wp_unslash($_REQUEST['wc-ajax']));
 	if (!$is_checkout_page && !$is_classic_checkout_request && !shipbubble_blocks_is_checkout_context()) {
-		return (string) $visibility;
+		return $visibility;
 	}
 
 	$options = get_option(WC_SHIPBUBBLE_ID, shipbubble_wc_options_default());
 	$is_active = apply_filters('is_shipbubble_active', $options['activate_shipbubble'] ?? 'no');
 	if ('yes' !== $is_active || (WC()->cart && !WC()->cart->needs_shipping())) {
-		return (string) $visibility;
+		return $visibility;
 	}
 
 	return 'required';
@@ -209,6 +215,7 @@ function shipbubble_blocks_register_selected_courier_block()
 		'shipbubble/selected-courier',
 		array(
 			'api_version' => 3,
+			'editor_style' => 'shipbubble-checkout-blocks',
 			'parent' => array('woocommerce/checkout-shipping-methods-block'),
 			'attributes' => array(
 				'lock' => array(
@@ -256,6 +263,8 @@ add_filter(
  */
 function shipbubble_blocks_inject_selected_courier_mount($block_content)
 {
+	wp_enqueue_style('shipbubble-checkout-blocks');
+
 	if (false !== strpos($block_content, 'shipbubble/selected-courier')) {
 		return $block_content;
 	}
