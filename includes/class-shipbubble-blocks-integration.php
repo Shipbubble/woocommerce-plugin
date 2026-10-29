@@ -55,7 +55,7 @@ final class Shipbubble_Blocks_Integration implements IntegrationInterface
 
 		$style_path = dirname(__DIR__) . '/build/style-index.css';
 		if (file_exists($style_path)) {
-			wp_enqueue_style(
+			wp_register_style(
 				'shipbubble-checkout-blocks',
 				SHIPBUBBLE_PLUGIN_URL . '/build/style-index.css',
 				array(),

@@ -619,23 +619,17 @@ function shipbubble_validate_checkout_order($order_id = 0)
 }
 
 /**
- * Enqueue shared Shipbubble scripts in dependency order.
+ * Register shared libraries for the Shipbubble scripts that depend on them.
  *
  * @return void
  */
-function shipbubble_append_enqueue_script()
+function shipbubble_register_shared_scripts()
 {
-	if (!is_admin() && function_exists('shipbubble_blocks_is_checkout_page') && shipbubble_blocks_is_checkout_page()) {
-		return;
-	}
-
-	wp_enqueue_script('sweetalert2', plugins_url('public/js/sweetalert2.min.js', __FILE__), array());
-	wp_enqueue_script('blockui', plugins_url('public/js/blockui/jquery.blockUI.js', __FILE__), array('jquery'));
-	// here you can enqueue more js / css files
+	wp_register_script('shipbubble-sweetalert2', plugins_url('public/js/sweetalert2.min.js', __FILE__), array(), SHIPBUBBLE_PLUGIN_VERSION_NUMBER, true);
+	wp_register_script('shipbubble-blockui', plugins_url('public/js/blockui/jquery.blockUI.js', __FILE__), array('jquery'), SHIPBUBBLE_PLUGIN_VERSION_NUMBER, true);
 }
 
-add_action('wp_enqueue_scripts', 'shipbubble_append_enqueue_script');
-add_action('admin_enqueue_scripts', 'shipbubble_append_enqueue_script');
+add_action('init', 'shipbubble_register_shared_scripts');
 
 add_action('before_woocommerce_init', 'shipbubble_declare_checkout_blocks_compatibility');
 

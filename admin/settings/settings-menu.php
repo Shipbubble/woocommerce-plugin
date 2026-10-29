@@ -103,7 +103,7 @@ add_action('admin_enqueue_scripts', 'shipbubble_enqueue_admin_scripts');
 
 function shipbubble_enqueue_admin_scripts($hook) {
 	// Only enqueue on our plugin's settings pages
-	if (strpos($hook, 'shipbubble') !== false) {
+	if ('toplevel_page_shipbubble-settings' === $hook) {
 		// create nonce
 		$nonce = wp_create_nonce( 'ajax_wc_admin' );
 
@@ -114,7 +114,7 @@ function shipbubble_enqueue_admin_scripts($hook) {
 		wp_enqueue_script(
 			'shipbubble-settings',
 			plugins_url('js/settings.js', __FILE__),
-			array('jquery'),
+			array('jquery', 'shipbubble-sweetalert2', 'shipbubble-blockui'),
 			$version,
 			true
 		);
