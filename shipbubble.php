@@ -523,14 +523,11 @@ function shipbubble_sync_rate_with_posted_courier()
 
 	$stored = WC()->session->get('shipping_for_package_0');
 	$rate = $stored['rates'][SHIPBUBBLE_ID] ?? null;
-	if (!$rate) {
-		return;
-	}
 
 	$posted_courier = sanitize_text_field($_POST['shipbubble_selected_courier']);
 	$posted_cost = (float) sanitize_text_field($_POST['shipbubble_cost']);
 
-	if ($rate->get_label() !== $posted_courier || abs((float) $rate->get_cost() - $posted_cost) > 0.01) {
+	if (!$rate || $rate->get_label() !== $posted_courier || abs((float) $rate->get_cost() - $posted_cost) > 0.01) {
 		// Drop the cached rate so WooCommerce rebuilds it from the posted courier.
 		WC()->session->__unset('shipping_for_package_0');
 	}
