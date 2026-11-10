@@ -499,6 +499,43 @@ function shipbubble_create_shipment_after_order_created($order_id)
 	}
 }
 
+add_action('woocommerce_before_checkout_process', 'shipbubble_sync_rate_with_posted_courier', 5);
+/**
+ * Recalculate the shipping rate at submit when it no longer matches the posted courier.
+ *
+ * @return void
+ */
+function shipbubble_sync_rate_with_posted_courier()
+{
+	if (function_exists('shipbubble_blocks_is_checkout_context') && shipbubble_blocks_is_checkout_context()) {
+		return;
+	}
+
+	if (empty($_POST['shipbubble_selected_courier']) || !isset($_POST['shipbubble_cost'], $_POST['shipbubble_courier_set'])) {
+		return;
+	}
+
+	// shipbubble_change_rates only rebuilds the rate when one of these is posted.
+	$is_local_pickup = isset($_POST['shipbubble_courier_id']) && 'local_pickup' === $_POST['shipbubble_courier_id'];
+	if (!isset($_POST['delivery_option']) && !$is_local_pickup) {
+		return;
+	}
+
+	$stored = WC()->session->get('shipping_for_package_0');
+	$rate = $stored['rates'][SHIPBUBBLE_ID] ?? null;
+	if (!$rate) {
+		return;
+	}
+
+	$posted_courier = sanitize_text_field($_POST['shipbubble_selected_courier']);
+	$posted_cost = (float) sanitize_text_field($_POST['shipbubble_cost']);
+
+	if ($rate->get_label() !== $posted_courier || abs((float) $rate->get_cost() - $posted_cost) > 0.01) {
+		// Drop the cached rate so WooCommerce rebuilds it from the posted courier.
+		WC()->session->__unset('shipping_for_package_0');
+	}
+}
+
 add_action( 'woocommerce_before_checkout_process', 'shipbubble_validate_checkout_order' , 10, 1 );
 add_action( 'woocommerce_checkout_order_processed', 'shipbubble_validate_checkout_order', 10, 1 );
 /**
